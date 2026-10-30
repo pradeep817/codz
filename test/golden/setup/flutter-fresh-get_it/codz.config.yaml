@@ -1,6 +1,6 @@
-# devtool configuration. Commit this file.
-# Values below were detected by `devtool init` (or chosen in `devtool setup`).
-# Correct any that are wrong: devtool always uses these values instead of guessing again.
+# codz configuration. Commit this file.
+# Values below were detected by `codz init` (or chosen in `codz setup`).
+# Correct any that are wrong: codz always uses these values instead of guessing again.
 framework: flutter
 conventions:
   # package name from pubspec.yaml
@@ -10,7 +10,7 @@ conventions:
   # model serialization: manual (hand-written fromJson), json_serializable or freezed
   serialization: manual
   # state management library
-  stateManagement: riverpod
+  stateManagement: none
   # router library
   router: navigator
   # where model classes live
@@ -28,7 +28,7 @@ conventions:
   # name of the Dio field inside repository classes
   dioField: _dio
   # how repositories are registered: getx, riverpod, get_it or none
-  di: riverpod
+  di: get_it
   # Dio base URL found in the code, if it is a literal
   baseUrl: https://api.yourapp.com
   # package or relative imports
@@ -36,8 +36,8 @@ conventions:
   # indentation used in Dart files
   indent: 2
   # file that creates the Dio instance (mocks are registered there)
-  networkFile: lib/core/network/dio_provider.dart
-  # Riverpod provider that supplies Dio (riverpod only)
-  dioProvider: dioProvider
-  # file that defines the Dio provider (riverpod only)
-  dioProviderFile: lib/core/network/dio_provider.dart
+  networkFile: lib/core/network/api_client.dart
+  # file where new classes are registered: the GetX binding or the get_it setup
+  diFile: lib/core/di/injection.dart
+  # name of the get_it instance, for example getIt (get_it only)
+  diInstance: getIt

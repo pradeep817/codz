@@ -195,7 +195,7 @@ describe('React Native: setup and create', () => {
   for (const flavor of ['expo', 'bare'] as const) {
     for (const architecture of ['fetch-helper', 'axios', 'axios-react-query']) {
       it(`create ${flavor} + ${architecture}: navigation, config, API client; then api add and screen add work`, async () => {
-        const parent = mkdtempSync(join(tmpdir(), 'devtool-rn-'));
+        const parent = mkdtempSync(join(tmpdir(), 'codz-rn-'));
         try {
           const r = await createProject({ type: 'react-native', name: 'shop-app', parent, architecture, baseUrl: 'https://api.shop.dev', org: 'com.acme', flavor, offline: true, install: false, git: false });
           const env = readFileSync(join(r.dir, 'src/config/env.ts'), 'utf8');

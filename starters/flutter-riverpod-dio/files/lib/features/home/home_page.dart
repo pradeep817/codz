@@ -11,7 +11,7 @@ class HomePage extends StatelessWidget {
         child: Padding(
           padding: EdgeInsets.all(24),
           child: Text(
-            'Add your first endpoint with devtool api add, then a screen with devtool screen add.',
+            'Add your first endpoint with codz api add, then a screen with codz screen add.',
             textAlign: TextAlign.center,
           ),
         ),

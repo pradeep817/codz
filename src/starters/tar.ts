@@ -14,7 +14,7 @@ export interface TarContents {
 
 const tooLarge = (what: string) => new ToolError('archive_too_large', `The archive exceeds a safety limit (${what}).`, 'Report it; nothing was written.');
 const unsafe = (what: string) => new ToolError('archive_unsafe', `The archive has an unsafe entry: ${what}. Nothing was written.`, 'Do not use this template; report it.');
-const broken = (what: string) => new ToolError('bad_template', `The archive is damaged: ${what}.`, 'Clear the cache with devtool starters cache --clear and retry; report it if it persists.');
+const broken = (what: string) => new ToolError('bad_template', `The archive is damaged: ${what}.`, 'Clear the cache with codz starters cache --clear and retry; report it if it persists.');
 
 function field(b: Buffer, off: number, len: number): string {
   const raw = b.subarray(off, off + len);

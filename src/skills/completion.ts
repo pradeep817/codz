@@ -1,5 +1,5 @@
-// Shell completion. `devtool completion bash|zsh|fish` prints a script that calls
-// the hidden `devtool __complete <words...>` command, so all three shells share
+// Shell completion. `codz completion bash|zsh|fish` prints a script that calls
+// the hidden `codz __complete <words...>` command, so all three shells share
 // one implementation, including endpoint names, plan ids and config keys.
 
 import { readdirSync } from 'node:fs';
@@ -44,7 +44,7 @@ function planIds(root: string): string[] {
 }
 
 /**
- * Candidates for the last word. `words` are the words after "devtool", the last
+ * Candidates for the last word. `words` are the words after "codz", the last
  * one being the word under the cursor (possibly empty).
  */
 export async function complete(words: string[], root: string, adapter: Adapter): Promise<string[]> {
@@ -89,10 +89,10 @@ export async function complete(words: string[], root: string, adapter: Adapter):
 
 export function completionScript(shell: string): string {
   if (shell === 'bash') {
-    return `# devtool completion for bash. Add to ~/.bashrc:  eval "$(devtool completion bash)"
-_devtool() {
+    return `# codz completion for bash. Add to ~/.bashrc:  eval "$(codz completion bash)"
+_codz() {
   local cur="\${COMP_WORDS[COMP_CWORD]}" out
-  out=$(devtool __complete "\${COMP_WORDS[@]:1:COMP_CWORD}" 2>/dev/null)
+  out=$(codz __complete "\${COMP_WORDS[@]:1:COMP_CWORD}" 2>/dev/null)
   if [ "$out" = "${FILES}" ]; then
     COMPREPLY=($(compgen -f -- "$cur"))
   else
@@ -100,34 +100,34 @@ _devtool() {
     COMPREPLY=($(compgen -W "$out" -- "$cur"))
   fi
 }
-complete -o default -F _devtool devtool
+complete -o default -F _codz codz
 `;
   }
   if (shell === 'zsh') {
-    return `#compdef devtool
-# devtool completion for zsh. Add to ~/.zshrc (after compinit):  source <(devtool completion zsh)
-_devtool() {
+    return `#compdef codz
+# codz completion for zsh. Add to ~/.zshrc (after compinit):  source <(codz completion zsh)
+_codz() {
   local -a out
-  out=("\${(@f)$(devtool __complete "\${words[@]:1:$((CURRENT-1))}" 2>/dev/null)}")
+  out=("\${(@f)$(codz __complete "\${words[@]:1:$((CURRENT-1))}" 2>/dev/null)}")
   if [[ "\${out[1]}" == "${FILES}" ]]; then
     _files
   else
     compadd -a out
   fi
 }
-compdef _devtool devtool
+compdef _codz codz
 `;
   }
-  return `# devtool completion for fish. Save as ~/.config/fish/completions/devtool.fish:
-#   devtool completion fish > ~/.config/fish/completions/devtool.fish
-function __devtool_complete
-  set -l out (devtool __complete (commandline -opc)[2..-1] (commandline -ct) 2>/dev/null)
+  return `# codz completion for fish. Save as ~/.config/fish/completions/codz.fish:
+#   codz completion fish > ~/.config/fish/completions/codz.fish
+function __codz_complete
+  set -l out (codz __complete (commandline -opc)[2..-1] (commandline -ct) 2>/dev/null)
   if test "$out" = "${FILES}"
     __fish_complete_path (commandline -ct)
   else
     printf '%s\\n' $out
   end
 end
-complete -c devtool -f -a '(__devtool_complete)'
+complete -c codz -f -a '(__codz_complete)'
 `;
 }

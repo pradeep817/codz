@@ -94,7 +94,7 @@ describe('setup rules', () => {
     const { dir, changeSet } = await setUp('flutter-fresh', ADAPTERS.flutter, 'getx');
     try {
       applyChangeSet(dir, changeSet, { allowDirty: true, verify: false, format: false });
-      rmSync(join(dir, 'devtool.config.yaml'));
+      rmSync(join(dir, 'codz.config.yaml'));
       const { map } = await loadMap(dir, ADAPTERS.flutter, {}, { force: true });
       assert.equal(map.conventions.di, 'getx');
       assert.equal(map.conventions.diFile, 'lib/app/bindings/initial_binding.dart');

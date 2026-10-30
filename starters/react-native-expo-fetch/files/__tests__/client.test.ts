@@ -1,6 +1,6 @@
 import * as client from '../src/api/client';
 
-// Imported under another name so devtool does not take this test for an API file.
+// Imported under another name so codz does not take this test for an API file.
 const { ApiError, apiErrorMessage, apiFetch: request } = client;
 
 const mockFetch = (status: number, body: unknown) =>

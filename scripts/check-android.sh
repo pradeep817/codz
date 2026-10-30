@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
-# Creates an Android project for every architecture, runs a full devtool session
+# Creates an Android project for every architecture, runs a full codz session
 # on each (endpoints, screens, form, route, tests, theme), then builds the app
 # and runs the generated unit tests with Gradle. Needs Java 17+, the Android SDK
 # (ANDROID_HOME) and Gradle on PATH (for the wrapper); CI has all three.
 set -uo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-DT=(node "$ROOT/bin/devtool.js")
+DT=(node "$ROOT/bin/codz.js")
 IN="$ROOT/test/inputs"
 WORK="$(mktemp -d)"
 FLAGS=(--yes --allow-dirty --no-verify --no-color)
@@ -19,7 +19,7 @@ fi
 
 for arch in retrofit-hilt retrofit-koin retrofit; do
   name="shop-${arch//-/}"; d="$WORK/$name"
-  run() { (cd "$d" && "${DT[@]}" "$@" "${FLAGS[@]}" >/dev/null 2>&1) || { echo "✗ $arch: devtool $*"; status=1; }; }
+  run() { (cd "$d" && "${DT[@]}" "$@" "${FLAGS[@]}" >/dev/null 2>&1) || { echo "✗ $arch: codz $*"; status=1; }; }
   (cd "$WORK" && "${DT[@]}" create "$name" --type android --org com.acme --architecture "$arch" --base-url https://api.example.com/v1 --primary '#0F766E' --no-git --no-install --yes --no-color >/dev/null 2>&1) || { echo "✗ create $arch"; status=1; continue; }
   run api add --url 'https://api.example.com/v1/products?category=home' --sample "$IN/products.json"
   run api add --url 'https://api.example.com/v1/users/{id}' --sample "$IN/user.json"

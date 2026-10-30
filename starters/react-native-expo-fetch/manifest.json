@@ -7,7 +7,7 @@
   "framework": "react-native",
   "mode": "full",
   "requires": {
-    "devtool": ">=0.1.0",
+    "codz": ">=0.1.0",
     "node": ">=18.18"
   },
   "provides": {
@@ -82,8 +82,8 @@
     },
     {
       "path": ".gitignore",
-      "sha256": "fcb4547d5681a4d59d03a76dbb373f33cef833d8b9187ad3b59465ca300d2720",
-      "size": 138
+      "sha256": "1efcc8ddaf120c8e54a7fe7dba31b32d4ea9d2dd4c1c802d6355ee8b10c596e1",
+      "size": 132
     },
     {
       "path": "App.tsx",
@@ -92,13 +92,13 @@
     },
     {
       "path": "README.md",
-      "sha256": "79ed8a9301c5944dc1d3a1cdbf3eb8120bbe16ab12bc10f7ccf352368626962e",
-      "size": 452
+      "sha256": "b3fcb2182f15107fbdc52e3f9ccf4cf583fca8f5c1716ff36dd4d6e43200f36f",
+      "size": 446
     },
     {
       "path": "__tests__/client.test.ts",
-      "sha256": "6090d4575f43381e94f9d1da316c49836771449fcf3e24c1420c6d7f4b534079",
-      "size": 978
+      "sha256": "29194099b6e49329f9d322f25929c12c1d37ea2f17fdbd7a2289b080475aff41",
+      "size": 975
     },
     {
       "path": "app.json",
@@ -147,18 +147,18 @@
     },
     {
       "path": "src/navigation/RootNavigator.tsx",
-      "sha256": "f8b7e4af970c8822c39bf8c12e8b8e5064d6f30d68c6f73a560907cc28e7d774",
-      "size": 540
+      "sha256": "1a3ebc67a71f124641602137a4f6630405ded18ca3e01f83296b4b0621e1779a",
+      "size": 537
     },
     {
       "path": "src/screens/HomeScreen.tsx",
-      "sha256": "0c40550da5c18d64b79a2a50750ba9a3bc4c9bf44dbff35d755ae1f2f7eecc72",
-      "size": 761
+      "sha256": "e377f5801f52997f7ca5d3ddfa7ed3198e06e489e02736d6f6ae3903beb3d6e8",
+      "size": 755
     },
     {
       "path": "src/theme/colors.ts",
-      "sha256": "58074c5cd138c9db8f7c1972c9a7b3325c755203894a4187d13d490119ec1256",
-      "size": 379
+      "sha256": "cae99212f8eb4c8bf35a2d03d4c626a3788c4ac054982888e32feabeb793c172",
+      "size": 376
     },
     {
       "path": "src/theme/useTheme.ts",
@@ -167,8 +167,8 @@
     },
     {
       "path": "src/types/api.ts",
-      "sha256": "26f899b79f9e8b9dc20227029368ed6688f1169f6cee416bdbdcfa89f7d23bcb",
-      "size": 164
+      "sha256": "53b5703e2c153269e5bcf0e4df5fb344ea7188b93bb9fe5577c226bcdb58fc00",
+      "size": 161
     },
     {
       "path": "tsconfig.json",

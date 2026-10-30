@@ -5,7 +5,7 @@ import { join, relative, sep } from 'node:path';
 export const IGNORED_DIRS = new Set([
   'node_modules',
   '.git',
-  '.devtool',
+  '.codz',
   '.next',
   '.dart_tool',
   'build',

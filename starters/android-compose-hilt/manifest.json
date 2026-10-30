@@ -7,7 +7,7 @@
   "framework": "android",
   "mode": "full",
   "requires": {
-    "devtool": ">=0.1.0"
+    "codz": ">=0.1.0"
   },
   "provides": {
     "ui": "compose",
@@ -67,13 +67,13 @@
   "files": [
     {
       "path": ".gitignore",
-      "sha256": "e5362027cfdb4730e3af7523b80329711016c58afb4cc91dc1bd6e8a9330dbe3",
-      "size": 166
+      "sha256": "55ae5847fa1dbe11dee0a32160fccac61fa73c5e7f109a74cac8beae2ca370c5",
+      "size": 160
     },
     {
       "path": "README.md",
-      "sha256": "a03a5579cbb3e074709eadabf9e6895123ba32340720f6a6e4974c10a26985f8",
-      "size": 650
+      "sha256": "cfcd7b418c2a710f64597fa6f31e255d82be3a9c11bdd7f3fda05223ae9c18f8",
+      "size": 644
     },
     {
       "path": "app/.gitignore",
@@ -122,8 +122,8 @@
     },
     {
       "path": "app/src/main/java/{{packageName.path}}/di/NetworkModule.kt",
-      "sha256": "384ec3111e5ba4e737f04ab37a3b7aa3f3d89bd6ed94359f61bd6e7547cf4c36",
-      "size": 1607
+      "sha256": "c53e7baf19de00b2b77709dc9500374b9a2d456cc9ebd5f1346c76310dc5a819",
+      "size": 1604
     },
     {
       "path": "app/src/main/java/{{packageName.path}}/ui/UiState.kt",
@@ -137,18 +137,18 @@
     },
     {
       "path": "app/src/main/java/{{packageName.path}}/ui/navigation/AppNavHost.kt",
-      "sha256": "242e696022047888d7aa0f3633ab87ab45968f6a9bd038fdd843c97c19f203df",
-      "size": 644
+      "sha256": "c71a16a9e7befb5cc9e831523161516ed2438f0ace06abf6df57d0b8186becff",
+      "size": 641
     },
     {
       "path": "app/src/main/java/{{packageName.path}}/ui/screens/HomeScreen.kt",
-      "sha256": "fac871955c4bbebd1964d2d795a79128c58f966449629e63b7c1addd7bdd4921",
-      "size": 1395
+      "sha256": "b64bf893c11d9e98a191bd3f60c6254d8b7fb042189960f9c0539ff6cd435cdf",
+      "size": 1389
     },
     {
       "path": "app/src/main/java/{{packageName.path}}/ui/theme/Color.kt",
-      "sha256": "7e83be4de521610b400e7db6d0f01b2ea46c16d2f92b92a615157b4f2df58634",
-      "size": 178
+      "sha256": "9bcef0e6f930506a86a8edd079a4203c2cc8c09fffb0d2ca14cd8b7bb66bfc73",
+      "size": 175
     },
     {
       "path": "app/src/main/java/{{packageName.path}}/ui/theme/Theme.kt",

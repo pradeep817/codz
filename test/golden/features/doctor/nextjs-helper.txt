@@ -1,6 +1,6 @@
 Locales
   ✗ messages/hi.json  hi is missing 1 key: cart.empty
-    → devtool doctor --fix adds them with the en text, or: devtool locale key cart.empty "Empty" --value hi="<hi text>" --force
+    → codz doctor --fix adds them with the en text, or: codz locale key cart.empty "Empty" --value hi="<hi text>" --force
   i messages/en.json  3 keys look unused: home.title, profile.title, cart.empty
   i messages/hi.json  1 hi text is the same as en (not translated yet?): profile.title
 

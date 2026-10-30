@@ -7,7 +7,7 @@
   "framework": "nextjs",
   "mode": "full",
   "requires": {
-    "devtool": ">=0.1.0",
+    "codz": ">=0.1.0",
     "node": ">=18.18"
   },
   "provides": {
@@ -78,13 +78,13 @@
     },
     {
       "path": ".gitignore",
-      "sha256": "7a8f84e6c2be35a67c09465a0b40450eb4ba206d8582949941bde66b5ac329bb",
-      "size": 76
+      "sha256": "283fa23e0bdac737306d187bc3ade16c1655b5838d639f56dba42eae7f2dccc1",
+      "size": 73
     },
     {
       "path": "README.md",
-      "sha256": "11b34f1773f2c587c9cbaff1cf0905ac946a1ec51d6e80bcaf05e59ffe173b98",
-      "size": 1202
+      "sha256": "5696274fa7f8e601028b44363f55a12962f8144b9a6b397881da866fa5025c01",
+      "size": 1187
     },
     {
       "path": "app/(app)/dashboard/loading.tsx",
@@ -93,8 +93,8 @@
     },
     {
       "path": "app/(app)/dashboard/page.tsx",
-      "sha256": "78b4510b2ebda0a7e56dfd455c9405867a18b7e66720f042392f430ee49691f7",
-      "size": 740
+      "sha256": "862775e2d726f0a6ac19b37c422dae31c8b724fe628e92f0a87b33cbededd469",
+      "size": 731
     },
     {
       "path": "app/(app)/error.tsx",
@@ -158,8 +158,8 @@
     },
     {
       "path": "components/Sidebar.tsx",
-      "sha256": "f29f840633c4cb38347cd4d77911e4b71208568b804186d665f217e2135f17e9",
-      "size": 724
+      "sha256": "0326c123c0e4160898ab0cdd622ef4bdfafb8bb4a70ef55ae8d6713f305531dd",
+      "size": 721
     },
     {
       "path": "lib/api/auth.ts",

@@ -40,14 +40,14 @@ function envFile(expo: boolean, baseUrl: string, q: string, semi: string): strin
         '// App settings. Expo reads EXPO_PUBLIC_* variables from .env at build time.',
         `export const API_URL = process.env.EXPO_PUBLIC_API_URL ?? ${q}${baseUrl}${q}${semi}`,
         '',
-        '/** Answer API calls from mocks (devtool mock add). Set EXPO_PUBLIC_USE_MOCKS=true in .env. */',
+        '/** Answer API calls from mocks (codz mock add). Set EXPO_PUBLIC_USE_MOCKS=true in .env. */',
         `export const USE_MOCKS = process.env.EXPO_PUBLIC_USE_MOCKS === ${q}true${q}${semi}`,
       ]
     : [
         '// App settings. For per-build values, move these to react-native-config.',
         `export const API_URL = ${q}${baseUrl}${q}${semi}`,
         '',
-        '/** Answer API calls from mocks (devtool mock add). */',
+        '/** Answer API calls from mocks (codz mock add). */',
         `export const USE_MOCKS = false${semi}`,
       ];
   return L.join('\n') + '\n';
@@ -101,7 +101,7 @@ function navigator(q: string, semi: string): string {
     `import { createNativeStackNavigator } from ${q}@react-navigation/native-stack${q}${semi}`,
     `import HomeScreen from ${q}../screens/HomeScreen${q}${semi}`,
     '',
-    '/** Every screen and its parameters. devtool route add and screen add add entries here. */',
+    '/** Every screen and its parameters. codz route add and screen add add entries here. */',
     'export type RootStackParamList = {',
     `  Home: undefined${semi}`,
     `}${semi}`,
@@ -165,7 +165,7 @@ export function planReactNativeSetup(ctx: AdapterContext, choice: SetupChoice): 
   if (!choice.baseUrl) warnings.push(`No base URL was given, so ${src}/config/env.ts uses https://api.example.com. Change it there before calling the API.`);
   const read = (p: string) => readText(join(root, p));
   const create = (path: string, content: string, what: string) => {
-    if (read(path) !== null) throw new ToolError('file_exists', `${path} already exists, so setup stopped without changing anything.`, 'Remove or rename it, or set up the project by hand and run devtool init again.');
+    if (read(path) !== null) throw new ToolError('file_exists', `${path} already exists, so setup stopped without changing anything.`, 'Remove or rename it, or set up the project by hand and run codz init again.');
     files.set(path, content);
     summary.push(`Create ${path}: ${what}`);
   };
@@ -191,8 +191,8 @@ export function planReactNativeSetup(ctx: AdapterContext, choice: SetupChoice): 
       warnings.push(`This project uses Expo Router; wrap the root layout in <QueryClientProvider client={new QueryClient()}> yourself.`);
     } else {
       files.set(app, appFile(nav, query, semi));
-      rewrites.push(app); // replaced on purpose; the previous App is in devtool undo
-      summary.push(`${read(app) === null ? 'Create' : 'Replace'} ${app}: ${[nav && 'NavigationContainer with RootNavigator', query && 'QueryClientProvider'].filter(Boolean).join(' and ')}${read(app) !== null ? ' (the previous App is in devtool undo)' : ''}`);
+      rewrites.push(app); // replaced on purpose; the previous App is in codz undo
+      summary.push(`${read(app) === null ? 'Create' : 'Replace'} ${app}: ${[nav && 'NavigationContainer with RootNavigator', query && 'QueryClientProvider'].filter(Boolean).join(' and ')}${read(app) !== null ? ' (the previous App is in codz undo)' : ''}`);
     }
   }
 

@@ -8,5 +8,5 @@ web-build/
 *.p12
 *.key
 *.mobileprovision
-# devtool cache, backups and history
-.devtool/
+# codz cache, backups and history
+.codz/

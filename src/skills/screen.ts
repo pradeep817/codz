@@ -103,8 +103,8 @@ function dartArgs(params: string): Arg[] {
 
 function findEndpoint(map: ProjectMap, name: string): EndpointInfo {
   const ep = map.endpoints.find((e) => e.name === name) ?? map.endpoints.find((e) => e.name.toLowerCase() === name.toLowerCase());
-  if (!ep) throw new ToolError('no_endpoint', `No endpoint called ${name} was found.`, map.endpoints.length ? `Endpoints: ${map.endpoints.map((e) => e.name).join(', ')}` : 'Add one first with: devtool api add');
-  if (ep.method !== 'GET') throw new ToolError('screen_needs_get', `${ep.name} is a ${ep.method} endpoint; a screen loads data with a GET.`, `Wire it into a screen's controller instead: devtool api wire ${ep.name} --into <module>`);
+  if (!ep) throw new ToolError('no_endpoint', `No endpoint called ${name} was found.`, map.endpoints.length ? `Endpoints: ${map.endpoints.map((e) => e.name).join(', ')}` : 'Add one first with: codz api add');
+  if (ep.method !== 'GET') throw new ToolError('screen_needs_get', `${ep.name} is a ${ep.method} endpoint; a screen loads data with a GET.`, `Wire it into a screen's controller instead: codz api wire ${ep.name} --into <module>`);
   return ep;
 }
 
@@ -117,7 +117,7 @@ function missingArgsError(ep: EndpointInfo, missing: Arg[], params: string[], na
   return new ToolError(
     'screen_args',
     `${ep.name}() needs ${missing.map((a) => a.name).join(', ')}, which the screen does not have.`,
-    `Give the route a matching parameter, for example: devtool screen add ${name} --api ${ep.name} --path /${kebab(name)}/:${missing[0].name}${params.length ? ` (the route has ${params.join(', ')})` : ''}`,
+    `Give the route a matching parameter, for example: codz screen add ${name} --api ${ep.name} --path /${kebab(name)}/:${missing[0].name}${params.length ? ` (the route has ${params.join(', ')})` : ''}`,
   );
 }
 
@@ -236,7 +236,7 @@ async function flutterScreen(root: string, adapter: Adapter, map: ProjectMap, op
   if (c.stateManagement === 'bloc') return blocScreen(root, route, page, cls, ep, sig, args, params, map, opts);
   const riverpod = c.di === 'riverpod';
   const getIt = c.di === 'get_it';
-  if (!riverpod && !getIt) throw new ToolError('not_supported', `screen add needs a way to get ${sig.repoClass} (Riverpod, get_it or GetX); this project registers it with "${c.di || 'nothing'}".`, `Use devtool route add ${opts.name}, then load ${ep.name}() in the page yourself.`);
+  if (!riverpod && !getIt) throw new ToolError('not_supported', `screen add needs a way to get ${sig.repoClass} (Riverpod, get_it or GetX); this project registers it with "${c.di || 'nothing'}".`, `Use codz route add ${opts.name}, then load ${ep.name}() in the page yourself.`);
   const providerName = `${camel(sig.repoClass)}Provider`;
   const repoExpr = riverpod ? `ref.read(${providerName})` : `${c.diInstance || 'getIt'}<${sig.repoClass}>()`;
   const shape = responseShape(sig.returnType, map);

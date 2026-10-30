@@ -262,7 +262,7 @@ describe('Android: setup and create', () => {
 
   for (const architecture of ['retrofit-hilt', 'retrofit-koin', 'retrofit']) {
     it(`create ${architecture}: catalog, network module, then api add and screen add`, async () => {
-      const parent = mkdtempSync(join(tmpdir(), 'devtool-android-'));
+      const parent = mkdtempSync(join(tmpdir(), 'codz-android-'));
       try {
         const r = await createProject({ type: 'android', name: 'shop-app', parent, architecture, baseUrl: 'https://api.shop.dev/v1', org: 'com.acme', primary: '#0F766E', install: false, git: false });
         const S = 'app/src/main/java/com/acme/shopapp';
@@ -295,7 +295,7 @@ describe('Android: setup and create', () => {
   }
 
   it('create with no architecture is plain Compose with navigation', async () => {
-    const parent = mkdtempSync(join(tmpdir(), 'devtool-android-'));
+    const parent = mkdtempSync(join(tmpdir(), 'codz-android-'));
     try {
       const r = await createProject({ type: 'android', name: 'notes', parent, architecture: 'none', baseUrl: '', org: 'com.acme', install: false, git: false });
       assert.ok(existsSync(join(r.dir, 'app/src/main/java/com/acme/notes/ui/navigation/AppNavHost.kt')));

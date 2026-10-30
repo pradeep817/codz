@@ -1,6 +1,6 @@
 name: Corpus
 
-# Runs devtool (read-only and --dry-run) against real public Next.js and
+# Runs codz (read-only and --dry-run) against real public Next.js and
 # Flutter projects listed in scripts/corpus.txt. Weekly and on demand, since it
 # clones from the network; a crash or timeout in any project fails the run.
 
@@ -21,5 +21,5 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Run devtool against every project in scripts/corpus.txt
+      - name: Run codz against every project in scripts/corpus.txt
         run: bash ./scripts/corpus.sh

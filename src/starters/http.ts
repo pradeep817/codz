@@ -1,6 +1,6 @@
-// The only network code in devtool. Every request goes to the catalog or its
+// The only network code in codz. Every request goes to the catalog or its
 // API, announces itself once per run, has a timeout and a size cap, and maps
-// failures to devtool error codes. Tokens go in the Authorization header and
+// failures to codz error codes. Tokens go in the Authorization header and
 // are never part of a message.
 
 import { ToolError } from '../core/types.ts';
@@ -16,7 +16,7 @@ export function setAnnouncer(fn: (msg: string) => void): void {
 function announce(url: URL): void {
   if (announced) return;
   announced = true;
-  announcer(`Contacting the starter catalog at ${url.host} (devtool new and starters commands only; nothing about your projects is sent).`);
+  announcer(`Contacting the starter catalog at ${url.host} (codz new and starters commands only; nothing about your projects is sent).`);
 }
 
 /** https only, except a local test server. */
@@ -41,7 +41,7 @@ export interface HttpResult {
 
 export async function request(url: URL, opts: { method?: string; json?: unknown; token?: string; etag?: string; maxBytes: number; timeoutMs?: number }): Promise<HttpResult> {
   announce(url);
-  const headers: Record<string, string> = { 'user-agent': 'devtool', accept: 'application/json, application/octet-stream' };
+  const headers: Record<string, string> = { 'user-agent': 'codz', accept: 'application/json, application/octet-stream' };
   if (opts.json !== undefined) headers['content-type'] = 'application/json';
   if (opts.token) headers.authorization = `Bearer ${opts.token}`;
   if (opts.etag) headers['if-none-match'] = opts.etag;
@@ -73,7 +73,7 @@ export async function request(url: URL, opts: { method?: string; json?: unknown;
   return { status: res.status, body: Buffer.concat(chunks), headers: res.headers };
 }
 
-/** Turns a failed API answer into the matching devtool error. */
+/** Turns a failed API answer into the matching codz error. */
 export function apiError(r: HttpResult, ctx: { hadToken: boolean; what: string }): ToolError {
   let code = '';
   try {
@@ -81,9 +81,9 @@ export function apiError(r: HttpResult, ctx: { hadToken: boolean; what: string }
   } catch {
     // Not JSON.
   }
-  if (r.status === 401) return ctx.hadToken ? new ToolError('token_expired', 'Your session has expired.', 'Run devtool login again.') : new ToolError('not_logged_in', `${ctx.what} needs an account.`, 'Run devtool login.');
-  if (r.status === 403) return new ToolError('no_entitlement', `This account does not own ${ctx.what}.`, 'Buy it in the gallery, then run devtool whoami to refresh.');
-  if (r.status === 404) return new ToolError(code === 'version_not_found' ? 'version_not_found' : 'template_not_found', `${ctx.what} was not found in the catalog.`, 'Check the id with devtool starters list.');
+  if (r.status === 401) return ctx.hadToken ? new ToolError('token_expired', 'Your session has expired.', 'Run codz login again.') : new ToolError('not_logged_in', `${ctx.what} needs an account.`, 'Run codz login.');
+  if (r.status === 403) return new ToolError('no_entitlement', `This account does not own ${ctx.what}.`, 'Buy it in the gallery, then run codz whoami to refresh.');
+  if (r.status === 404) return new ToolError(code === 'version_not_found' ? 'version_not_found' : 'template_not_found', `${ctx.what} was not found in the catalog.`, 'Check the id with codz starters list.');
   if (r.status === 429) {
     const after = r.headers.get('retry-after');
     return new ToolError('rate_limited', 'Too many download requests.', `Wait${after ? ` ${after} seconds` : ' a while'} and try again.`);

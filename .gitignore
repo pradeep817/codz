@@ -1,6 +1,6 @@
 node_modules/
-.devtool/
-*.devtool-tmp
+.codz/
+*.codz-tmp
 .DS_Store
 dist/
 release/

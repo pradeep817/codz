@@ -13,4 +13,4 @@ Open the folder in Android Studio and run the `app` configuration, or from a ter
 - `safeApiCall { api.getItems() }` returns `ApiResult.Success` or `ApiResult.Failure` with a message for the user.
 - `UiState` (in `ui`) with `LoadingView` and `ErrorView` (in `ui/components`) cover the loading and error states of a screen.
 
-Add an endpoint with `devtool api add` and a screen with `devtool screen add`.
+Add an endpoint with `codz api add` and a screen with `codz screen add`.

@@ -68,7 +68,7 @@ interface Ctx {
 
 function context(root: string, map: ProjectMap): Ctx {
   const c = map.conventions;
-  if (c.ui !== 'swiftui') throw new ToolError('not_supported', 'devtool writes SwiftUI screens, and this project has no SwiftUI App (@main struct ...: App).', 'Screens for UIKit apps are not supported yet; api add works.');
+  if (c.ui !== 'swiftui') throw new ToolError('not_supported', 'codz writes SwiftUI screens, and this project has no SwiftUI App (@main struct ...: App).', 'Screens for UIKit apps are not supported yet; api add works.');
   const files = new Map<string, string>();
   return { root, map, I: ' '.repeat(Number(c.indent) || 4), dir: c.screensFolder || `${c.sourceDir || '.'}/Views`, files, summary: [], warnings: [], read: (p) => files.get(p) ?? readText(join(root, p)) };
 }
@@ -131,7 +131,7 @@ export function planIosRoute(root: string, map: ProjectMap, opts: Opts): ChangeS
 
 function findEp(map: ProjectMap, name: string): EndpointInfo {
   const ep = map.endpoints.find((e) => e.name === name) ?? map.endpoints.find((e) => e.name.toLowerCase() === name.toLowerCase());
-  if (!ep) throw new ToolError('no_endpoint', `No endpoint called ${name} was found.`, map.endpoints.length ? `Endpoints: ${map.endpoints.map((e) => e.name).join(', ')}` : 'Add one first with: devtool api add');
+  if (!ep) throw new ToolError('no_endpoint', `No endpoint called ${name} was found.`, map.endpoints.length ? `Endpoints: ${map.endpoints.map((e) => e.name).join(', ')}` : 'Add one first with: codz api add');
   return ep;
 }
 
@@ -306,7 +306,7 @@ function planIosForm(x: Ctx, ep: EndpointInfo, opts: Opts): ChangeSet {
   const bodyParam = call.sig.params.find((p) => p.label === 'body');
   if (!bodyParam) throw new ToolError('form_needs_body', `${ep.name}() takes no body, so there is nothing for a form to send.`);
   const model = x.map.models.find((m) => m.name === bodyParam.type);
-  if (!model) throw new ToolError('form_fields', `The request type ${bodyParam.type} is not a model devtool knows, so it cannot build the inputs.`);
+  if (!model) throw new ToolError('form_fields', `The request type ${bodyParam.type} is not a model codz knows, so it cannot build the inputs.`);
   const kindOf = (t: string) => (t === 'String' ? 'text' : t === 'Int' ? 'int' : t === 'Double' ? 'double' : t === 'Bool' ? 'bool' : t === '[String]' ? 'strings' : null);
   const reserved = new Set(['body', 'model', 'dismiss', 'canSave', 'save']);
   const fields = model.fields.map((f) => {

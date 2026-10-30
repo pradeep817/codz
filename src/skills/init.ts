@@ -1,5 +1,5 @@
 // init: detect the framework and scan. The CLI then either writes
-// devtool.config.yaml directly, or, for a project with no API layer yet,
+// codz.config.yaml directly, or, for a project with no API layer yet,
 // offers `setup` so the config and the new files land in one change.
 
 import { RN_CONVENTION_DOCS } from '../adapters/reactNative.ts';
@@ -34,7 +34,7 @@ export async function detectProject(start: string, opts: { root?: string; force?
     throw new ToolError(
       'many_projects',
       `Found ${supported.length} projects here:\n${supported.map((d) => `  ${d.root}  (${d.label})`).join('\n')}`,
-      'Run `devtool init --root <folder>` for the one you want; each project gets its own devtool.config.yaml.',
+      'Run `codz init --root <folder>` for the one you want; each project gets its own codz.config.yaml.',
     );
   }
   const pick = supported[0] ?? found[0];
@@ -61,7 +61,7 @@ export function initFiles(root: string, adapter: Adapter, conventions: Conventio
   const gi = join(root, '.gitignore');
   if (isGitRepo(root) || exists(gi)) {
     const text = readText(gi) ?? '';
-    if (!/^\/?\.devtool\/?$/m.test(text)) files.set('.gitignore', `${text}${text && !text.endsWith('\n') ? '\n' : ''}# devtool cache, backups and history\n.devtool/\n`);
+    if (!/^\/?\.codz\/?$/m.test(text)) files.set('.gitignore', `${text}${text && !text.endsWith('\n') ? '\n' : ''}# codz cache, backups and history\n.codz/\n`);
   }
   return files;
 }

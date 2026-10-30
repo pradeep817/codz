@@ -49,7 +49,7 @@ export function getxPaths(c: Conventions, moduleName: string) {
 
 export function requireGetx(c: Conventions): void {
   if (c.di !== 'getx' && c.stateManagement !== 'getx') {
-    throw new ToolError('not_supported', 'Modules are generated for GetX projects so far; this project does not use GetX.', 'For a fresh project, run: devtool setup --architecture getx');
+    throw new ToolError('not_supported', 'Modules are generated for GetX projects so far; this project does not use GetX.', 'For a fresh project, run: codz setup --architecture getx');
   }
   if (!c.packageName) throw new ToolError('no_package', 'pubspec.yaml has no name, so imports cannot be written.');
 }
@@ -129,7 +129,7 @@ export function planGetxModule(ctx: AdapterContext, opts: ModuleOptions, overlay
 
   for (const f of [p.binding, p.controller, p.view]) {
     if (read(f) !== null) {
-      throw new ToolError('module_exists', `The ${p.snake} module already exists (${f}).`, 'Pick another name, or wire an API into it with: devtool api wire <endpoint> --into ' + p.snake);
+      throw new ToolError('module_exists', `The ${p.snake} module already exists (${f}).`, 'Pick another name, or wire an API into it with: codz api wire <endpoint> --into ' + p.snake);
     }
   }
   files.set(p.binding, bindingFile(p, c));
@@ -143,7 +143,7 @@ export function planGetxModule(ctx: AdapterContext, opts: ModuleOptions, overlay
   const routePath = `/${kebab(opts.name)}`;
   if (pagesText === null || routesText === null) {
     if ((pagesText === null) !== (routesText === null)) {
-      throw new ToolError('routes_incomplete', `Found only one of ${p.pages} and ${p.routes}.`, 'devtool needs both (the GetX CLI layout), or neither so it can create them.');
+      throw new ToolError('routes_incomplete', `Found only one of ${p.pages} and ${p.routes}.`, 'codz needs both (the GetX CLI layout), or neither so it can create them.');
     }
     const k = routeConst(opts.name, false);
     let pages = [
@@ -205,7 +205,7 @@ export function planGetxModule(ctx: AdapterContext, opts: ModuleOptions, overlay
 
     let pages = pagesText.replace(/\r\n/g, '\n');
     const listStart = /\broutes\s*=\s*(?:<GetPage[^>]*>\s*)?\[/.exec(pages);
-    if (!listStart) throw new ToolError('routes_unreadable', `Could not find the routes list in ${p.pages}.`, 'devtool expects: static final routes = [ GetPage(...), ... ];');
+    if (!listStart) throw new ToolError('routes_unreadable', `Could not find the routes list in ${p.pages}.`, 'codz expects: static final routes = [ GetPage(...), ... ];');
     const open = listStart.index + listStart[0].length - 1;
     const close = matchBrace(pages, open, 'dart');
     const lineStart = pages.lastIndexOf('\n', listStart.index) + 1;
@@ -343,7 +343,7 @@ export function planGetxWire(ctx: AdapterContext, opts: WireOptions, overlay = n
   const ep = map.endpoints.find((e) => e.name === opts.endpoint) ?? map.endpoints.find((e) => e.name.toLowerCase() === opts.endpoint.toLowerCase());
   if (!ep) {
     const names = map.endpoints.map((e) => e.name);
-    throw new ToolError('no_endpoint', `No endpoint called ${opts.endpoint} was found.`, names.length ? `Endpoints in this project: ${names.join(', ')}` : 'Add one first with: devtool api add');
+    throw new ToolError('no_endpoint', `No endpoint called ${opts.endpoint} was found.`, names.length ? `Endpoints in this project: ${names.join(', ')}` : 'Add one first with: codz api add');
   }
   const repoText = read(ep.file);
   const sig = repoText && readMethod(repoText, ep.name);
@@ -352,7 +352,7 @@ export function planGetxWire(ctx: AdapterContext, opts: WireOptions, overlay = n
   const p = getxPaths(c, opts.module);
   const ctrlText = read(p.controller);
   if (ctrlText === null) {
-    throw new ToolError('no_module', `The ${p.snake} module was not found (${p.controller}).`, `Create it with: devtool module add ${p.snake}`);
+    throw new ToolError('no_module', `The ${p.snake} module was not found (${p.controller}).`, `Create it with: codz module add ${p.snake}`);
   }
   const ctrlClass = `${p.pascal}Controller`;
   if (!new RegExp(`\\bclass\\s+${ctrlClass}\\b`).test(ctrlText)) throw new ToolError('class_not_found', `${p.controller} does not define ${ctrlClass}.`);

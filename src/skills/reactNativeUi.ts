@@ -60,10 +60,10 @@ function place(root: string, map: ProjectMap, opts: Opts, warnings: string[]): P
       paramsCode: (ps) => (ps.length ? { imports: [`import { useLocalSearchParams } from 'expo-router';`], lines: [`  const { ${ps.join(', ')} } = useLocalSearchParams<{ ${ps.map((p) => `${p}: string`).join('; ')} }>();`], signature: '' } : { imports: [], lines: [], signature: '' }),
     };
   }
-  if (c.router !== 'react-navigation') throw new ToolError('not_supported', 'This project has no navigation library, so devtool cannot add a screen to it.', 'Run devtool setup (it adds React Navigation), or add @react-navigation/native or expo-router.');
+  if (c.router !== 'react-navigation') throw new ToolError('not_supported', 'This project has no navigation library, so codz cannot add a screen to it.', 'Run codz setup (it adds React Navigation), or add @react-navigation/native or expo-router.');
   const navFile = c.navigatorFile;
   const navText = navFile ? readText(join(root, navFile)) : null;
-  if (!navFile || navText === null) throw new ToolError('no_navigator', `The navigator ${navFile || '(none)'} was not found.`, 'Set navigatorFile in devtool.config.yaml to the file with your Stack.Navigator.');
+  if (!navFile || navText === null) throw new ToolError('no_navigator', `The navigator ${navFile || '(none)'} was not found.`, 'Set navigatorFile in codz.config.yaml to the file with your Stack.Navigator.');
   const file = `${c.screensFolder || 'src/screens'}/${n.component}.tsx`;
   const typed = /RootStackParamList/.test(navText);
   if (!typed && params.length) warnings.push(`${navFile} has no RootStackParamList, so route.params is not typed.`);
@@ -157,7 +157,7 @@ function callArgs(root: string, ep: EndpointInfo, params: string[], skip: (name:
 
 function findEp(map: ProjectMap, name: string): EndpointInfo {
   const ep = map.endpoints.find((e) => e.name === name) ?? map.endpoints.find((e) => e.name.toLowerCase() === name.toLowerCase());
-  if (!ep) throw new ToolError('no_endpoint', `No endpoint called ${name} was found.`, map.endpoints.length ? `Endpoints: ${map.endpoints.map((e) => e.name).join(', ')}` : 'Add one first with: devtool api add');
+  if (!ep) throw new ToolError('no_endpoint', `No endpoint called ${name} was found.`, map.endpoints.length ? `Endpoints: ${map.endpoints.map((e) => e.name).join(', ')}` : 'Add one first with: codz api add');
   return ep;
 }
 
@@ -313,7 +313,7 @@ function planRnForm(root: string, map: ProjectMap, opts: Opts, ep: EndpointInfo)
   if (!body) throw new ToolError('form_needs_body', `${ep.name}() takes no request body, so there is nothing for a form to send.`);
   const partial = /^Partial</.test(body.type);
   const model: ModelInfo | undefined = map.models.find((m) => m.name === body.type.replace(/^Partial<(.+)>$/, '$1'));
-  if (!model) throw new ToolError('form_fields', `The request type ${body.type} is not a model devtool knows, so it cannot build the inputs.`);
+  if (!model) throw new ToolError('form_fields', `The request type ${body.type} is not a model codz knows, so it cannot build the inputs.`);
   const fields = model.fields.map((f) => ({ f, k: kind(f.type), required: !partial && !f.nullable }));
   const cannot = fields.filter((x) => !x.k && x.required).map((x) => `${x.f.name} (${x.f.type})`);
   if (cannot.length) throw new ToolError('form_fields', `${model.name} has required fields a form cannot fill: ${cannot.join(', ')}.`, `Write the form for ${ep.name} by hand, or make those fields optional.`);

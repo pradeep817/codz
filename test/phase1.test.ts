@@ -19,7 +19,7 @@ import { cleanup, copyFixture, INPUTS } from './helpers.ts';
 
 const { nextjs, flutter } = ADAPTERS;
 
-const CONFIG = `# devtool configuration. Commit this file.
+const CONFIG = `# codz configuration. Commit this file.
 framework: nextjs
 conventions:
   # where API functions live
@@ -93,7 +93,7 @@ describe('config', () => {
   it('set replaces a value in place and keeps comments and order', () => {
     const dir = copyFixture('nextjs-helper');
     try {
-      writeFileSync(join(dir, 'devtool.config.yaml'), CONFIG);
+      writeFileSync(join(dir, 'codz.config.yaml'), CONFIG);
       const cs = planConfigSet(dir, nextjs, 'quote', 'double');
       assert.equal(cs.changes[0].after!, CONFIG.replace('quote: single # keep this comment', 'quote: double # keep this comment'));
     } finally {
@@ -104,7 +104,7 @@ describe('config', () => {
   it('set adds a missing key with its description, and refuses bad values and unknown keys', () => {
     const dir = copyFixture('nextjs-helper');
     try {
-      writeFileSync(join(dir, 'devtool.config.yaml'), CONFIG);
+      writeFileSync(join(dir, 'codz.config.yaml'), CONFIG);
       const cs = planConfigSet(dir, nextjs, 'modelsFolder', 'src/types');
       assert.match(cs.changes[0].after!, /semicolons: 'true'\n {2}# where TypeScript interfaces for API data live\n {2}modelsFolder: src\/types\n$/);
       assert.throws(() => planConfigSet(dir, nextjs, 'quote', 'backtick'), /not one of: single, double/);
@@ -118,12 +118,12 @@ describe('config', () => {
   it('set applies through the normal pipeline and undo restores it', async () => {
     const dir = copyFixture('nextjs-helper');
     try {
-      writeFileSync(join(dir, 'devtool.config.yaml'), CONFIG);
+      writeFileSync(join(dir, 'codz.config.yaml'), CONFIG);
       assert.equal((await cli(['--root', dir, 'config', 'set', 'quote', 'double', '--yes', '--no-color'])).code, 0);
-      assert.match(readFileSync(join(dir, 'devtool.config.yaml'), 'utf8'), /quote: double/);
+      assert.match(readFileSync(join(dir, 'codz.config.yaml'), 'utf8'), /quote: double/);
       assert.equal((await configView(dir, nextjs)).rows.find((r) => r.key === 'quote')!.value, 'double');
       assert.equal((await cli(['--root', dir, 'undo'])).code, 0);
-      assert.equal(readFileSync(join(dir, 'devtool.config.yaml'), 'utf8'), CONFIG);
+      assert.equal(readFileSync(join(dir, 'codz.config.yaml'), 'utf8'), CONFIG);
     } finally {
       cleanup(dir);
     }
@@ -132,7 +132,7 @@ describe('config', () => {
   it('view marks which values come from the config and which were detected', async () => {
     const dir = copyFixture('nextjs-helper');
     try {
-      writeFileSync(join(dir, 'devtool.config.yaml'), CONFIG);
+      writeFileSync(join(dir, 'codz.config.yaml'), CONFIG);
       const v = await configView(dir, nextjs);
       assert.equal(v.rows.find((r) => r.key === 'quote')!.source, 'config');
       assert.equal(v.rows.find((r) => r.key === 'httpHelper')!.source, 'detected');
@@ -145,12 +145,12 @@ describe('config', () => {
   it('check exits 1 on errors, and a broken config is a clear error, not a crash', async () => {
     const dir = copyFixture('nextjs-helper');
     try {
-      writeFileSync(join(dir, 'devtool.config.yaml'), 'framework: nextjs\nconventions:\n  quote: triple\n');
+      writeFileSync(join(dir, 'codz.config.yaml'), 'framework: nextjs\nconventions:\n  quote: triple\n');
       assert.equal(configCheck(dir).issues[0].key, 'quote');
       const r = await cli(['--root', dir, 'config', 'check', '--json']);
       assert.equal(r.code, 1);
       assert.equal(JSON.parse(r.out).valid, false);
-      writeFileSync(join(dir, 'devtool.config.yaml'), 'framework: nextjs\nconventions\n');
+      writeFileSync(join(dir, 'codz.config.yaml'), 'framework: nextjs\nconventions\n');
       const broken = await cli(['--root', dir, 'explain', '--json']);
       assert.equal(JSON.parse(broken.out).error.code, 'bad_config');
     } finally {
@@ -184,7 +184,7 @@ describe('completion', () => {
   it('completes commands, subcommands, flags, endpoint names, config keys and values', async () => {
     const dir = copyFixture('nextjs-helper');
     try {
-      writeFileSync(join(dir, 'devtool.config.yaml'), CONFIG);
+      writeFileSync(join(dir, 'codz.config.yaml'), CONFIG);
       assert.ok((await complete([''], dir, nextjs)).includes('api'));
       assert.ok((await complete(['api', ''], dir, nextjs)).includes('show'));
       assert.deepEqual(await complete(['api', 'show', ''], dir, nextjs), ['getUser', 'updateUser']);
@@ -198,10 +198,10 @@ describe('completion', () => {
   });
 
   it('prints scripts for bash, zsh and fish that call __complete', async () => {
-    for (const shell of ['bash', 'zsh', 'fish']) assert.match(completionScript(shell), /devtool __complete/);
+    for (const shell of ['bash', 'zsh', 'fish']) assert.match(completionScript(shell), /codz __complete/);
     const r = await cli(['completion', 'zsh']);
     assert.equal(r.code, 0);
-    assert.match(r.out, /^#compdef devtool/);
+    assert.match(r.out, /^#compdef codz/);
     const c = await cli(['__complete', 'api', 'add', '--sa']); // a half-typed flag must not error
     assert.equal(c.code, 0);
     assert.match(c.out, /--sample/);
@@ -216,7 +216,7 @@ describe('doctor --setup', () => {
       const byId = (id: string) => r.checks.find((c) => c.id === id)!;
       assert.equal(byId('node_version').status, 'pass');
       assert.equal(byId('config_found').status, 'fail');
-      writeFileSync(join(dir, 'devtool.config.yaml'), CONFIG);
+      writeFileSync(join(dir, 'codz.config.yaml'), CONFIG);
       r = runSetupDoctor(dir, nextjs);
       assert.equal(byId('config_found').status, 'pass');
       assert.equal(byId('config_valid').status, 'pass');
@@ -230,10 +230,10 @@ describe('doctor --setup', () => {
   it('reports a broken config, missing paths, unsupported libraries and leftover temp files', async () => {
     const dir = copyFixture('flutter-riverpod');
     try {
-      writeFileSync(join(dir, 'devtool.config.yaml'), 'framework: flutter\nconventions:\n  di: dagger\n  networkFile: lib/missing.dart\n');
+      writeFileSync(join(dir, 'codz.config.yaml'), 'framework: flutter\nconventions:\n  di: dagger\n  networkFile: lib/missing.dart\n');
       writeFileSync(join(dir, 'pubspec.yaml'), readFileSync(join(dir, 'pubspec.yaml'), 'utf8').replace('dependencies:', 'dependencies:\n  chopper: ^8.0.0'));
       mkdirSync(join(dir, 'lib'), { recursive: true });
-      writeFileSync(join(dir, 'lib/main.dart.devtool-tmp'), 'x');
+      writeFileSync(join(dir, 'lib/main.dart.codz-tmp'), 'x');
       const r = runSetupDoctor(dir, flutter);
       const byId = (id: string) => r.checks.find((c) => c.id === id)!;
       assert.equal(byId('config_valid').status, 'fail');

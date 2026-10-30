@@ -81,7 +81,7 @@ describe('read-only runs leave no files behind', () => {
       const r = await cli(['--root', dir, 'api', 'add', '--url', 'https://api.example.com/things', '--dry-run', '--no-color']);
       assert.equal(r.code, 0, r.out);
       await cli(['--root', dir, 'doctor', '--no-color']);
-      assert.equal(existsSync(join(dir, '.devtool')), false);
+      assert.equal(existsSync(join(dir, '.codz')), false);
     } finally {
       cleanup(dir);
     }
@@ -342,8 +342,8 @@ describe('git', () => {
       git('init', '-q');
       git('add', '-A');
       git('commit', '-qm', 'init');
-      mkdirSync(join(dir, 'apps/web/.devtool'), { recursive: true });
-      writeFileSync(join(dir, 'apps/web/.devtool/x'), 'x');
+      mkdirSync(join(dir, 'apps/web/.codz'), { recursive: true });
+      writeFileSync(join(dir, 'apps/web/.codz/x'), 'x');
       writeFileSync(join(dir, 'apps/web/new file.ts'), 'x');
       writeFileSync(join(dir, 'outside.ts'), 'x');
       assert.deepEqual(dirtyFiles(join(dir, 'apps/web')), ['new file.ts']);

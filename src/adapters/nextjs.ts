@@ -22,7 +22,7 @@ export { stripJsonc } from './nextjsScan.ts';
 export const VERSION = '0.1.0';
 
 export const NEXT_CONVENTION_DOCS: Record<string, string> = {
-  templatesFolder: 'folder with custom templates (devtool templates list)',
+  templatesFolder: 'folder with custom templates (codz templates list)',
   appDir: 'App Router folder',
   apiFolder: 'where API functions live',
   apiFileNaming: 'file naming in the API folder: kebab, camel, pascal or snake',

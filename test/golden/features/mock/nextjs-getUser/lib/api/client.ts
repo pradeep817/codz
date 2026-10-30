@@ -12,7 +12,7 @@ export class ApiError extends Error {
 }
 
 export async function apiFetch<T>(path: string, init: RequestInit = {}): Promise<T> {
-  // devtool: mock responses
+  // codz: mock responses
   if (process.env.NEXT_PUBLIC_USE_MOCKS === 'true') {
     const mock = findMock(init?.method ?? 'GET', path);
     if (mock !== undefined) return mock as T;

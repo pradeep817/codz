@@ -1,5 +1,5 @@
 // GetX modules and wiring: every step of a realistic session is a golden
-// file, on a project set up by devtool and on a GetX CLI project.
+// file, on a project set up by codz and on a GetX CLI project.
 
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';

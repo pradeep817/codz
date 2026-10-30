@@ -301,7 +301,7 @@ export async function scan(root: string, configConventions: Conventions): Promis
   c.i18n = deps['next-intl'] ? 'next-intl' : deps['next-i18next'] ? 'next-i18next' : deps.i18next ? 'i18next' : '';
   c.styling = deps.tailwindcss ? 'tailwind' : deps['styled-components'] ? 'styled-components' : '';
 
-  // Confirmed values in devtool.config.yaml win.
+  // Confirmed values in codz.config.yaml win.
   map.conventions = { ...c, ...configConventions };
   const conv = map.conventions;
 

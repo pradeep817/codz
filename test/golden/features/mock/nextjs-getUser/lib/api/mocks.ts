@@ -1,7 +1,7 @@
 // Mock responses, used when NEXT_PUBLIC_USE_MOCKS=true.
-// Managed by `devtool mock add`; edit the values freely.
+// Managed by `codz mock add`; edit the values freely.
 export const mockResponses: Record<string, unknown> = {
-  // devtool:614cb7cc0b
+  // codz:614cb7cc0b
   'GET /users/{id}': {
     "id": "u9",
     "name": "Sample name 1"

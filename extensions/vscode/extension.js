@@ -1,9 +1,9 @@
-// devtool for VS Code. Runs the devtool CLI (--json) in the workspace folder:
+// codz for VS Code. Runs the codz CLI (--json) in the workspace folder:
 // every change is previewed as a diff and applied only when you click Apply,
 // and doctor findings show up in the Problems panel.
 //
-// No dependencies besides VS Code itself; devtool must be on PATH or set in
-// the "devtool.path" setting.
+// No dependencies besides VS Code itself; codz must be on PATH or set in
+// the "codz.path" setting.
 
 'use strict';
 
@@ -11,18 +11,18 @@ const vscode = require('vscode');
 const { execFile } = require('node:child_process');
 const path = require('node:path');
 
-const SCHEME = 'devtool-plan';
+const SCHEME = 'codz-plan';
 const plans = new Map(); // uri path → diff text
 
-/** Runs devtool with --json in `cwd`; resolves with the parsed JSON (or rejects with its message). */
-function runDevtool(args, cwd, bin) {
+/** Runs codz with --json in `cwd`; resolves with the parsed JSON (or rejects with its message). */
+function runCodz(args, cwd, bin) {
   return new Promise((resolve, reject) => {
     execFile(bin, [...args, '--json', '--no-color'], { cwd, maxBuffer: 64 * 1024 * 1024, env: { ...process.env, NO_COLOR: '1' } }, (err, stdout, stderr) => {
       let json;
       try {
         json = JSON.parse(stdout);
       } catch {
-        if (err && err.code === 'ENOENT') return reject(new Error(`devtool was not found ("${bin}"). Install it, or set "devtool.path" in your settings.`));
+        if (err && err.code === 'ENOENT') return reject(new Error(`codz was not found ("${bin}"). Install it, or set "codz.path" in your settings.`));
         return reject(new Error((stderr || stdout || String(err)).trim()));
       }
       if (json.ok === false) return reject(new Error(`${json.error.message}${json.error.hint ? `\n${json.error.hint}` : ''}`));
@@ -35,7 +35,7 @@ function runDevtool(args, cwd, bin) {
 function findingsToProblems(findings) {
   return (findings || [])
     .filter((f) => f.file)
-    .map((f) => ({ file: f.file, line: Math.max(0, (f.line || 1) - 1), severity: f.severity, message: `${f.message}${f.fix ? `\nFix: ${f.fix}` : ''}`, source: `devtool (${f.check})` }));
+    .map((f) => ({ file: f.file, line: Math.max(0, (f.line || 1) - 1), severity: f.severity, message: `${f.message}${f.fix ? `\nFix: ${f.fix}` : ''}`, source: `codz (${f.check})` }));
 }
 
 /** The whole change as one diff document. */
@@ -45,8 +45,8 @@ function planText(changeSet) {
 }
 
 function activate(context) {
-  const out = vscode.window.createOutputChannel('devtool');
-  const problems = vscode.languages.createDiagnosticCollection('devtool');
+  const out = vscode.window.createOutputChannel('codz');
+  const problems = vscode.languages.createDiagnosticCollection('codz');
   context.subscriptions.push(out, problems);
   context.subscriptions.push(
     vscode.workspace.registerTextDocumentContentProvider(SCHEME, { provideTextDocumentContent: (uri) => plans.get(uri.path) || '' }),
@@ -56,12 +56,12 @@ function activate(context) {
     const f = vscode.window.activeTextEditor ? vscode.workspace.getWorkspaceFolder(vscode.window.activeTextEditor.document.uri) : undefined;
     return (f || (vscode.workspace.workspaceFolders || [])[0])?.uri.fsPath;
   };
-  const bin = () => vscode.workspace.getConfiguration('devtool').get('path') || 'devtool';
+  const bin = () => vscode.workspace.getConfiguration('codz').get('path') || 'codz';
   const run = async (args) => {
     const cwd = folder();
     if (!cwd) throw new Error('Open a folder first.');
-    out.appendLine(`$ devtool ${args.join(' ')}`);
-    return runDevtool(args, cwd, bin());
+    out.appendLine(`$ codz ${args.join(' ')}`);
+    return runCodz(args, cwd, bin());
   };
 
   /** Plans a change, shows its diff, and applies it when the user agrees. */
@@ -79,11 +79,11 @@ function activate(context) {
     const files = r.changeSet.files.length;
     const pick = await vscode.window.showInformationMessage(`Apply ${r.changeSet.skill} (${files} file${files === 1 ? '' : 's'})?`, { modal: true }, 'Apply');
     if (pick !== 'Apply') {
-      vscode.window.showInformationMessage(`Not applied. Plan ${r.planId} is saved; apply it later with: devtool apply ${r.planId}`);
+      vscode.window.showInformationMessage(`Not applied. Plan ${r.planId} is saved; apply it later with: codz apply ${r.planId}`);
       return;
     }
     const applied = await run(['apply', r.planId, '--allow-dirty']);
-    vscode.window.showInformationMessage(`Applied ${r.changeSet.skill}: ${(applied.files || []).length || files} file(s). Undo with "devtool: Undo".`);
+    vscode.window.showInformationMessage(`Applied ${r.changeSet.skill}: ${(applied.files || []).length || files} file(s). Undo with "codz: Undo".`);
   };
 
   const guard = (fn) => async (...a) => {
@@ -91,7 +91,7 @@ function activate(context) {
       await fn(...a);
     } catch (e) {
       out.appendLine(String(e.message || e));
-      vscode.window.showErrorMessage(`devtool: ${e.message || e}`);
+      vscode.window.showErrorMessage(`codz: ${e.message || e}`);
     }
   };
   const pickEndpoint = async (placeHolder) => {
@@ -108,13 +108,13 @@ function activate(context) {
   };
 
   const commands = {
-    'devtool.explain': async () => {
+    'codz.explain': async () => {
       const r = await run(['explain']);
       out.clear();
       out.appendLine(JSON.stringify(r, null, 2));
       out.show(true);
     },
-    'devtool.addEndpoint': async () => {
+    'codz.addEndpoint': async () => {
       const clip = (await vscode.env.clipboard.readText()).trim();
       const input = await vscode.window.showInputBox({ title: 'Add an endpoint', prompt: 'A cURL command or a URL ("POST https://..." for other methods)', value: /^curl\s|^https?:\/\/|^(GET|POST|PUT|PATCH|DELETE)\s/i.test(clip) ? clip : '' });
       if (!input) return;
@@ -126,11 +126,11 @@ function activate(context) {
       }
       await change(args);
     },
-    'devtool.syncSpec': async () => {
+    'codz.syncSpec': async () => {
       const f = await pickFile('OpenAPI, Swagger, Postman or HAR file', { 'API spec': ['yaml', 'yml', 'json', 'har'] });
       if (f) await change(['api', 'sync', f, '--add']);
     },
-    'devtool.showEndpoint': async () => {
+    'codz.showEndpoint': async () => {
       const name = await pickEndpoint('Which endpoint?');
       if (!name) return;
       const r = await run(['api', 'show', name]);
@@ -142,15 +142,15 @@ function activate(context) {
         await vscode.window.showTextDocument(doc, { selection: new vscode.Range(pos, pos) });
       }
     },
-    'devtool.renameEndpoint': async () => {
+    'codz.renameEndpoint': async () => {
       const name = await pickEndpoint('Rename which endpoint?');
       if (!name) return;
       const to = await vscode.window.showInputBox({ title: `Rename ${name}`, value: name });
       if (to && to !== name) await change(['api', 'rename', name, to]);
     },
-    'devtool.mockAll': () => change(['mock', 'add', '--all']),
-    'devtool.testAll': () => change(['test', 'add', '--all']),
-    'devtool.doctor': async () => {
+    'codz.mockAll': () => change(['mock', 'add', '--all']),
+    'codz.testAll': () => change(['test', 'add', '--all']),
+    'codz.doctor': async () => {
       const r = await run(['doctor']);
       problems.clear();
       const byFile = new Map();
@@ -163,11 +163,11 @@ function activate(context) {
       }
       for (const [, [uri, ...ds]] of byFile) problems.set(uri, ds);
       const c = r.counts || {};
-      vscode.window.showInformationMessage(`devtool doctor: ${c.error || 0} errors, ${c.warning || 0} warnings, ${c.info || 0} notes (see Problems).`);
+      vscode.window.showInformationMessage(`codz doctor: ${c.error || 0} errors, ${c.warning || 0} warnings, ${c.info || 0} notes (see Problems).`);
     },
-    'devtool.doctorFix': () => change(['doctor', '--fix']),
-    'devtool.undo': async () => {
-      const pick = await vscode.window.showWarningMessage('Undo the last change devtool applied?', { modal: true }, 'Undo');
+    'codz.doctorFix': () => change(['doctor', '--fix']),
+    'codz.undo': async () => {
+      const pick = await vscode.window.showWarningMessage('Undo the last change codz applied?', { modal: true }, 'Undo');
       if (pick !== 'Undo') return;
       await run(['undo']);
       vscode.window.showInformationMessage('Undone.');
@@ -178,4 +178,4 @@ function activate(context) {
 
 function deactivate() {}
 
-module.exports = { activate, deactivate, findingsToProblems, planText, runDevtool };
+module.exports = { activate, deactivate, findingsToProblems, planText, runCodz };

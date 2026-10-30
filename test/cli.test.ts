@@ -1,4 +1,4 @@
-// CLI integration tests: run bin/devtool.js as a real process, the way users
+// CLI integration tests: run bin/codz.js as a real process, the way users
 // and CI do, and check exit codes, stdout/stderr and the files on disk.
 
 import assert from 'node:assert/strict';
@@ -8,7 +8,7 @@ import { join } from 'node:path';
 import { describe, it } from 'node:test';
 import { cleanup, copyFixture, INPUTS, REPO } from './helpers.ts';
 
-const BIN = join(REPO, 'bin', 'devtool.js');
+const BIN = join(REPO, 'bin', 'codz.js');
 
 function run(args: string[], opts: { cwd?: string; input?: string; env?: Record<string, string> } = {}) {
   const r = spawnSync(process.execPath, [BIN, ...args], {
@@ -25,7 +25,7 @@ const json = (s: string) => JSON.parse(s);
 function gitRepo(dir: string): boolean {
   const g = (...a: string[]) => spawnSync('git', a, { cwd: dir, encoding: 'utf8' });
   if (g('--version').status !== 0) return false;
-  writeFileSync(join(dir, '.gitignore'), '.devtool/\n');
+  writeFileSync(join(dir, '.gitignore'), '.codz/\n');
   g('init', '-q');
   g('add', '-A');
   return g('-c', 'user.email=t@t', '-c', 'user.name=t', 'commit', '-qm', 'init').status === 0;
@@ -57,7 +57,7 @@ describe('CLI: change pipeline', () => {
       assert.equal(dry.code, 0, dry.err);
       assert.match(dry.out, /\d+ files?: .*created/);
       assert.equal(existsSync(join(dir, 'lib/api/orders.ts')), false);
-      assert.equal(existsSync(join(dir, '.devtool')), false);
+      assert.equal(existsSync(join(dir, '.codz')), false);
 
       const plan = run(['api', 'add', '--url', 'https://api.example.com/orders', '--sample', join(INPUTS, 'products.json'), '--plan', '--json'], { cwd: dir });
       const id = json(plan.out).planId;
@@ -117,7 +117,7 @@ describe('CLI: read-only commands', () => {
       assert.equal(json(check.out).passed, false);
       const setup = run(['doctor', '--setup', '--json'], { cwd: dir });
       assert.equal(json(setup.out).checks.length, 13);
-      assert.equal(existsSync(join(dir, '.devtool')), false, 'read-only commands leave no files');
+      assert.equal(existsSync(join(dir, '.codz')), false, 'read-only commands leave no files');
     } finally {
       cleanup(dir);
     }
@@ -140,7 +140,7 @@ describe('CLI: read-only commands', () => {
     for (const shell of ['bash', 'zsh', 'fish']) assert.match(run(['completion', shell]).out, /__complete/);
     const dir = copyFixture('nextjs-helper');
     try {
-      writeFileSync(join(dir, 'devtool.config.yaml'), 'framework: nextjs\nconventions:\n  quote: single\n');
+      writeFileSync(join(dir, 'codz.config.yaml'), 'framework: nextjs\nconventions:\n  quote: single\n');
       assert.deepEqual(run(['__complete', 'api', 'show', ''], { cwd: dir }).out.trim().split('\n'), ['getUser', 'updateUser']);
       assert.match(run(['__complete', 'mock', 'add', '--ke'], { cwd: dir }).out, /--keep-values/);
     } finally {

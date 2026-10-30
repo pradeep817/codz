@@ -60,7 +60,7 @@ function formFields(model: ModelInfo, endpoint: string): FormField[] {
 
 function findMutation(map: ProjectMap, name: string): EndpointInfo {
   const ep = map.endpoints.find((e) => e.name === name) ?? map.endpoints.find((e) => e.name.toLowerCase() === name.toLowerCase());
-  if (!ep) throw new ToolError('no_endpoint', `No endpoint called ${name} was found.`, map.endpoints.length ? `Endpoints: ${map.endpoints.map((e) => e.name).join(', ')}` : 'Add one first with: devtool api add');
+  if (!ep) throw new ToolError('no_endpoint', `No endpoint called ${name} was found.`, map.endpoints.length ? `Endpoints: ${map.endpoints.map((e) => e.name).join(', ')}` : 'Add one first with: codz api add');
   if (ep.method === 'GET' || ep.method === 'HEAD') throw new ToolError('form_needs_body', `${ep.name} is a ${ep.method} endpoint; a form sends data with POST, PUT or PATCH.`, `For a screen that shows ${ep.name}'s data, leave out --form.`);
   return ep;
 }
@@ -87,7 +87,7 @@ async function nextForm(root: string, adapter: Adapter, map: ProjectMap, opts: S
   if (!body) throw new ToolError('form_needs_body', `${ep.name}() takes no request body, so there is nothing for a form to send.`);
   const bodyType = body.replace(/^body\s*:\s*/, '').trim();
   const model = map.models.find((m) => m.name === bodyType.replace(/^Partial<(.+)>$/, '$1'));
-  if (!model) throw new ToolError('form_fields', `The request type ${bodyType} is not a model devtool knows, so it cannot build the inputs.`);
+  if (!model) throw new ToolError('form_fields', `The request type ${bodyType} is not a model codz knows, so it cannot build the inputs.`);
   const partial = /^Partial</.test(bodyType);
   const fields = formFields(model, ep.name).map((f) => (partial ? { ...f, required: false } : f));
   const pathArgs = params.filter((p) => !/^body\s*:/.test(p) && !/^params\??\s*:/.test(p)).map((p) => ({ name: p.split(/\??\s*:/)[0].trim(), number: /:\s*number$/.test(p) }));
@@ -209,7 +209,7 @@ async function flutterForm(root: string, adapter: Adapter, map: ProjectMap, opts
   const bodyMatch = /([\w<>?]+)\s+body\b/.exec(parts);
   if (!bodyMatch) throw new ToolError('form_needs_body', `${ep.name}() takes no request body, so there is nothing for a form to send.`);
   const model = map.models.find((m) => m.name === bodyMatch[1].replace(/\?$/, ''));
-  if (!model) throw new ToolError('form_fields', `The request type ${bodyMatch[1]} is not a model devtool knows, so it cannot build the inputs.`);
+  if (!model) throw new ToolError('form_fields', `The request type ${bodyMatch[1]} is not a model codz knows, so it cannot build the inputs.`);
   const fields = formFields(model, ep.name);
   const pathArgs = [...parts.replace(/\{[^}]*\}/, '').split(',')].map((p) => p.trim()).filter((p) => p && !/\bbody$/.test(p)).map((p) => {
     const m = /^([\w<>?]+)\s+(\w+)$/.exec(p);

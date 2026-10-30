@@ -14,4 +14,4 @@ Your API needs (change the paths in `src/api/auth.ts`):
 - `GET /auth/me` → `{ id, name, email }`
 - `POST /auth/logout` (optional)
 
-Add an endpoint with `devtool api add`: it writes the axios function in `src/api/` and a React Query hook in `src/hooks/`. Add a screen with `devtool screen add`.
+Add an endpoint with `codz api add`: it writes the axios function in `src/api/` and a React Query hook in `src/hooks/`. Add a screen with `codz screen add`.

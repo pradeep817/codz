@@ -90,8 +90,8 @@ export interface Ctx {
 
 export function context(root: string, map: ProjectMap, ui: 'compose' | 'views' = 'compose'): Ctx {
   const c = map.conventions;
-  if (ui === 'compose' && c.ui !== 'compose') throw new ToolError('not_supported', 'screen add and route add write Jetpack Compose screens, and this project uses Views.', 'Set ui: compose in devtool.config.yaml if the app uses Compose.');
-  if (!c.namespace) throw new ToolError('no_package', 'No namespace was found in the app build file.', 'Set namespace in devtool.config.yaml.');
+  if (ui === 'compose' && c.ui !== 'compose') throw new ToolError('not_supported', 'screen add and route add write Jetpack Compose screens, and this project uses Views.', 'Set ui: compose in codz.config.yaml if the app uses Compose.');
+  if (!c.namespace) throw new ToolError('no_package', 'No namespace was found in the app build file.', 'Set namespace in codz.config.yaml.');
   const files = new Map<string, string>();
   return { root, map, c, srcDir: c.srcDir || 'app/src/main/java', files, summary: [], warnings: [], read: (p) => files.get(p) ?? readText(join(root, p)) };
 }
@@ -101,7 +101,7 @@ function registerRoute(x: Ctx, route: string, call: string, screenClass: string,
   const nav = x.c.navFile;
   const text = nav ? x.read(nav) : null;
   if (!nav || text === null) {
-    x.warnings.push(`No NavHost was found, so the screen is not registered. Add composable("${route}") { ${call} } to your NavHost (or set navFile in devtool.config.yaml).`);
+    x.warnings.push(`No NavHost was found, so the screen is not registered. Add composable("${route}") { ${call} } to your NavHost (or set navFile in codz.config.yaml).`);
     return;
   }
   if (new RegExp(`composable\\(\\s*(?:route\\s*=\\s*)?"${route.replace(/[{}]/g, '\\$&')}"`).test(text)) throw new ToolError('route_exists', `${nav} already has a route "${route}".`);
@@ -180,7 +180,7 @@ export interface ApiRef {
 
 export function apiRef(x: Ctx, name: string): ApiRef {
   const ep = x.map.endpoints.find((e) => e.name === name) ?? x.map.endpoints.find((e) => e.name.toLowerCase() === name.toLowerCase());
-  if (!ep) throw new ToolError('no_endpoint', `No endpoint called ${name} was found.`, x.map.endpoints.length ? `Endpoints: ${x.map.endpoints.map((e) => e.name).join(', ')}` : 'Add one with devtool api add.');
+  if (!ep) throw new ToolError('no_endpoint', `No endpoint called ${name} was found.`, x.map.endpoints.length ? `Endpoints: ${x.map.endpoints.map((e) => e.name).join(', ')}` : 'Add one with codz api add.');
   const text = x.read(ep.file) ?? '';
   const iface = /\binterface\s+(\w+)/.exec(text)?.[1];
   const fun = kotlinFun(text, ep.name);
@@ -232,7 +232,7 @@ export function injection(x: Ctx, a: ApiRef, vm: string, vmPkg: string, needsHan
       activity: { annotations: [], delegate: `by viewModels { ${vm}.Factory }`, imports: ['androidx.activity.viewModels'] },
     };
   }
-  throw new ToolError('not_supported', `screen add needs a way to get ${a.iface} into a ViewModel (Hilt, Koin or a service locator); this project registers it with "${di || 'nothing'}".`, `Use devtool route add ${x.map.endpoints[0]?.name ? '<name>' : ''} for a screen without data.`);
+  throw new ToolError('not_supported', `screen add needs a way to get ${a.iface} into a ViewModel (Hilt, Koin or a service locator); this project registers it with "${di || 'nothing'}".`, `Use codz route add ${x.map.endpoints[0]?.name ? '<name>' : ''} for a screen without data.`);
 }
 
 function registerKoinViewModel(x: Ctx, vm: string, vmClass: string): void {
@@ -249,7 +249,7 @@ function registerKoinViewModel(x: Ctx, vm: string, vmClass: string): void {
   x.summary.push(`Update ${di}: viewModelOf(::${vm})`);
 }
 
-/** ui/UiState.kt, shared by every screen devtool writes. */
+/** ui/UiState.kt, shared by every screen codz writes. */
 export function ensureUiState(x: Ctx, screensDir: string): string {
   const uiDir = dirOf(screensDir);
   const file = `${uiDir}/UiState.kt`;

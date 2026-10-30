@@ -102,17 +102,17 @@ function stepCommand(id: StepId, answers: Answers): string[] {
 }
 
 /** `sdks` null skips the SDK checks (publishing checks run without Flutter). */
-export function planNew(t: VerifiedTemplate, answers: Answers, parent: string, devtoolVersion: string, sdkInfo: Sdks | null, opts: { steps: boolean }): NewPlan {
+export function planNew(t: VerifiedTemplate, answers: Answers, parent: string, codzVersion: string, sdkInfo: Sdks | null, opts: { steps: boolean }): NewPlan {
   const sdks: Sdks = sdkInfo ?? { flutter: '0.0.0', node: process.version.replace(/^v/, '') };
   const checkSdks = sdkInfo !== null;
   const m = t.manifest;
   const warnings: string[] = [];
   const target = resolve(parent, String(answers.appName));
 
-  if (m.requires.devtool && !satisfies(devtoolVersion, m.requires.devtool)) throw new ToolError('template_incompatible', `${m.id} ${m.version} needs devtool ${m.requires.devtool}; this is devtool ${devtoolVersion}.`, 'Update devtool, or pick an older version of the template.');
+  if (m.requires.codz && !satisfies(codzVersion, m.requires.codz)) throw new ToolError('template_incompatible', `${m.id} ${m.version} needs codz ${m.requires.codz}; this is codz ${codzVersion}.`, 'Update codz, or pick an older version of the template.');
   if (checkSdks && m.requires.node && !satisfies(sdks.node, m.requires.node)) throw new ToolError('template_incompatible', `${m.id} ${m.version} needs Node ${m.requires.node}; this is Node ${sdks.node}.`, 'Install a matching Node version, or pick another template version.');
   const usesFlutter = m.framework === 'flutter';
-  if (checkSdks && usesFlutter && m.steps.includes('flutter_create') && !sdks.flutter) throw new ToolError('sdk_missing', 'Flutter was not found, and this template is added on top of flutter create.', 'Install Flutter (flutter.dev), check it with devtool doctor --setup, then run this again.');
+  if (checkSdks && usesFlutter && m.steps.includes('flutter_create') && !sdks.flutter) throw new ToolError('sdk_missing', 'Flutter was not found, and this template is added on top of flutter create.', 'Install Flutter (flutter.dev), check it with codz doctor --setup, then run this again.');
   if (checkSdks && usesFlutter && sdks.flutter && m.requires.flutter && !satisfies(sdks.flutter, m.requires.flutter)) throw new ToolError('template_incompatible', `${m.id} ${m.version} needs Flutter ${m.requires.flutter}; this is Flutter ${sdks.flutter}.`, 'Switch Flutter versions (for example with fvm), or pick another template version.');
   if (checkSdks && usesFlutter && sdks.flutter && m.tested?.flutter?.length && !m.tested.flutter.some((v) => sdks.flutter!.startsWith(v))) warnings.push(`This template was tested with Flutter ${m.tested.flutter.join(', ')}; you have ${sdks.flutter}.`);
 
@@ -169,7 +169,7 @@ export function renderPlan(p: NewPlan): string {
   const deps = Object.entries(p.dependencies);
   if (deps.length) lines.push('', `Dependencies added: ${deps.map(([k, v]) => `${k} ${v}`).join(', ')}`);
   if (p.steps.length) lines.push('', 'Steps:', ...p.steps.map((s) => `  ${s.when === 'before-move' ? 'before' : 'after'}: ${s.command.join(' ')}`));
-  if (!p.apiAdd.supported) lines.push('', `Note: devtool api add does not support this starter${p.apiAdd.note ? ` (${p.apiAdd.note})` : ''}.`);
+  if (!p.apiAdd.supported) lines.push('', `Note: codz api add does not support this starter${p.apiAdd.note ? ` (${p.apiAdd.note})` : ''}.`);
   return lines.join('\n');
 }
 
@@ -205,7 +205,7 @@ function addPackageJsonEntries(text: string, section: string, deps: Record<strin
 }
 
 /** Files that steps and later commands create and that never block undo. */
-const GENERATED = [/^\.dart_tool(\/|$)/, /^build(\/|$)/, /^\.flutter-plugins(-dependencies)?$/, /^pubspec\.lock$/, /^node_modules(\/|$)/, /^package-lock\.json$/, /^\.next(\/|$)/, /^\.devtool(\/|$)/, /^devtool\.config\.yaml$/, /^\.idea(\/|$)/, /^ios\/Pods(\/|$)/, /^ios\/Podfile\.lock$/, /^\.packages$/, /^next-env\.d\.ts$/, /^android\/local\.properties$/, /^android\/\.gradle(\/|$)/, /^\.metadata$/, /^.*\.iml$/];
+const GENERATED = [/^\.dart_tool(\/|$)/, /^build(\/|$)/, /^\.flutter-plugins(-dependencies)?$/, /^pubspec\.lock$/, /^node_modules(\/|$)/, /^package-lock\.json$/, /^\.next(\/|$)/, /^\.codz(\/|$)/, /^codz\.config\.yaml$/, /^\.idea(\/|$)/, /^ios\/Pods(\/|$)/, /^ios\/Podfile\.lock$/, /^\.packages$/, /^next-env\.d\.ts$/, /^android\/local\.properties$/, /^android\/\.gradle(\/|$)/, /^\.metadata$/, /^.*\.iml$/];
 
 function listFiles(root: string, rel = ''): string[] {
   const out: string[] = [];
@@ -231,7 +231,7 @@ export function applyNew(p: NewPlan, log: (line: string) => void = () => {}): Ne
   if (existsSync(p.target) && readdirSync(p.target).length) throw new ToolError('dir_not_empty', `${p.target} already exists and is not empty.`, 'Pick another name, or remove that folder.');
   const parent = dirname(p.target);
   mkdirSync(parent, { recursive: true });
-  const tmp = join(parent, `.${basename(p.target)}.devtool-new-${randomBytes(4).toString('hex')}`);
+  const tmp = join(parent, `.${basename(p.target)}.codz-new-${randomBytes(4).toString('hex')}`);
   mkdirSync(tmp);
   const warnings = [...p.warnings];
   const stepResults: NewResult['steps'] = [];
@@ -239,7 +239,7 @@ export function applyNew(p: NewPlan, log: (line: string) => void = () => {}): Ne
     for (const s of p.steps.filter((x) => x.when === 'before-move')) {
       log(`Running ${s.command.join(' ')}...`);
       const r = run(s.command[0], s.command.slice(1), tmp);
-      if (!r.ok) throw new ToolError(r.missing ? 'sdk_missing' : 'step_failed', `${s.command.join(' ')} ${r.missing ? 'was not found' : 'failed'}, so nothing was created.${r.output ? `\n${r.output.split('\n').slice(-5).join('\n')}` : ''}`, r.missing ? 'Install the SDK; check it with devtool doctor --setup.' : 'Fix the problem above and run this again.');
+      if (!r.ok) throw new ToolError(r.missing ? 'sdk_missing' : 'step_failed', `${s.command.join(' ')} ${r.missing ? 'was not found' : 'failed'}, so nothing was created.${r.output ? `\n${r.output.split('\n').slice(-5).join('\n')}` : ''}`, r.missing ? 'Install the SDK; check it with codz doctor --setup.' : 'Fix the problem above and run this again.');
       stepResults.push({ id: s.id, ok: true });
     }
     for (const f of p.files) {
@@ -283,7 +283,7 @@ export function applyNew(p: NewPlan, log: (line: string) => void = () => {}): Ne
     }
   }
 
-  // History in the new project, so devtool undo there removes it again.
+  // History in the new project, so codz undo there removes it again.
   const id = newId();
   const recorded = listFiles(p.target);
   appendHistory(p.target, {
@@ -300,38 +300,38 @@ export function applyNew(p: NewPlan, log: (line: string) => void = () => {}): Ne
 
 // ---------- Undo ----------
 
-/** The last change in this project, when it is the devtool new that created it. */
+/** The last change in this project, when it is the codz new that created it. */
 export function lastNewEntry(root: string) {
   const e = [...readHistory(root)].reverse().find((x) => !x.undone);
   return e && e.skill === 'new' ? e : null;
 }
 
 /**
- * Removes a project devtool new created, when nothing in it changed since.
- * Generated files (pub get, npm install, devtool init) do not count as changes;
+ * Removes a project codz new created, when nothing in it changed since.
+ * Generated files (pub get, npm install, codz init) do not count as changes;
  * any other edit or new file blocks it unless `force`.
  */
 export function undoNew(root: string, opts: { force?: boolean } = {}): { id: string; removed: string } {
   const entry = lastNewEntry(root);
-  if (!entry) throw new ToolError('nothing_to_undo', 'The last change here was not devtool new.');
+  if (!entry) throw new ToolError('nothing_to_undo', 'The last change here was not codz new.');
   const target = resolve(String((entry.meta as { target?: string } | undefined)?.target ?? ''));
-  if (target !== resolve(root)) throw new ToolError('changed_since_apply', `This project was created at ${target}, not here, so devtool will not delete it.`, 'Delete the folder yourself if you no longer want it.');
+  if (target !== resolve(root)) throw new ToolError('changed_since_apply', `This project was created at ${target}, not here, so codz will not delete it.`, 'Delete the folder yourself if you no longer want it.');
   const recorded = new Map(entry.files.map((f) => [f.path, f.afterHash]));
   const now = listFiles(root);
   const changed = [
     ...entry.files.filter((f) => !existsSync(join(root, f.path)) || hash(readFileSync(join(root, f.path), 'utf8')) !== f.afterHash).map((f) => f.path),
     ...now.filter((f) => !recorded.has(f) && !(f === '.gitignore')),
   ];
-  // devtool init adds .devtool/ to .gitignore; that alone does not count.
+  // codz init adds .codz/ to .gitignore; that alone does not count.
   const gi = recorded.get('.gitignore');
   const idx = changed.indexOf('.gitignore');
   if (idx !== -1 && gi && existsSync(join(root, '.gitignore'))) {
     const t = readFileSync(join(root, '.gitignore'), 'utf8');
-    const without = t.replace(/\n?# devtool cache, backups and history\n\.devtool\/\n$/, '');
+    const without = t.replace(/\n?# codz cache, backups and history\n\.codz\/\n$/, '');
     if (hash(without) === gi || hash(`${without}\n`) === gi) changed.splice(idx, 1);
   }
   if (changed.length && !opts.force) {
-    throw new ToolError('changed_since_apply', `These files changed after devtool created the project: ${changed.slice(0, 8).join(', ')}${changed.length > 8 ? ', ...' : ''}. Undo would delete those edits.`, 'Keep your edits, or pass --force to delete the whole project anyway.');
+    throw new ToolError('changed_since_apply', `These files changed after codz created the project: ${changed.slice(0, 8).join(', ')}${changed.length > 8 ? ', ...' : ''}. Undo would delete those edits.`, 'Keep your edits, or pass --force to delete the whole project anyway.');
   }
   rmSync(root, { recursive: true, force: true });
   return { id: entry.id, removed: root };

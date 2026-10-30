@@ -135,7 +135,7 @@ export async function scan(root: string, configConventions: Conventions): Promis
     const dirs = new Set(modelFiles.map(relDir));
     const inBest = modelFiles.filter((f) => relDir(f) === c.modelsFolder).length;
     if (dirs.size >= 3 && inBest * 2 < modelFiles.length) {
-      map.notes.push(`Models live in ${dirs.size} different folders, so new ones go to lib/models. Use --into <folder> or set modelsFolder in devtool.config.yaml to choose.`);
+      map.notes.push(`Models live in ${dirs.size} different folders, so new ones go to lib/models. Use --into <folder> or set modelsFolder in codz.config.yaml to choose.`);
       c.modelsFolder = 'lib/models';
     }
   }
@@ -187,7 +187,7 @@ export async function scan(root: string, configConventions: Conventions): Promis
   const baseUrls = dart.flatMap((f) => [...text(f).matchAll(/baseUrl:\s*['"](https?:\/\/[^'"]+)['"]/g), ...(/baseUrl:\s*\w+/.test(text(f)) ? text(f).matchAll(/String\.fromEnvironment\(\s*'[A-Z_]+'\s*,\s*defaultValue:\s*['"](https?:\/\/[^'"]+)['"]/g) : [])].map((m) => ({ f, v: m[1] })));
   c.baseUrl = baseUrls[0]?.v ?? '';
   map.baseUrls = baseUrls.map((b) => ({ name: 'Dio baseUrl', value: b.v, file: b.f }));
-  // Dio with a base URL devtool cannot read (baseUrl: Env.apiUrl, dio.options.baseUrl = ...): calls still go relative to it.
+  // Dio with a base URL codz cannot read (baseUrl: Env.apiUrl, dio.options.baseUrl = ...): calls still go relative to it.
   map.clientBaseUrl = baseUrls.length > 0 || dart.some((f) => /\b(?:BaseOptions|Dio)\s*\([^;]*?\bbaseUrl\s*:|\.options\.baseUrl\s*=|@RestApi\(\s*baseUrl\s*:/s.test(text(f)));
 
   // Import and code style.

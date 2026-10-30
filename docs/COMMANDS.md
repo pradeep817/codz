@@ -1,14 +1,14 @@
-# devtool commands
+# codz commands
 
-Generated from `src/core/commands.ts` (devtool 0.1.0). Do not edit by hand; run `npm run docs`.
+Generated from `src/core/commands.ts` (codz 0.1.0). Do not edit by hand; run `npm run docs`.
 
 ## Start
 
-### `devtool create [name] [--type <type>] [--architecture <id>]`
+### `codz create [name] [--type <type>] [--architecture <id>]`
 
-Create a new project and set it up: pick the type, architecture, name and options, then devtool runs the platform creator and applies the architecture.
+Create a new project and set it up: pick the type, architecture, name and options, then codz runs the platform creator and applies the architecture.
 
-Asks for anything not given as an option. Architectures: Flutter riverpod, getx, bloc, get_it, none; Next.js fetch-helper, plain-fetch, none; React Native fetch-helper, axios-react-query, axios, none (--flavor expo or bare); Android retrofit-hilt, retrofit-koin, retrofit, none (Kotlin, Jetpack Compose, version catalog). Without the platform creator (flutter, npx) or with --offline, devtool writes a minimal project itself; Android always uses the built-in template (the Android Studio Empty Activity project plus Navigation Compose).
+Asks for anything not given as an option. Architectures: Flutter riverpod, getx, bloc, get_it, none; Next.js fetch-helper, plain-fetch, none; React Native fetch-helper, axios-react-query, axios, none (--flavor expo or bare); Android retrofit-hilt, retrofit-koin, retrofit, none (Kotlin, Jetpack Compose, version catalog). Without the platform creator (flutter, npx) or with --offline, codz writes a minimal project itself; Android always uses the built-in template (the Android Studio Empty Activity project plus Navigation Compose).
 
 | Option | |
 | --- | --- |
@@ -19,21 +19,21 @@ Asks for anything not given as an option. Architectures: Flutter riverpod, getx,
 | `--tailwind` | Next.js: use Tailwind CSS |
 | `--flavor <expo\|bare>` | React Native: Expo (default) or the React Native CLI |
 | `--primary <#rrggbb>` | The theme's primary color |
-| `--offline` | Do not run the platform's creator; write devtool's minimal project |
+| `--offline` | Do not run the platform's creator; write codz's minimal project |
 | `--no-install` | Do not install dependencies |
 | `--no-git` | Do not run git init |
 
-### `devtool init [--root <folder>] [--force]`
+### `codz init [--root <folder>] [--force]`
 
-Detect the framework, scan, write devtool.config.yaml; offers to set up an API layer when there is none.
+Detect the framework, scan, write codz.config.yaml; offers to set up an API layer when there is none.
 
 | Option | |
 | --- | --- |
-| `--force` | Do it even when devtool would normally refuse (see the command) |
+| `--force` | Do it even when codz would normally refuse (see the command) |
 | `--architecture <id>` | Flutter: getx, riverpod, bloc, get_it. Next.js: fetch-helper, plain-fetch. React Native and React: fetch-helper, axios, axios-react-query. Android: retrofit-hilt, retrofit-koin, retrofit. iOS: urlsession |
 | `--base-url <url>` | The API's base URL (setup), or only HAR requests under it (import/sync) |
 
-### `devtool setup [--architecture <id>] [--base-url <url>]`
+### `codz setup [--architecture <id>] [--base-url <url>]`
 
 Create the API layer for a fresh project.
 
@@ -44,7 +44,7 @@ Create the API layer for a fresh project.
 
 Accepts the change options.
 
-### `devtool explain [--rescan]`
+### `codz explain [--rescan]`
 
 Show routes, endpoints, models, locales and conventions.
 
@@ -54,7 +54,7 @@ Show routes, endpoints, models, locales and conventions.
 
 ## Endpoints
 
-### `devtool api add [input] [options]`
+### `codz api add [input] [options]`
 
 Add an endpoint: model, function and registration.
 
@@ -77,7 +77,7 @@ Input: --curl, --url, --clipboard, or a cURL command or URL pasted on stdin, opt
 
 Accepts the change options.
 
-### `devtool api import <file> [filters]`
+### `codz api import <file> [filters]`
 
 Add every endpoint from an OpenAPI 3, Swagger 2, Postman or HAR file.
 
@@ -95,7 +95,7 @@ Add every endpoint from an OpenAPI 3, Swagger 2, Postman or HAR file.
 
 Accepts the change options.
 
-### `devtool api sync <file> [--add] [--remove] [--check]`
+### `codz api sync <file> [--add] [--remove] [--check]`
 
 Bring endpoints in line with an API spec: update changed ones, report breaking changes.
 
@@ -110,7 +110,7 @@ Bring endpoints in line with an API spec: update changed ones, report breaking c
 
 Accepts the change options.
 
-### `devtool api diff <old spec> <new spec> [--format md] [--fail-on breaking]`
+### `codz api diff <old spec> <new spec> [--format md] [--fail-on breaking]`
 
 What changed between two API specs, what breaks, and the lines in this project that use it.
 
@@ -118,7 +118,7 @@ Breaking: an operation removed, a response field removed or retyped, a new path 
 
 Inside a project each change lists the files and lines that use it. Works outside a project too.
 
-CI: devtool api diff main.yaml pr.yaml --format md --report api-diff.md (exit 1 on breaking changes); --format sarif for GitHub code scanning.
+CI: codz api diff main.yaml pr.yaml --format md --report api-diff.md (exit 1 on breaking changes); --format sarif for GitHub code scanning.
 
 | Option | |
 | --- | --- |
@@ -128,7 +128,7 @@ CI: devtool api diff main.yaml pr.yaml --format md --report api-diff.md (exit 1 
 | `--tag <tag>` | Only operations with this tag (folder in Postman, host in HAR) (repeatable) |
 | `--path </users/{id}>` | Path parameters (api add), route path (screen/route add), or a path filter (import/sync) |
 
-### `devtool api update <endpoint> --sample <file>`
+### `codz api update <endpoint> --sample <file>`
 
 Rebuild the response model from new samples.
 
@@ -139,19 +139,19 @@ Rebuild the response model from new samples.
 
 Accepts the change options.
 
-### `devtool api remove <endpoint>`
+### `codz api remove <endpoint>`
 
 Remove an endpoint and list callers that break.
 
 Accepts the change options.
 
-### `devtool api rename <endpoint> <newName>`
+### `codz api rename <endpoint> <newName>`
 
 Rename an endpoint and its call sites.
 
 Accepts the change options.
 
-### `devtool api wire <endpoint> --into <module>`
+### `codz api wire <endpoint> --into <module>`
 
 Call an endpoint from a module's controller (GetX).
 
@@ -162,15 +162,15 @@ Call an endpoint from a module's controller (GetX).
 
 Accepts the change options.
 
-### `devtool api list [filter]`
+### `codz api list [filter]`
 
 Every endpoint: method, path, function, response, file.
 
-### `devtool api show <endpoint>`
+### `codz api show <endpoint>`
 
 One endpoint: signature, models, every place that uses it.
 
-### `devtool mock add <endpoint>... | --all`
+### `codz mock add <endpoint>... | --all`
 
 Mock responses for building screens before the backend.
 
@@ -181,11 +181,11 @@ Next.js, React Native and Flutter. Not yet on Android.
 | `--all` | Every endpoint (mock add, test add), or every plan (plans clean) |
 | `--sample <file.json>` | Response sample; repeat for several samples (repeatable) |
 | `--keep-values` | Write --sample values exactly as given (no secret or personal-data scrubbing) |
-| `--force` | Do it even when devtool would normally refuse (see the command) |
+| `--force` | Do it even when codz would normally refuse (see the command) |
 
 Accepts the change options.
 
-### `devtool test add <endpoint>... | --all`
+### `codz test add <endpoint>... | --all`
 
 Unit tests for API functions with the network faked.
 
@@ -199,7 +199,7 @@ Accepts the change options.
 
 ## Screens and app
 
-### `devtool screen add <name> --api <endpoint> [--path /x/:id] [--form]`
+### `codz screen add <name> --api <endpoint> [--path /x/:id] [--form]`
 
 A working screen (route, page, the call, loading, error, data), or a form with --form.
 
@@ -214,7 +214,7 @@ Android: a Compose screen plus a ViewModel (Hilt, Koin or the service locator) w
 
 Accepts the change options.
 
-### `devtool route add <name> [--path /x/:id]`
+### `codz route add <name> [--path /x/:id]`
 
 Add a screen and its route (GetX module, GoRoute, Next.js page, React Navigation or Expo Router screen, Compose NavHost entry).
 
@@ -225,7 +225,7 @@ Add a screen and its route (GetX module, GoRoute, Next.js page, React Navigation
 
 Accepts the change options.
 
-### `devtool feature add <name> --spec <file> | --api <endpoint>...`
+### `codz feature add <name> --spec <file> | --api <endpoint>...`
 
 A whole feature in one change: endpoints, list, detail, create and edit screens, routes and tests.
 
@@ -253,7 +253,7 @@ Everything is planned in a private copy of the project and shown as one diff: on
 
 Accepts the change options.
 
-### `devtool auth add [--login-path /auth/login] [--me-path /auth/me]`
+### `codz auth add [--login-path /auth/login] [--me-path /auth/me]`
 
 Sign-in for this project: secure token storage, the token on every request, sign out on 401, a login screen and a guard.
 
@@ -277,7 +277,7 @@ Android (Hilt): EncryptedSharedPreferences, an OkHttp interceptor, AuthApi, Auth
 
 Accepts the change options.
 
-### `devtool module add <name> [--api <endpoint>]`
+### `codz module add <name> [--api <endpoint>]`
 
 Create a GetX module: binding, controller, view, route.
 
@@ -289,7 +289,7 @@ Create a GetX module: binding, controller, view, route.
 
 Accepts the change options.
 
-### `devtool locale add <lang> [--from en]`
+### `codz locale add <lang> [--from en]`
 
 Add a language: copies every key from the default one.
 
@@ -299,44 +299,44 @@ Add a language: copies every key from the default one.
 
 Accepts the change options.
 
-### `devtool locale key <key> "<text>" [--value hi="..."]`
+### `codz locale key <key> "<text>" [--value hi="..."]`
 
 Add a text key to every language file.
 
 | Option | |
 | --- | --- |
 | `--value lang="text"` | Text for one more language; repeat for several (repeatable) |
-| `--force` | Do it even when devtool would normally refuse (see the command) |
+| `--force` | Do it even when codz would normally refuse (see the command) |
 
 Accepts the change options.
 
-### `devtool theme set <name> <value> [...]`
+### `codz theme set <name> <value> [...]`
 
 Set a color (#hex), size (number) or font in the app theme.
 
-Example: devtool theme set primary "#6750A4" radius 12 font Inter
+Example: codz theme set primary "#6750A4" radius 12 font Inter
 
 Accepts the change options.
 
-### `devtool templates list`
+### `codz templates list`
 
 Which templates the project customizes.
 
-### `devtool templates init [id...]`
+### `codz templates init [id...]`
 
-Start custom templates from files that reproduce devtool's output.
+Start custom templates from files that reproduce codz's output.
 
 Accepts the change options.
 
 ## Health
 
-### `devtool report [--json]`
+### `codz report [--json]`
 
 Usage summary for beta feedback: commands run, changes applied and undone, errors; no code, file names or URLs.
 
-Built from .devtool/history.json and .devtool/events.jsonl, which stay on this machine. DEVTOOL_NO_EVENTS=1 stops recording commands.
+Built from .codz/history.json and .codz/events.jsonl, which stay on this machine. CODZ_NO_EVENTS=1 stops recording commands.
 
-### `devtool doctor [--only locales,api,urls,models] [--strict] [--fix] [--setup]`
+### `codz doctor [--only locales,api,urls,models] [--strict] [--fix] [--setup]`
 
 Check locales, unhandled API errors, untyped responses, hardcoded URLs and unused models.
 
@@ -347,56 +347,56 @@ Exit 1 on errors (--strict: on warnings too). --fix repairs what is safe (missin
 | `--only <name>` | Only these operations (import), or only these checks (doctor) (repeatable) |
 | `--strict` | Exit 1 on warnings too |
 | `--fix` | Repair what is safe as one previewed change; list the rest |
-| `--setup` | Check that devtool can run here: Node, git, config, formatter, analyzer |
-| `--force` | Do it even when devtool would normally refuse (see the command) |
+| `--setup` | Check that codz can run here: Node, git, config, formatter, analyzer |
+| `--force` | Do it even when codz would normally refuse (see the command) |
 
 Accepts the change options.
 
-### `devtool check`
+### `codz check`
 
 CI gate: config check + doctor; exit 1 on any error or warning.
 
 ## Setup
 
-### `devtool config show`
+### `codz config show`
 
-The conventions devtool uses, and where each came from.
+The conventions codz uses, and where each came from.
 
-### `devtool config get <key>`
+### `codz config get <key>`
 
 One convention.
 
-### `devtool config set <key> <value>`
+### `codz config set <key> <value>`
 
-Change one convention in devtool.config.yaml ('' = detect).
+Change one convention in codz.config.yaml ('' = detect).
 
 | Option | |
 | --- | --- |
-| `--force` | Do it even when devtool would normally refuse (see the command) |
+| `--force` | Do it even when codz would normally refuse (see the command) |
 
 Accepts the change options.
 
-### `devtool config check`
+### `codz config check`
 
-Find problems in devtool.config.yaml (exit 1 on errors).
+Find problems in codz.config.yaml (exit 1 on errors).
 
-### `devtool mcp [--cwd <project>]`
+### `codz mcp [--cwd <project>]`
 
-Serve devtool to AI agents and editors over the Model Context Protocol (stdio).
+Serve codz to AI agents and editors over the Model Context Protocol (stdio).
 
-Every command becomes a tool (api add → api_add). Tools that edit code return a diff and a plan id; the apply tool applies it. Resources: devtool://project and devtool://commands.
+Every command becomes a tool (api add → api_add). Tools that edit code return a diff and a plan id; the apply tool applies it. Resources: codz://project and codz://commands.
 
-### `devtool completion bash|zsh|fish`
+### `codz completion bash|zsh|fish`
 
 Print the shell completion script.
 
 ## Starters (online)
 
-### `devtool new [name] --template <id[@version]|folder>`
+### `codz new [name] --template <id[@version]|folder>`
 
 Create a project from a ready-made starter: from the catalog (free or bought) or a template folder.
 
-Shows every file and step first, then creates the folder in one step; devtool undo inside the new project removes it again while it is unchanged. Catalog starters are checked against the signed catalog, and template scripts never run. Next: cd <name> && devtool init.
+Shows every file and step first, then creates the folder in one step; codz undo inside the new project removes it again while it is unchanged. Catalog starters are checked against the signed catalog, and template scripts never run. Next: cd <name> && codz init.
 
 This and the other starter commands are the only ones that use the network, and only to reach the starter catalog.
 
@@ -413,7 +413,7 @@ This and the other starter commands are the only ones that use the network, and 
 | `--cached` | Use only starters and the catalog already downloaded on this machine (no network) |
 | `--no-steps` | Skip the setup steps after creating (flutter pub get, dart format, npm install) |
 
-### `devtool starters list [--framework flutter] [--free] [--owned]`
+### `codz starters list [--framework flutter] [--free] [--owned]`
 
 Starters in the catalog: id, latest version, framework, price, api add support.
 
@@ -428,16 +428,16 @@ Starters in the catalog: id, latest version, framework, price, api add support.
 | `--refresh` | Download the catalog again even if it has not changed |
 | `--cached` | Use only starters and the catalog already downloaded on this machine (no network) |
 
-### `devtool starters show <id>[@version]`
+### `codz starters show <id>[@version]`
 
-One starter: what it includes beyond devtool create, tested SDKs, license, versions.
+One starter: what it includes beyond codz create, tested SDKs, license, versions.
 
 | Option | |
 | --- | --- |
 | `--refresh` | Download the catalog again even if it has not changed |
 | `--cached` | Use only starters and the catalog already downloaded on this machine (no network) |
 
-### `devtool starters cache [--clear]`
+### `codz starters cache [--clear]`
 
 Starters downloaded on this machine (--clear deletes them).
 
@@ -445,35 +445,35 @@ Starters downloaded on this machine (--clear deletes them).
 | --- | --- |
 | `--clear` | Delete every downloaded starter |
 
-### `devtool login [--no-browser]`
+### `codz login [--no-browser]`
 
 Log in to the starter catalog (prints a code to approve in the browser); needed only for paid starters.
 
-The token is kept in ~/.devtool/auth.json, readable only by you. In CI, set DEVTOOL_TOKEN instead.
+The token is kept in ~/.codz/auth.json, readable only by you. In CI, set CODZ_TOKEN instead.
 
 | Option | |
 | --- | --- |
 | `--no-browser` | Do not open the login page; print it only |
 
-### `devtool logout`
+### `codz logout`
 
 Log out: delete the token here and revoke it on the server.
 
-### `devtool whoami`
+### `codz whoami`
 
 The logged-in account and the starters it owns.
 
 ## Changes
 
-### `devtool plans list`
+### `codz plans list`
 
 Plans saved with --plan: ready, applied or stale.
 
-### `devtool plans show <id>`
+### `codz plans show <id>`
 
 One plan's summary and diff.
 
-### `devtool plans clean [--all]`
+### `codz plans clean [--all]`
 
 Delete applied and stale plans (--all: every plan).
 
@@ -481,20 +481,20 @@ Delete applied and stale plans (--all: every plan).
 | --- | --- |
 | `--all` | Every endpoint (mock add, test add), or every plan (plans clean) |
 
-### `devtool apply <plan-id>`
+### `codz apply <plan-id>`
 
 Apply a plan saved with --plan, exactly as previewed.
 
-### `devtool undo [--to <id>] [--force]`
+### `codz undo [--to <id>] [--force]`
 
 Revert the last applied change (or every change back to <id>).
 
 | Option | |
 | --- | --- |
 | `--to <id>` | Undo every change back to and including <id> |
-| `--force` | Do it even when devtool would normally refuse (see the command) |
+| `--force` | Do it even when codz would normally refuse (see the command) |
 
-### `devtool history [show <id>]`
+### `codz history [show <id>]`
 
 List applied changes, or show one change's files and diff.
 
@@ -503,7 +503,7 @@ List applied changes, or show one change's files and diff.
 | Option | |
 | --- | --- |
 | `--dry-run` | Show the diff only |
-| `--plan` | Save the diff as a plan and print its id (apply later with devtool apply) |
+| `--plan` | Save the diff as a plan and print its id (apply later with codz apply) |
 | `--yes` | Apply without asking |
 | `--y` | Same as --yes |
 | `--allow-dirty` | Apply even if git has uncommitted changes |
@@ -521,7 +521,7 @@ List applied changes, or show one change's files and diff.
 | `--cwd <folder>` | Run as if started in <folder> |
 | `--root <folder>` | Project root (monorepos: which project) |
 | `--no-color` | Plain output |
-| `--help` | Show help (for one command: devtool <command> --help) |
+| `--help` | Show help (for one command: codz <command> --help) |
 | `--h` | Same as --help |
 | `--version` | Print the version |
 | `--v` | Same as --version |

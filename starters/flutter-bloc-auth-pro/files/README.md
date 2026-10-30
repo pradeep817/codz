@@ -13,4 +13,4 @@ Your API needs (change the paths in `lib/data/repositories/auth_repository.dart`
 - `GET /auth/me` → `{ id, name, email }`
 - `POST /auth/refresh` with `{ refreshToken }` → `{ token, refreshToken? }` (optional; without it a 401 signs out)
 
-Add an endpoint with `devtool api add` and a screen with `devtool screen add`.
+Add an endpoint with `codz api add` and a screen with `codz screen add`.

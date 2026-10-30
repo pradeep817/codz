@@ -29,7 +29,7 @@ export function renderFreezedModel(m: InferredModel, g: DartGen, fileBase: strin
   for (const f of m.fields) {
     const name = fieldName(f);
     const unknown = f.type.kind === 'unknown' || (f.type.kind === 'array' && f.type.item.kind === 'unknown');
-    if (unknown) L.push('    // devtool: type unknown from the samples; set it by hand.');
+    if (unknown) L.push('    // codz: type unknown from the samples; set it by hand.');
     const key = name !== f.jsonName ? `@JsonKey(name: ${dq(f.jsonName)}) ` : '';
     const optional = f.nullable || f.type.kind === 'unknown';
     const type = dartType(f.type, g) + (f.nullable && f.type.kind !== 'unknown' ? '?' : '');

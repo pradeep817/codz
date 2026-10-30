@@ -13,9 +13,9 @@ export default async function DashboardPage() {
       <section className="panel">
         <h2>Next steps</h2>
         <ol>
-          <li>Run devtool init once.</li>
-          <li>Add an endpoint: devtool api add (paste a cURL command).</li>
-          <li>Add a page for it: devtool screen add orders --api getOrders.</li>
+          <li>Run codz init once.</li>
+          <li>Add an endpoint: codz api add (paste a cURL command).</li>
+          <li>Add a page for it: codz screen add orders --api getOrders.</li>
         </ol>
       </section>
     </>

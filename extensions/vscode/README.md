@@ -1,6 +1,6 @@
-# devtool for VS Code
+# codz for VS Code
 
-Runs [devtool](../../README.md) from the command palette (`devtool: ...`). Every change is shown as a diff first and written only when you click **Apply**; it is saved as a plan either way, so `devtool apply <id>` works from the terminal too.
+Runs [codz](../../README.md) from the command palette (`codz: ...`). Every change is shown as a diff first and written only when you click **Apply**; it is saved as a plan either way, so `codz apply <id>` works from the terminal too.
 
 | Command | What it does |
 | --- | --- |
@@ -10,9 +10,9 @@ Runs [devtool](../../README.md) from the command palette (`devtool: ...`). Every
 | Rename endpoint | Previews `api rename` |
 | Mock every endpoint / Write tests for every endpoint | Preview `mock add --all` / `test add --all` |
 | Doctor | Findings appear in the Problems panel; "Doctor: fix what is safe" previews `doctor --fix` |
-| Explain project | What devtool found, in the devtool output channel |
-| Undo last change | `devtool undo` |
+| Explain project | What codz found, in the codz output channel |
+| Undo last change | `codz undo` |
 
-Requirements: devtool on `PATH` (`npm link` from a checkout, or the published package once it is on npm), or its full path in the `devtool.path` setting.
+Requirements: codz on `PATH` (`npm link` from a checkout, or the published package once it is on npm), or its full path in the `codz.path` setting.
 
 Build a package to install: `npx @vscode/vsce package` in this folder, then **Extensions → … → Install from VSIX**.

@@ -42,7 +42,7 @@ function routerFile(q: string, semi: string): string {
     `import { createBrowserRouter } from ${q}react-router-dom${q}${semi}`,
     `import HomePage from ${q}./pages/HomePage${q}${semi}`,
     '',
-    '/** Every page and its path. devtool route add and screen add add entries here. */',
+    '/** Every page and its path. codz route add and screen add add entries here. */',
     'export const router = createBrowserRouter([',
     `  { path: ${q}/${q}, element: <HomePage /> },`,
     `])${semi}`,
@@ -81,7 +81,7 @@ export function planReactSetup(ctx: AdapterContext, choice: SetupChoice): SetupP
   if (!choice.baseUrl) warnings.push(`No base URL was given, so ${src}/config/env.ts uses https://api.example.com. Change it there or in .env before calling the API.`);
   const read = (p: string) => readText(join(root, p));
   const create = (path: string, content: string, what: string) => {
-    if (read(path) !== null) throw new ToolError('file_exists', `${path} already exists, so setup stopped without changing anything.`, 'Remove or rename it, or set up the project by hand and run devtool init again.');
+    if (read(path) !== null) throw new ToolError('file_exists', `${path} already exists, so setup stopped without changing anything.`, 'Remove or rename it, or set up the project by hand and run codz init again.');
     files.set(path, content);
     summary.push(`Create ${path}: ${what}`);
   };
@@ -109,8 +109,8 @@ export function planReactSetup(ctx: AdapterContext, choice: SetupChoice): SetupP
   if (nav || query) {
     const app = [`${src}/App.tsx`, `${src}/App.jsx`, `${src}/App.js`].find((f) => read(f) !== null) ?? `${src}/App.tsx`;
     files.set(app, appFile(nav, query, q, semi));
-    rewrites.push(app); // replaced on purpose; the previous App is in devtool undo
-    summary.push(`${read(app) === null ? 'Create' : 'Replace'} ${app}: ${[nav && 'RouterProvider with the router', query && 'QueryClientProvider'].filter(Boolean).join(' and ')}${read(app) !== null ? ' (the previous App is in devtool undo)' : ''}`);
+    rewrites.push(app); // replaced on purpose; the previous App is in codz undo
+    summary.push(`${read(app) === null ? 'Create' : 'Replace'} ${app}: ${[nav && 'RouterProvider with the router', query && 'QueryClientProvider'].filter(Boolean).join(' and ')}${read(app) !== null ? ' (the previous App is in codz undo)' : ''}`);
   }
 
   // Dependencies.

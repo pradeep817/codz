@@ -1,5 +1,5 @@
-// devtool config: view, get and set conventions, and check the config file.
-// `config set` edits devtool.config.yaml in place (comments and order stay) and
+// codz config: view, get and set conventions, and check the config file.
+// `config set` edits codz.config.yaml in place (comments and order stay) and
 // goes through the usual preview → apply → undo pipeline.
 
 import { join } from 'node:path';
@@ -14,7 +14,7 @@ import { scalar } from '../core/yaml.ts';
 export interface ConfigRow {
   key: string;
   value: string;
-  /** "config" when devtool.config.yaml sets it, "detected" when the scanner found it. */
+  /** "config" when codz.config.yaml sets it, "detected" when the scanner found it. */
   source: 'config' | 'detected';
   description: string;
   allowed?: string[];
@@ -39,13 +39,13 @@ export async function configView(root: string, adapter: Adapter): Promise<{ fram
 
 export function configCheck(root: string): { issues: ConfigIssue[]; file: string } {
   const text = readText(join(root, CONFIG_FILE));
-  if (text === null) throw new ToolError('no_config', `There is no ${CONFIG_FILE} here.`, 'Create one with: devtool init');
+  if (text === null) throw new ToolError('no_config', `There is no ${CONFIG_FILE} here.`, 'Create one with: codz init');
   return { issues: validateConfig(text, root), file: CONFIG_FILE };
 }
 
 export function planConfigSet(root: string, adapter: Adapter, key: string, value: string, opts: { force?: boolean } = {}): ChangeSet {
   const text = readText(join(root, CONFIG_FILE));
-  if (text === null) throw new ToolError('no_config', `There is no ${CONFIG_FILE} here.`, 'Create one with: devtool init');
+  if (text === null) throw new ToolError('no_config', `There is no ${CONFIG_FILE} here.`, 'Create one with: codz init');
   const docs = knownKeys(adapter.id);
   if (!(key in docs) && !opts.force) {
     const close = closest(key, Object.keys(docs));
@@ -91,6 +91,6 @@ export function planConfigSet(root: string, adapter: Adapter, key: string, value
   const next = lines.join(eol);
   const summary = [found !== -1 ? `Set ${key}: ${before || "''"} → ${value || "'' (detect)"} in ${CONFIG_FILE}` : `Add ${key}: ${value || "''"} to ${CONFIG_FILE}`];
   const warnings = issue ? [issue.message + (issue.hint ? ` ${issue.hint}` : '')] : [];
-  if (value === '') warnings.push(`An empty ${key} means devtool detects it from the code again.`);
+  if (value === '') warnings.push(`An empty ${key} means codz detects it from the code again.`);
   return buildChangeSet(root, 'config set', { files: new Map([[CONFIG_FILE, next]]), summary, warnings, generated: [] });
 }

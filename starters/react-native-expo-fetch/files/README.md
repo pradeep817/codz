@@ -8,4 +8,4 @@ npx expo install --fix    # match native packages to your Expo SDK
 npm start
 ```
 
-Add an endpoint with `devtool api add` and a screen with `devtool screen add`. Check types with `npm run typecheck` and run the tests with `npm test`.
+Add an endpoint with `codz api add` and a screen with `codz screen add`. Check types with `npm run typecheck` and run the tests with `npm test`.

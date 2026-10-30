@@ -91,7 +91,7 @@ function resolve(o: AuthOptions): Resolved {
 export async function planAuthAdd(root: string, adapter: Adapter, opts: AuthOptions): Promise<AuthReport> {
   const o = resolve(opts);
   const { map } = await loadMap(root, adapter, loadConfig(root).conventions);
-  if (!['nextjs', 'react-native', 'flutter', 'android'].includes(adapter.id)) throw new ToolError('not_supported', `auth add supports Next.js, React Native, Flutter and Android; this project uses the ${adapter.id} adapter.`, adapter.id === 'react' || adapter.id === 'ios' ? `Sign-in for ${adapter.id === 'react' ? 'React web apps' : 'iOS'} is not written yet: add your login call with devtool api add, then a form with devtool screen add login --api <endpoint> --form.` : 'Run devtool init to check which framework devtool detects here.');
+  if (!['nextjs', 'react-native', 'flutter', 'android'].includes(adapter.id)) throw new ToolError('not_supported', `auth add supports Next.js, React Native, Flutter and Android; this project uses the ${adapter.id} adapter.`, adapter.id === 'react' || adapter.id === 'ios' ? `Sign-in for ${adapter.id === 'react' ? 'React web apps' : 'iOS'} is not written yet: add your login call with codz api add, then a form with codz screen add login --api <endpoint> --form.` : 'Run codz init to check which framework codz detects here.');
   const ws = openWorkspace(root);
   try {
     const summary: string[] = [];
@@ -225,7 +225,7 @@ export async function requireUser(): Promise<AuthUser> {
 }
 
 /**
- * Adds the signed-in user's token to a request made from server code, for the API functions devtool writes:
+ * Adds the signed-in user's token to a request made from server code, for the API functions codz writes:
  *   const orders = await getOrders(await withAuth());      // when the function takes RequestInit
  *   await apiFetch('/orders', await withAuth({ method: 'POST', body }));
  */
@@ -583,7 +583,7 @@ export function useAuth(): AuthValue {
       ws.write(
         c.axiosInstanceFile,
         `${t.replace(/\s*$/, '\n')}
-// Sign-in (devtool auth add): the token on every request; a 401 ${o.refreshPath ? 'tries one refresh, then ' : ''}signs out.
+// Sign-in (codz auth add): the token on every request; a 401 ${o.refreshPath ? 'tries one refresh, then ' : ''}signs out.
 ${inst}.interceptors.request.use(async (config) => {
   const token = await tokenStore.get();
   if (token) config.headers.Authorization = \`Bearer \${token}\`;
@@ -611,7 +611,7 @@ ${inst}.interceptors.response.use(undefined, async (error: AxiosError) => {
     const t = ws.read(c.httpHelperFile);
     const helper = c.httpHelper || 'apiFetch';
     if (t && !/tokenStore/.test(t)) {
-      // The helper devtool writes builds headers in one object literal; the token goes into it.
+      // The helper codz writes builds headers in one object literal; the token goes into it.
       const re = /headers: \{ ('Content-Type': 'application\/json',[^}]*?)\.\.\.init\.headers \}/;
       if (re.test(t) && new RegExp(`export async function ${helper}`).test(t)) {
         let t2 = t.replace(re, (_m, before: string) => `headers: { ${before}...(token ? { Authorization: \`Bearer \${token}\` } : {}), ...init.headers }`);
@@ -627,7 +627,7 @@ ${inst}.interceptors.response.use(undefined, async (error: AxiosError) => {
     }
   }
   if (wired && o.refreshPath && !axios) warnings.push('--refresh-path is used by the axios interceptor; with the fetch helper a 401 signs out (call refreshSession() from session.ts yourself to retry).');
-  if (!wired) warnings.push(`The HTTP client was not changed (its shape is not the one devtool writes). Send "Authorization: Bearer <await tokenStore.get()>" on each request, and call notifyUnauthorized() on a 401.`);
+  if (!wired) warnings.push(`The HTTP client was not changed (its shape is not the one codz writes). Send "Authorization: Bearer <await tokenStore.get()>" on each request, and call notifyUnauthorized() on a 401.`);
 
   // The provider around the app.
   const appFile = ['App.tsx', 'App.jsx', 'App.js'].find((p) => ws.read(p) !== null);
@@ -945,7 +945,7 @@ ${
       summary.push(`${c.networkFile}: attachAuth(dio) sends the token and handles 401`);
     }
   }
-  if (!attached) warnings.push(`Call attachAuth(dio) (from ${f('auth_interceptor.dart')}) where the app creates its Dio; ${c.networkFile || 'the network file'} did not have a place devtool recognises.`);
+  if (!attached) warnings.push(`Call attachAuth(dio) (from ${f('auth_interceptor.dart')}) where the app creates its Dio; ${c.networkFile || 'the network file'} did not have a place codz recognises.`);
 
   // The login page.
   const pageClass = /class (\w+) extends/.exec(ws.read(page) ?? '')?.[1] ?? 'LoginPage';
@@ -1110,7 +1110,7 @@ function androidAuth(ws: Workspace, map: ProjectMap, page: string, o: Resolved, 
   const c = map.conventions;
   if (c.di !== 'hilt') throw new ToolError('not_supported', `auth add for Android needs Hilt (this project uses ${c.di || 'no DI library'}).`, 'Koin and manual DI are planned; for now add an OkHttp interceptor that sends the token by hand.');
   const pkg = c.namespace;
-  if (!pkg || !c.srcDir) throw new ToolError('no_conventions', 'The app package or source folder is unknown.', 'Run devtool init first.');
+  if (!pkg || !c.srcDir) throw new ToolError('no_conventions', 'The app package or source folder is unknown.', 'Run codz init first.');
   const base = `${c.srcDir}/${pkg.replace(/\./g, '/')}`;
   const dir = `${base}/data/auth`;
   const f = (name: string) => `${dir}/${name}`;
@@ -1258,7 +1258,7 @@ class AuthRepository @Inject constructor(
     ws.write(c.diFile, t);
     summary.push(`${c.diFile}: AuthInterceptor on OkHttp, and AuthApi`);
   } else {
-    warnings.push(`Add AuthInterceptor to your OkHttpClient and provide AuthApi in ${c.diFile || 'your Hilt module'}; it does not have the shape devtool writes.`);
+    warnings.push(`Add AuthInterceptor to your OkHttpClient and provide AuthApi in ${c.diFile || 'your Hilt module'}; it does not have the shape codz writes.`);
   }
 
   // The login screen and its ViewModel.

@@ -1,4 +1,4 @@
-// devtool.config.yaml: the only file devtool asks you to commit. It holds the
+// codz.config.yaml: the only file codz asks you to commit. It holds the
 // conventions you confirmed, which override what the scanner detects.
 
 import { writeFileSync } from 'node:fs';
@@ -7,7 +7,7 @@ import { readText } from './fsutil.ts';
 import { ToolError, type Conventions, type FrameworkId } from './types.ts';
 import { parse, stringify, type YamlValue } from './yaml.ts';
 
-export const CONFIG_FILE = 'devtool.config.yaml';
+export const CONFIG_FILE = 'codz.config.yaml';
 
 export interface ToolConfig {
   framework?: FrameworkId;
@@ -22,7 +22,7 @@ export function loadConfig(root: string): ToolConfig {
   try {
     data = parse(text);
   } catch (e) {
-    throw new ToolError('bad_config', (e as Error).message, 'Fix that line, or see every problem with: devtool config check');
+    throw new ToolError('bad_config', (e as Error).message, 'Fix that line, or see every problem with: codz config check');
   }
   const conventions: Conventions = {};
   const raw = data.conventions;
@@ -35,9 +35,9 @@ export function loadConfig(root: string): ToolConfig {
 
 export function renderConfig(framework: FrameworkId, conventions: Conventions, descriptions: Record<string, string>): string {
   const header = [
-    '# devtool configuration. Commit this file.',
-    '# Values below were detected by `devtool init` (or chosen in `devtool setup`).',
-    '# Correct any that are wrong: devtool always uses these values instead of guessing again.',
+    '# codz configuration. Commit this file.',
+    '# Values below were detected by `codz init` (or chosen in `codz setup`).',
+    '# Correct any that are wrong: codz always uses these values instead of guessing again.',
     '',
   ].join('\n');
   const comments: Record<string, string> = {};

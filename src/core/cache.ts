@@ -1,4 +1,4 @@
-// The project map is a cache rebuilt from the code. It lives in .devtool/
+// The project map is a cache rebuilt from the code. It lives in .codz/
 // (git-ignored) and is refreshed before every skill when files changed.
 
 import { mkdirSync, statSync, writeFileSync } from 'node:fs';
@@ -7,12 +7,12 @@ import { fileURLToPath } from 'node:url';
 import { hash, readJson, readText, walk } from './fsutil.ts';
 import { MAP_SCHEMA_VERSION, type Adapter, type Conventions, type ProjectMap } from './types.ts';
 
-export const TOOL_DIR = '.devtool';
+export const TOOL_DIR = '.codz';
 
 const FINGERPRINT_EXTS = ['.ts', '.tsx', '.js', '.jsx', '.mjs', '.json', '.dart', '.yaml', '.yml', '.arb', '.env', '.example', '.local'];
 
 /**
- * devtool's own source, so a map scanned by an older devtool is rebuilt after an
+ * codz's own source, so a map scanned by an older codz is rebuilt after an
  * upgrade even when the version number did not change.
  */
 let toolBuild: string | undefined;
@@ -27,7 +27,7 @@ function toolFingerprint(): string {
   return (toolBuild = hash(parts.join('\n')));
 }
 
-/** Read-only runs (--dry-run, doctor) scan in memory and leave .devtool/ alone. */
+/** Read-only runs (--dry-run, doctor) scan in memory and leave .codz/ alone. */
 let cacheWrites = true;
 export function setCacheWrites(on: boolean): void {
   cacheWrites = on;
@@ -57,7 +57,7 @@ export function fingerprint(root: string, configText: string): string {
 interface CacheFile {
   schema: number;
   adapter: string;
-  /** devtool's own source fingerprint (see toolFingerprint). */
+  /** codz's own source fingerprint (see toolFingerprint). */
   tool?: string;
   fingerprint: string;
   map: ProjectMap;
@@ -65,7 +65,7 @@ interface CacheFile {
 
 export async function loadMap(root: string, adapter: Adapter, conventions: Conventions, opts: { force?: boolean } = {}): Promise<{ map: ProjectMap; fromCache: boolean }> {
   const cachePath = join(root, TOOL_DIR, 'cache', 'map.json');
-  const configText = readText(join(root, 'devtool.config.yaml')) ?? '';
+  const configText = readText(join(root, 'codz.config.yaml')) ?? '';
   const fp = fingerprint(root, configText);
   const cached = readJson<CacheFile>(cachePath);
   if (!opts.force && cached && cached.schema === MAP_SCHEMA_VERSION && cached.adapter === `${adapter.id}@${adapter.version}` && cached.tool === toolFingerprint() && cached.fingerprint === fp) {

@@ -1,6 +1,6 @@
-// Checks devtool.config.yaml: it parses, uses spaces, names a known framework,
+// Checks codz.config.yaml: it parses, uses spaces, names a known framework,
 // has known keys with allowed values, and its paths exist inside the project.
-// Used by `devtool config check`, `devtool config set` and `devtool doctor --setup`.
+// Used by `codz config check`, `codz config set` and `codz doctor --setup`.
 
 import { isAbsolute, join, relative, resolve } from 'node:path';
 import { FLUTTER_CONVENTION_DOCS } from '../adapters/flutter.ts';
@@ -92,7 +92,7 @@ export const ALLOWED: Record<string, Record<string, string[]>> = {
 /** Keys whose values are paths inside the project. */
 export const PATH_KEYS = new Set(['appDir', 'apiFolder', 'httpHelperFile', 'modelsFolder', 'modelsFile', 'repoFolder', 'dioProviderFile', 'diFile', 'networkFile', 'modulesFolder', 'routesFile', 'axiosInstanceFile', 'hooksFolder', 'templatesFolder', 'screensFolder', 'navigatorFile', 'routerDir', 'configFile', 'srcDir', 'navFile', 'module']);
 
-/** Path keys that devtool creates when missing (a fresh project), so a missing one is fine. */
+/** Path keys that codz creates when missing (a fresh project), so a missing one is fine. */
 const CREATED_ON_DEMAND = new Set(['screensFolder', 'navigatorFile', 'configFile', 'templatesFolder', 'hooksFolder', 'apiFolder', 'modelsFolder', 'repoFolder', 'modulesFolder', 'routesFile', 'modelsFile']);
 
 /** The candidate closest to a misspelled word (at most two edits away), if any. */
@@ -123,15 +123,15 @@ export function checkValue(framework: string, key: string, value: string, root?:
   if (value === '') return null;
   const allowed = ALLOWED[framework]?.[key];
   if (allowed && !allowed.includes(value)) {
-    return { level: 'error', key, message: `${key} is "${value}", which is not one of: ${allowed.join(', ')}.`, hint: `devtool config set ${key} ${allowed[0]}` };
+    return { level: 'error', key, message: `${key} is "${value}", which is not one of: ${allowed.join(', ')}.`, hint: `codz config set ${key} ${allowed[0]}` };
   }
   if (PATH_KEYS.has(key) && root) {
     if (isAbsolute(value) || value.split(/[\\/]/).includes('..')) {
       const outside = relative(resolve(root), resolve(root, value)).startsWith('..') || isAbsolute(value);
-      if (outside) return { level: 'error', key, message: `${key} (${value}) points outside the project.`, hint: 'Use a path relative to the folder that holds devtool.config.yaml.' };
+      if (outside) return { level: 'error', key, message: `${key} (${value}) points outside the project.`, hint: 'Use a path relative to the folder that holds codz.config.yaml.' };
     }
     if (!exists(join(root, value)) && !CREATED_ON_DEMAND.has(key)) {
-      return { level: 'warning', key, message: `${key} (${value}) does not exist.`, hint: `Fix it with devtool config set ${key} <path>, or rescan with devtool init --force.` };
+      return { level: 'warning', key, message: `${key} (${value}) does not exist.`, hint: `Fix it with codz config set ${key} <path>, or rescan with codz init --force.` };
     }
   }
   return null;
@@ -147,10 +147,10 @@ export function validateConfig(text: string, root?: string): ConfigIssue[] {
   try {
     data = parse(text);
   } catch (e) {
-    return [{ level: 'error', message: (e as Error).message.replace(/^devtool\.config\.yaml /, ''), hint: 'Fix the line, or recreate the file with devtool init --force.' }];
+    return [{ level: 'error', message: (e as Error).message.replace(/^codz\.config\.yaml /, ''), hint: 'Fix the line, or recreate the file with codz init --force.' }];
   }
   for (const key of Object.keys(data)) {
-    if (key !== 'framework' && key !== 'conventions') issues.push({ level: 'warning', key, message: `Unknown top-level key "${key}"; devtool ignores it.` });
+    if (key !== 'framework' && key !== 'conventions') issues.push({ level: 'warning', key, message: `Unknown top-level key "${key}"; codz ignores it.` });
   }
   const framework = typeof data.framework === 'string' ? data.framework : '';
   if (!framework) issues.push({ level: 'error', key: 'framework', message: 'framework is missing.', hint: 'Add framework: nextjs or framework: flutter.' });
@@ -170,7 +170,7 @@ export function validateConfig(text: string, root?: string): ConfigIssue[] {
     }
     if (Object.keys(known).length && !(key in known)) {
       const close = closest(key, Object.keys(known));
-      issues.push({ level: 'warning', key, message: `Unknown convention "${key}"; devtool ignores it.`, hint: close ? `Did you mean ${close}?` : undefined });
+      issues.push({ level: 'warning', key, message: `Unknown convention "${key}"; codz ignores it.`, hint: close ? `Did you mean ${close}?` : undefined });
       continue;
     }
     const issue = checkValue(framework, key, value, root);

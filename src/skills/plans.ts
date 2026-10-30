@@ -2,7 +2,7 @@
 //
 // A plan is "ready" when every file it touches is still as it was when the plan
 // was made, "applied" when history has it, and "stale" when a file changed since
-// (devtool apply would refuse it).
+// (codz apply would refuse it).
 
 import { readdirSync, rmSync, statSync } from 'node:fs';
 import { join } from 'node:path';

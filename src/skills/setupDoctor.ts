@@ -1,5 +1,5 @@
-// doctor --setup: can devtool run here? Environment and configuration checks,
-// separate from the project-health checks of plain `devtool doctor`. Read-only.
+// doctor --setup: can codz run here? Environment and configuration checks,
+// separate from the project-health checks of plain `codz doctor`. Read-only.
 //
 // Every check returns pass, warn or fail with a message and, when useful, a hint.
 
@@ -56,14 +56,14 @@ export const CHECKS: Check[] = [
       const ok = maj > MIN_NODE[0] || (maj === MIN_NODE[0] && min >= MIN_NODE[1]);
       return ok
         ? { status: 'pass', message: `v${process.versions.node}` }
-        : { status: 'fail', message: `Node v${process.versions.node} is older than ${MIN_NODE.join('.')}.`, hint: FROM_SOURCE ? 'Run from source, devtool needs Node 22.18 or newer (or run npm run build to use Node 20+). Install it with nvm, fnm or from nodejs.org.' : 'devtool needs Node 20 or newer. Install it with nvm, fnm or from nodejs.org.' };
+        : { status: 'fail', message: `Node v${process.versions.node} is older than ${MIN_NODE.join('.')}.`, hint: FROM_SOURCE ? 'Run from source, codz needs Node 22.18 or newer (or run npm run build to use Node 20+). Install it with nvm, fnm or from nodejs.org.' : 'codz needs Node 20 or newer. Install it with nvm, fnm or from nodejs.org.' };
     },
   },
   {
     id: 'git_present',
     run({ root }) {
-      if (!has('git')) return { status: 'warn', message: 'git is not installed.', hint: 'devtool still works, but it cannot warn you about uncommitted changes before writing.' };
-      return isGitRepo(root) ? { status: 'pass', message: 'git repository' } : { status: 'warn', message: 'This project is not a git repository.', hint: 'Run git init and commit, so every devtool change is a reviewable diff.' };
+      if (!has('git')) return { status: 'warn', message: 'git is not installed.', hint: 'codz still works, but it cannot warn you about uncommitted changes before writing.' };
+      return isGitRepo(root) ? { status: 'pass', message: 'git repository' } : { status: 'warn', message: 'This project is not a git repository.', hint: 'Run git init and commit, so every codz change is a reviewable diff.' };
     },
   },
   {
@@ -79,17 +79,17 @@ export const CHECKS: Check[] = [
   {
     id: 'config_found',
     run({ configText }) {
-      return configText !== null ? { status: 'pass', message: CONFIG_FILE } : { status: 'fail', message: `No ${CONFIG_FILE} in this folder or above it.`, hint: 'Create it with: devtool init' };
+      return configText !== null ? { status: 'pass', message: CONFIG_FILE } : { status: 'fail', message: `No ${CONFIG_FILE} in this folder or above it.`, hint: 'Create it with: codz init' };
     },
   },
   {
     id: 'config_valid',
     run({ root, configText }) {
-      if (configText === null) return { status: 'fail', message: 'no config to check', hint: 'devtool init' };
+      if (configText === null) return { status: 'fail', message: 'no config to check', hint: 'codz init' };
       const issues = validateConfig(configText, root).filter((i) => !i.key || !PATH_KEYS.has(i.key));
       const errors = issues.filter((i) => i.level === 'error');
-      if (errors.length) return { status: 'fail', message: errors.map((e) => e.message).join(' '), hint: errors[0].hint ?? 'See every problem with: devtool config check' };
-      if (issues.length) return { status: 'warn', message: issues.map((e) => e.message).join(' '), hint: 'See every problem with: devtool config check' };
+      if (errors.length) return { status: 'fail', message: errors.map((e) => e.message).join(' '), hint: errors[0].hint ?? 'See every problem with: codz config check' };
+      if (issues.length) return { status: 'warn', message: issues.map((e) => e.message).join(' '), hint: 'See every problem with: codz config check' };
       return { status: 'pass', message: 'parses; known keys and values' };
     },
   },
@@ -117,14 +117,14 @@ export const CHECKS: Check[] = [
         return r.status === 0 ? { status: 'pass', message: `${TOOL_DIR}/ is ignored` } : { status: 'warn', message: `${TOOL_DIR}/ is not in .gitignore.`, hint: `Add a line "${TOOL_DIR}/" to .gitignore; it holds the cache, backups and history.` };
       }
       const gi = readText(join(root, '.gitignore')) ?? '';
-      return /^\/?\.devtool\/?$/m.test(gi) ? { status: 'pass', message: `${TOOL_DIR}/ is ignored` } : { status: 'warn', message: `${TOOL_DIR}/ is not in .gitignore.`, hint: `Add a line "${TOOL_DIR}/" to .gitignore.` };
+      return /^\/?\.codz\/?$/m.test(gi) ? { status: 'pass', message: `${TOOL_DIR}/ is ignored` } : { status: 'warn', message: `${TOOL_DIR}/ is not in .gitignore.`, hint: `Add a line "${TOOL_DIR}/" to .gitignore.` };
     },
   },
   {
     id: 'framework_supported',
     run({ adapter }) {
       return adapter.id === 'generic'
-        ? { status: 'warn', message: 'No Next.js or Flutter project was found, so only explain and doctor work.', hint: 'Run devtool from the folder with package.json (Next.js) or pubspec.yaml (Flutter).' }
+        ? { status: 'warn', message: 'No Next.js or Flutter project was found, so only explain and doctor work.', hint: 'Run codz from the folder with package.json (Next.js) or pubspec.yaml (Flutter).' }
         : { status: 'pass', message: `${adapter.id}@${adapter.version}` };
     },
   },
@@ -141,7 +141,7 @@ export const CHECKS: Check[] = [
         if (/^\s+chopper:/m.test(spec)) found.push('Chopper (api add writes Dio repositories or Retrofit clients)');
       }
       return found.length
-        ? { status: 'warn', message: `Not supported yet: ${found.join('; ')}.`, hint: 'devtool still runs; generated code follows its own style for these.' }
+        ? { status: 'warn', message: `Not supported yet: ${found.join('; ')}.`, hint: 'codz still runs; generated code follows its own style for these.' }
         : { status: 'pass', message: 'none found' };
     },
   },
@@ -183,19 +183,19 @@ export const CHECKS: Check[] = [
       const path = join(root, TOOL_DIR, 'cache', 'map.json');
       if (!exists(path)) return { status: 'pass', message: 'no cache yet; it is built on the next command' };
       const cache = readJson<{ schema?: number; map?: unknown }>(path);
-      if (!cache || !cache.map) return { status: 'warn', message: 'The scan cache is unreadable.', hint: 'It is rebuilt automatically; to force it now: devtool explain --rescan' };
-      return { status: 'pass', message: 'readable (rebuilt automatically when files or devtool change)' };
+      if (!cache || !cache.map) return { status: 'warn', message: 'The scan cache is unreadable.', hint: 'It is rebuilt automatically; to force it now: codz explain --rescan' };
+      return { status: 'pass', message: 'readable (rebuilt automatically when files or codz change)' };
     },
   },
   {
     id: 'history_state',
     run({ root }) {
-      const leftovers = walk(root, '.', { maxFiles: 50000 }).filter((f) => f.endsWith('.devtool-tmp'));
-      if (leftovers.length) return { status: 'fail', message: `Half-written files from an interrupted apply: ${leftovers.slice(0, 3).join(', ')}.`, hint: 'Delete the .devtool-tmp files; the real files were not replaced.' };
+      const leftovers = walk(root, '.', { maxFiles: 50000 }).filter((f) => f.endsWith('.codz-tmp'));
+      if (leftovers.length) return { status: 'fail', message: `Half-written files from an interrupted apply: ${leftovers.slice(0, 3).join(', ')}.`, hint: 'Delete the .codz-tmp files; the real files were not replaced.' };
       const histPath = join(root, TOOL_DIR, 'history.json');
       if (!exists(histPath)) return { status: 'pass', message: 'no changes applied yet' };
       const hist = readJson<{ id: string; undone: boolean }[]>(histPath);
-      if (!Array.isArray(hist)) return { status: 'fail', message: `${TOOL_DIR}/history.json is unreadable, so undo cannot work.`, hint: `Move ${TOOL_DIR}/history.json aside; devtool starts a new history.` };
+      if (!Array.isArray(hist)) return { status: 'fail', message: `${TOOL_DIR}/history.json is unreadable, so undo cannot work.`, hint: `Move ${TOOL_DIR}/history.json aside; codz starts a new history.` };
       const last = [...hist].reverse().find((h) => !h.undone);
       if (last && !exists(join(root, TOOL_DIR, 'backups', last.id))) return { status: 'warn', message: `The backup for the last change (${last.id}) is missing, so it cannot be undone.` };
       return { status: 'pass', message: `${hist.length} change${hist.length === 1 ? '' : 's'} in history` };

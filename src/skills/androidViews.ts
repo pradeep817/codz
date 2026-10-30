@@ -277,11 +277,11 @@ export function planViewsScreen(root: string, map: ProjectMap, opts: Opts): Chan
       ? [
           '',
           `    private fun openItem(item: ${item}) {`,
-          '        // devtool: open item',
+          '        // codz: open item',
           '    }',
           '',
           '    private fun openNew() {',
-          '        // devtool: open new',
+          '        // codz: open new',
           '    }',
           '',
           `    private class ItemAdapter(private val onClick: (${item}) -> Unit) : RecyclerView.Adapter<ItemAdapter.Holder>() {`,
@@ -527,12 +527,12 @@ function planViewsForm(v: ReturnType<typeof views>, opts: Opts, a: ReturnType<ty
 export function linkViewsList(text: string, pkg: string, t: { detail?: { activity: string; param: string }; create?: { activity: string; noun: string }; idField?: string }): string | null {
   let out = text;
   let changed = false;
-  if (t.detail && t.idField && out.includes('        // devtool: open item')) {
-    out = out.replace('        // devtool: open item', `        startActivity(Intent(this, ${t.detail.activity}::class.java).putExtra("${t.detail.param}", ${access('item', t.idField)}.toString()))`);
+  if (t.detail && t.idField && out.includes('        // codz: open item')) {
+    out = out.replace('        // codz: open item', `        startActivity(Intent(this, ${t.detail.activity}::class.java).putExtra("${t.detail.param}", ${access('item', t.idField)}.toString()))`);
     changed = true;
   }
-  if (t.create && out.includes('        // devtool: open new')) {
-    out = out.replace('        // devtool: open new', `        startActivity(Intent(this, ${t.create.activity}::class.java))`);
+  if (t.create && out.includes('        // codz: open new')) {
+    out = out.replace('        // codz: open new', `        startActivity(Intent(this, ${t.create.activity}::class.java))`);
     out = out.replace('        findViewById<Button>(R.id.new_button).setOnClickListener { openNew() }', `        findViewById<Button>(R.id.new_button).apply {\n            text = "New ${t.create.noun}"\n            isVisible = true\n            setOnClickListener { openNew() }\n        }`);
     changed = true;
   }

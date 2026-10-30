@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
-# Runs devtool against real public projects (scripts/corpus.txt) to catch what
+# Runs codz against real public projects (scripts/corpus.txt) to catch what
 # hand-written fixtures miss. Everything is read-only or --dry-run: nothing is
 # written to the cloned projects.
 #
-# A project fails when devtool crashes (an "internal" error) or takes too long.
+# A project fails when codz crashes (an "internal" error) or takes too long.
 # Reporting that a project is not supported, or finding problems in it, is fine.
 #
 # Usage: ./scripts/corpus.sh [list-file]      (needs git and network access)
@@ -13,7 +13,7 @@ set -uo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 LIST="${1:-$ROOT/scripts/corpus.txt}"
 WORK="${CORPUS_DIR:-$(mktemp -d)}"
-DT=(node "$ROOT/bin/devtool.js")
+DT=(node "$ROOT/bin/codz.js")
 LIMIT="${CORPUS_TIMEOUT:-120}"
 status=0
 rows=()

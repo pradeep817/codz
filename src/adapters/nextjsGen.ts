@@ -61,7 +61,7 @@ export function renderInterface(m: InferredModel, g: Gen): string {
   const lines = [`export interface ${m.name} {`];
   for (const f of m.fields) {
     if (f.type.kind === 'date') lines.push(`  /** ISO 8601 date string. */`);
-    if (f.type.kind === 'unknown' || (f.type.kind === 'array' && f.type.item.kind === 'unknown')) lines.push(`  // devtool: type unknown from the samples; set it by hand.`);
+    if (f.type.kind === 'unknown' || (f.type.kind === 'array' && f.type.item.kind === 'unknown')) lines.push(`  // codz: type unknown from the samples; set it by hand.`);
     const t = tsType(f.type);
     lines.push(`  ${propKey(f.jsonName, g.q)}${f.nullable ? '?' : ''}: ${f.nullable && t !== 'unknown' ? `${t} | null` : t};`);
   }

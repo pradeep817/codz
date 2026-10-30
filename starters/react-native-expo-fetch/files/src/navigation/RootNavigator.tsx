@@ -2,7 +2,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
 import HomeScreen from '../screens/HomeScreen';
 
-/** Every screen and its parameters. devtool route add and screen add add entries here. */
+/** Every screen and its parameters. codz route add and screen add add entries here. */
 export type RootStackParamList = {
   Home: undefined;
 };

@@ -29,7 +29,7 @@ export function renderModel(m: InferredModel, g: DartGen, fileBase: string): str
   if (json) {
     L.push(`  factory ${cls}.fromJson(Map<String, dynamic> json) => _$${cls}FromJson(json);`, '');
     for (const x of fields) {
-      if (x.f.type.kind === 'unknown' || (x.f.type.kind === 'array' && x.f.type.item.kind === 'unknown')) L.push('  // devtool: type unknown from the samples; set it by hand.');
+      if (x.f.type.kind === 'unknown' || (x.f.type.kind === 'array' && x.f.type.item.kind === 'unknown')) L.push('  // codz: type unknown from the samples; set it by hand.');
       if (x.name !== x.f.jsonName) L.push(`  @JsonKey(name: ${dq(x.f.jsonName)})`);
       L.push(`  final ${x.type} ${x.name};`);
     }
@@ -39,7 +39,7 @@ export function renderModel(m: InferredModel, g: DartGen, fileBase: string): str
     for (const x of fields) L.push(`        ${x.name}: ${fromJsonExpr(x.f.type, `json[${dq(x.f.jsonName)}]`, x.f.nullable, g)},`);
     L.push('      );', '');
     for (const x of fields) {
-      if (x.f.type.kind === 'unknown' || (x.f.type.kind === 'array' && x.f.type.item.kind === 'unknown')) L.push('  // devtool: type unknown from the samples; set it by hand.');
+      if (x.f.type.kind === 'unknown' || (x.f.type.kind === 'array' && x.f.type.item.kind === 'unknown')) L.push('  // codz: type unknown from the samples; set it by hand.');
       L.push(`  final ${x.type} ${x.name};`);
     }
     L.push('', '  Map<String, dynamic> toJson() => {');

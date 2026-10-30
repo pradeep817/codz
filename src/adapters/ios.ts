@@ -10,7 +10,7 @@
 //
 // Xcode 16 projects keep their files in synchronized folders, so new files are
 // part of the app as soon as they exist. Older projects list every file in
-// project.pbxproj; devtool does not edit that file, and says which files to add
+// project.pbxproj; codz does not edit that file, and says which files to add
 // to the target in Xcode.
 
 import { readdirSync } from 'node:fs';
@@ -188,9 +188,9 @@ async function scan(root: string, configConventions: Conventions): Promise<Proje
   for (const f of files) for (const v of text(f).matchAll(/\bstruct\s+(\w+)\s*:\s*View\b/g)) map.routes.push({ name: v[1], path: v[1], params: [], file: f });
   if (c.baseUrl) map.baseUrls.push({ name: 'APIClient baseURL', value: c.baseUrl, file: networkFile });
   map.conventions = { ...c, ...configConventions };
-  if (!proj) map.notes.push('No .xcodeproj was found next to the sources; run devtool from the folder that holds YourApp.xcodeproj.');
+  if (!proj) map.notes.push('No .xcodeproj was found next to the sources; run codz from the folder that holds YourApp.xcodeproj.');
   if (map.conventions.ui !== 'swiftui') map.notes.push('No SwiftUI App (@main struct ...: App) was found; screens are written for SwiftUI, so screen add and feature add will not add views.');
-  if (map.conventions.fileSync === 'groups') map.notes.push('This Xcode project lists its files in project.pbxproj (not Xcode 16 synchronized folders); add the files devtool creates to the app target in Xcode.');
+  if (map.conventions.fileSync === 'groups') map.notes.push('This Xcode project lists its files in project.pbxproj (not Xcode 16 synchronized folders); add the files codz creates to the app target in Xcode.');
   return map;
 }
 
@@ -214,7 +214,7 @@ function apiClientFile(baseUrl: string, I: string): string {
     '}',
     '',
     '/// Calls the API with URLSession and decodes JSON. Endpoints are methods in',
-    '/// `extension APIClient` files (devtool api add writes them). Add auth headers in `send`.',
+    '/// `extension APIClient` files (codz api add writes them). Add auth headers in `send`.',
     'final class APIClient {',
     `${I}static let shared = APIClient()`,
     '',
@@ -274,7 +274,7 @@ export function planIosSetup(ctx: AdapterContext, choice: SetupChoice): SetupPla
   const { root, map } = ctx;
   if (choice.architecture !== 'urlsession') throw new ToolError('bad_args', `Unknown architecture "${choice.architecture}". Choose urlsession.`);
   const c0 = map.conventions;
-  if (!c0.appName) throw new ToolError('no_project', 'No .xcodeproj was found here.', 'Run devtool from the folder that holds YourApp.xcodeproj.');
+  if (!c0.appName) throw new ToolError('no_project', 'No .xcodeproj was found here.', 'Run codz from the folder that holds YourApp.xcodeproj.');
   const I = ' '.repeat(Number(c0.indent) || 4);
   const src = c0.sourceDir || c0.appName;
   const baseUrl = (choice.baseUrl || 'https://api.example.com').replace(/\/+$/, '');
@@ -296,7 +296,7 @@ export function planIosSetup(ctx: AdapterContext, choice: SetupChoice): SetupPla
 
 function renderStruct(m: InferredModel, I: string, warnings: string[]): string {
   const fields = m.fields.map((f) => ({ f, type: swiftType(f.type), name: swiftName(f.jsonName) }));
-  for (const x of fields.filter((x) => !x.type)) warnings.push(`${m.name}.${x.f.jsonName} has no type devtool can map to Swift, so it is left out of the struct.`);
+  for (const x of fields.filter((x) => !x.type)) warnings.push(`${m.name}.${x.f.jsonName} has no type codz can map to Swift, so it is left out of the struct.`);
   const kept = fields.filter((x) => x.type);
   const bare = (n: string) => n.replace(/`/g, '');
   const identifiable = kept.some((x) => bare(x.name) === 'id' && !x.f.nullable);
@@ -329,7 +329,7 @@ function swiftPath(path: string, params: Map<string, string>): string {
 async function planEndpoint(ctx: AdapterContext, input: EndpointSpec, overlay?: Map<string, string>, opts: { replaceModels?: boolean; targetFile?: string } = {}): Promise<PlannedEdits> {
   const { root, map } = ctx;
   const c = map.conventions;
-  if (!c.networkFile && !(overlay && [...overlay.keys()].some((k) => /APIClient\.swift$/.test(k)))) throw new ToolError('unsupported_setup', 'This project has no APIClient yet.', 'Run devtool setup (it writes Networking/APIClient.swift), or devtool feature add, which sets it up first.');
+  if (!c.networkFile && !(overlay && [...overlay.keys()].some((k) => /APIClient\.swift$/.test(k)))) throw new ToolError('unsupported_setup', 'This project has no APIClient yet.', 'Run codz setup (it writes Networking/APIClient.swift), or codz feature add, which sets it up first.');
   const I = ' '.repeat(Number(c.indent) || 4);
   const files = new Map<string, string>(overlay ?? []);
   const read = (p: string) => files.get(p) ?? readText(join(root, p));
@@ -388,7 +388,7 @@ async function planEndpoint(ctx: AdapterContext, input: EndpointSpec, overlay?: 
     ...(spec.request ? [`body: ${swiftType(spec.request) ?? 'Data'}`] : []),
   ];
   const resp = spec.method === 'DELETE' || spec.method === 'HEAD' ? null : swiftType(spec.response);
-  if (spec.response && !resp && spec.method !== 'DELETE' && spec.method !== 'HEAD') warnings.push(`${spec.name}: the response has no type devtool can map to Swift, so the method returns nothing. Change it to return a model when you know the shape.`);
+  if (spec.response && !resp && spec.method !== 'DELETE' && spec.method !== 'HEAD') warnings.push(`${spec.name}: the response has no type codz can map to Swift, so the method returns nothing. Change it to return a model when you know the shape.`);
   const query = spec.queryParams.length ? `, query: [${spec.queryParams.map((q) => `"${swiftText(q.name)}": ${(swiftType(q.type) ?? 'String') === 'String' ? swiftName(q.name) : `${swiftName(q.name)}.map { String(describing: $0) }`}`).join(', ')}]` : '';
   const body = spec.request ? ', body: try encode(body)' : '';
   const call = `${resp ? 'try await send' : 'try await sendEmpty'}("${spec.method}", "${swiftPath(path, params)}"${query}${body})`;

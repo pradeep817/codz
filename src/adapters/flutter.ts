@@ -33,7 +33,7 @@ export { addDartImport, addToClass, importUri, insertGetxRegistration } from './
 export const VERSION = '0.1.0';
 
 export const FLUTTER_CONVENTION_DOCS: Record<string, string> = {
-  templatesFolder: 'folder with custom templates (devtool templates list)',
+  templatesFolder: 'folder with custom templates (codz templates list)',
   packageName: 'package name from pubspec.yaml',
   http: 'HTTP client: dio or http',
   serialization: 'model serialization: manual (hand-written fromJson), json_serializable or freezed',
@@ -77,7 +77,7 @@ async function planEndpoint(ctx: AdapterContext, input: EndpointSpec, overlay?: 
   const warnings = [...input.warnings];
   const { spec, reused, replaced, notes } = resolveModels(input, map.models, g.cls, { replace: opts.replaceModels });
   warnings.push(...notes);
-  if (missingDio) warnings.push('dio is not in pubspec.yaml yet; the generated code needs it. Run `flutter pub add dio` (or `devtool setup` for the whole networking layer).');
+  if (missingDio) warnings.push('dio is not in pubspec.yaml yet; the generated code needs it. Run `flutter pub add dio` (or `codz setup` for the whole networking layer).');
 
   // Base URL: keep only the path when the host matches Dio's baseUrl. An endpoint from an API spec is
   // always relative to Dio's baseUrl: the spec's server is a stand-in for it (another environment).
@@ -232,7 +232,7 @@ async function planEndpoint(ctx: AdapterContext, input: EndpointSpec, overlay?: 
         }
       }
     } else {
-      warnings.push(`No dependency injection setup was detected, so ${repoClass} is not registered anywhere. Run \`devtool setup\` to add one.`);
+      warnings.push(`No dependency injection setup was detected, so ${repoClass} is not registered anywhere. Run \`codz setup\` to add one.`);
     }
   }
 

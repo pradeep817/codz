@@ -237,7 +237,7 @@ describe('stage D: custom templates', () => {
     try {
       clearTemplateCache();
       const cs = planTemplatesInit(dir, ['api-function.ts']);
-      assert.equal(after(cs, 'devtool/templates/api-function.ts.tmpl'), '{{default}}\n');
+      assert.equal(after(cs, 'codz/templates/api-function.ts.tmpl'), '{{default}}\n');
       apply(dir, cs);
       clearTemplateCache();
       assert.ok(listTemplates(dir).templates.find((t) => t.id === 'api-function.ts')!.custom);
@@ -261,18 +261,18 @@ describe('stage D: custom templates', () => {
     const fl = copyFixture('flutter-riverpod');
     try {
       clearTemplateCache();
-      mkdirSync(join(dir, 'devtool/templates'), { recursive: true });
-      writeFileSync(join(dir, 'devtool/templates/api-function.ts.tmpl'), '// {{method}} {{path}} → {{returnType}} ({{params}}) {{oops}}\n{{default}}\n');
-      writeFileSync(join(dir, 'devtool/templates/file-header.ts.tmpl'), '// {{file}}\n');
+      mkdirSync(join(dir, 'codz/templates'), { recursive: true });
+      writeFileSync(join(dir, 'codz/templates/api-function.ts.tmpl'), '// {{method}} {{path}} → {{returnType}} ({{params}}) {{oops}}\n{{default}}\n');
+      writeFileSync(join(dir, 'codz/templates/file-header.ts.tmpl'), '// {{file}}\n');
       const { changeSet } = await planApiAdd(dir, nextjs, { url: 'https://api.example.com/orders/{id}', samples: [join(INPUTS, 'products.json')] });
       const api = after(changeSet, 'lib/api/orders.ts')!;
       assert.match(api, /^\/\/ lib\/api\/orders\.ts\n/);
       assert.match(api, /\/\/ GET \/orders\/\{id\} → Order\[\] \(id: string\) \{\{oops\}\}\n\/\*\* GET \/orders\/\{id\} \*\/\nexport function getOrder/);
       assert.match(changeSet.warnings.join('\n'), /unknown placeholders: \{\{oops\}\}/);
       assert.doesNotMatch(after(changeSet, 'types/index.ts') ?? '', /^\/\/ types/, 'existing files get no header');
-      mkdirSync(join(fl, 'devtool/templates'), { recursive: true });
-      writeFileSync(join(fl, 'devtool/templates/api-method.dart.tmpl'), '  // {{name}}: {{method}} {{path}}\n{{default}}\n');
-      writeFileSync(join(fl, 'devtool/templates/model.dart.tmpl'), '// Model {{name}}\n{{default}}\n');
+      mkdirSync(join(fl, 'codz/templates'), { recursive: true });
+      writeFileSync(join(fl, 'codz/templates/api-method.dart.tmpl'), '  // {{name}}: {{method}} {{path}}\n{{default}}\n');
+      writeFileSync(join(fl, 'codz/templates/model.dart.tmpl'), '// Model {{name}}\n{{default}}\n');
       const f = (await planApiAdd(fl, flutter, { url: 'https://api.example.com/orders', samples: [join(INPUTS, 'products.json')] })).changeSet;
       assert.ok(f.changes.some((c) => /\/\/ getOrders: GET \/orders\n  \/\/\/ GET \/orders/.test(c.after ?? '')));
       assert.ok(f.changes.some((c) => /^\/\/ Model OrderModel\n/.test(c.after ?? '')));

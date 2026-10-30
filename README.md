@@ -1,76 +1,76 @@
-# devtool
+# codz
 
 A project-aware CLI that learns how your project is built, then makes the same structural change the same way every time. It runs offline, never uploads code, shows a diff before writing anything, and can undo every change.
 
-Adapters for **Next.js**, **Flutter**, **React Native** and **Android (Kotlin)**: new projects (`devtool create`), API endpoints (add, import, update, rename, remove), screens and forms, routes, mocks, tests, locales, theme values and project health checks, all with a diff first, `--plan`/`apply`, `undo` and `--json`. MIT licensed.
+Adapters for **Next.js**, **Flutter**, **React Native** and **Android (Kotlin)**: new projects (`codz create`), API endpoints (add, import, update, rename, remove), screens and forms, routes, mocks, tests, locales, theme values and project health checks, all with a diff first, `--plan`/`apply`, `undo` and `--json`. MIT licensed.
 
 ## Requirements
 
 - Node.js **20 or newer** for the built package (`npm run build`), or **22.18 or newer** to run the TypeScript source directly from a checkout. There are no runtime dependencies.
-- Git (optional, but recommended: devtool refuses to apply changes over uncommitted work unless you pass `--allow-dirty`).
+- Git (optional, but recommended: codz refuses to apply changes over uncommitted work unless you pass `--allow-dirty`).
 
 ## Install
 
 ```bash
-cd devtools
-npm link          # puts `devtool` on your PATH
-devtool --help
+cd codz
+npm link          # puts `codz` on your PATH
+codz --help
 ```
 
-On Node 22.18+ this runs the TypeScript in `src/` directly. On Node 20 or 21, run `npm run build` first; `bin/devtool.js` then uses the compiled `dist/` (set `DEVTOOL_DIST=1` to force it).
+On Node 22.18+ this runs the TypeScript in `src/` directly. On Node 20 or 21, run `npm run build` first; `bin/codz.js` then uses the compiled `dist/` (set `CODZ_DIST=1` to force it).
 
-**Publishing:** `npm publish` builds `dist/` and runs the tests first (`prepublishOnly`); the package ships `bin/`, `dist/`, the README, the license and docs/COMMANDS.md, not the TypeScript source. The name `devtool` is already taken on npm, so publish under a scoped name (for example `@your-scope/devtool`) by changing `name` in package.json.
+**Publishing:** `npm publish` builds `dist/` and runs the tests first (`prepublishOnly`); the package ships `bin/`, `dist/`, the README, the license and docs/COMMANDS.md, not the TypeScript source. The name `codz` is already taken on npm, so publish under a scoped name (for example `@your-scope/codz`) by changing `name` in package.json.
 
 ### Check your setup
 
 ```bash
 cd my-app
-devtool doctor --setup
+codz doctor --setup
 ```
 
-It checks Node, git (installed, a repository, a clean tree), the config file (found, valid, paths that exist), whether `.devtool/` is git-ignored, the framework and any libraries devtool does not write for yet, the formatter and analyzer, the scan cache and the change history. Each line is `pass`, `warn` or `fail` with a hint; the exit code is 1 when anything fails. It only reads.
+It checks Node, git (installed, a repository, a clean tree), the config file (found, valid, paths that exist), whether `.codz/` is git-ignored, the framework and any libraries codz does not write for yet, the formatter and analyzer, the scan cache and the change history. Each line is `pass`, `warn` or `fail` with a hint; the exit code is 1 when anything fails. It only reads.
 
 ### Shell completion
 
 ```bash
-eval "$(devtool completion bash)"                                   # in ~/.bashrc
-source <(devtool completion zsh)                                     # in ~/.zshrc, after compinit
-devtool completion fish > ~/.config/fish/completions/devtool.fish    # fish
+eval "$(codz completion bash)"                                   # in ~/.bashrc
+source <(codz completion zsh)                                     # in ~/.zshrc, after compinit
+codz completion fish > ~/.config/fish/completions/codz.fish    # fish
 ```
 
-Completes commands, flags, endpoint names (`devtool api show <TAB>`), plan ids, config keys and their allowed values.
+Completes commands, flags, endpoint names (`codz api show <TAB>`), plan ids, config keys and their allowed values.
 
 ## Quick start
 
 ```bash
 cd my-app
-devtool init                 # detect the framework, scan, write devtool.config.yaml
+codz init                 # detect the framework, scan, write codz.config.yaml
                              # (a fresh project is offered an architecture to set up)
-devtool explain              # routes, endpoints, models, locales, conventions
+codz explain              # routes, endpoints, models, locales, conventions
 
 # Paste a cURL command and (optionally) the response, then press Ctrl-D:
-devtool api add
+codz api add
 
 # Or pass everything as flags:
-devtool api add --curl "curl https://api.example.com/users/42/orders" --sample orders.json
-devtool api add --url "POST https://api.example.com/users" --request-sample new-user.json --sample user.json
+codz api add --curl "curl https://api.example.com/users/42/orders" --sample orders.json
+codz api add --url "POST https://api.example.com/users" --request-sample new-user.json --sample user.json
 
-devtool undo                 # revert the last change
+codz undo                 # revert the last change
 ```
 
-Every change shows a diff and asks before writing. Use `--dry-run` to preview only, `--yes` to apply without asking, or `--plan` to save the diff and apply exactly that later with `devtool apply <id>`.
+Every change shows a diff and asks before writing. Use `--dry-run` to preview only, `--yes` to apply without asking, or `--plan` to save the diff and apply exactly that later with `codz apply <id>`.
 
 ### New projects: create
 
 ```bash
-devtool create                     # asks: type, architecture, name, org, base URL, options
-devtool create shop-app --type android --architecture retrofit-hilt --org com.acme --base-url https://api.shop.dev
-devtool create shop-app --type react-native --flavor expo --architecture axios-react-query
-devtool create shop_app --type flutter --architecture riverpod --primary "#0F766E"
-devtool create shop-app --type nextjs --architecture fetch-helper --tailwind --dry-run
+codz create                     # asks: type, architecture, name, org, base URL, options
+codz create shop-app --type android --architecture retrofit-hilt --org com.acme --base-url https://api.shop.dev
+codz create shop-app --type react-native --flavor expo --architecture axios-react-query
+codz create shop_app --type flutter --architecture riverpod --primary "#0F766E"
+codz create shop-app --type nextjs --architecture fetch-helper --tailwind --dry-run
 ```
 
-`create` asks for the project type (Flutter, Next.js, React Native, Android), then the architecture for that type, the project name, the organization id (for app ids and packages), the API base URL and the type's own options (Tailwind for Next.js, Expo or the React Native CLI). It runs the platform's own creator (`flutter create`, `create-next-app`, `create-expo-app`, the React Native CLI), applies the architecture with the same `setup` as below, writes `devtool.config.yaml`, sets the theme color, installs dependencies and makes the first git commit. Without the platform tool, or with `--offline`, devtool writes a minimal project of its own instead. Android has no command-line creator, so devtool always writes Android Studio's Empty Activity project itself (Kotlin, Jetpack Compose, a version catalog, Navigation Compose with a Home screen) and adds the Gradle wrapper when Gradle is installed. `--dry-run` lists the steps; `--no-install` and `--no-git` skip those steps.
+`create` asks for the project type (Flutter, Next.js, React Native, Android), then the architecture for that type, the project name, the organization id (for app ids and packages), the API base URL and the type's own options (Tailwind for Next.js, Expo or the React Native CLI). It runs the platform's own creator (`flutter create`, `create-next-app`, `create-expo-app`, the React Native CLI), applies the architecture with the same `setup` as below, writes `codz.config.yaml`, sets the theme color, installs dependencies and makes the first git commit. Without the platform tool, or with `--offline`, codz writes a minimal project of its own instead. Android has no command-line creator, so codz always writes Android Studio's Empty Activity project itself (Kotlin, Jetpack Compose, a version catalog, Navigation Compose with a Home screen) and adds the Gradle wrapper when Gradle is installed. `--dry-run` lists the steps; `--no-install` and `--no-git` skip those steps.
 
 | Type | Architectures |
 | --- | --- |
@@ -79,31 +79,31 @@ devtool create shop-app --type nextjs --architecture fetch-helper --tailwind --d
 | React Native | `fetch-helper`, `axios-react-query`, `axios`, `none` (each with `--flavor expo` or `bare`) |
 | Android | `retrofit-hilt`, `retrofit-koin`, `retrofit`, `none` |
 
-### Ready-made starters: devtool new (online)
+### Ready-made starters: codz new (online)
 
 ```bash
-devtool new shop_app --template ./starters/flutter-riverpod-dio --org com.acme   # a template folder: no network, no account
-devtool starters list --framework flutter       # the catalog (when it is online)
-devtool starters show flutter-riverpod-dio      # what it adds beyond devtool create, tested SDKs, license
-devtool login                                   # only for paid starters: approve a code in the browser
-devtool new shop_app --template flutter-riverpod-dio@1.2.0
-cd shop_app && devtool init                     # then api add, screen add, ... as usual
+codz new shop_app --template ./starters/flutter-riverpod-dio --org com.acme   # a template folder: no network, no account
+codz starters list --framework flutter       # the catalog (when it is online)
+codz starters show flutter-riverpod-dio      # what it adds beyond codz create, tested SDKs, license
+codz login                                   # only for paid starters: approve a code in the browser
+codz new shop_app --template flutter-riverpod-dio@1.2.0
+cd shop_app && codz init                     # then api add, screen add, ... as usual
 ```
 
 `create` is free and offline and builds an architecture. `new` installs a finished starter (screens, theming, tests, error handling) from the starter catalog or a template folder. `new`, `starters`, `login`, `logout` and `whoami` are the only commands with network code, and they load it only when they run. They contact only the starter catalog and send nothing about your projects.
 
-- **Checked before use.** The catalog index is signed with Ed25519 and checked against keys built into devtool. An index older than one this machine has seen is refused, and so is an expired one, so a mirror cannot hide a withdrawn version. A catalog can also name online keys that sign a short-lived `timestamp.json` confirming the index is still current; devtool then checks that signature, that it points at this exact index, and that it has not expired or gone backwards, so the long-lived index can stay signed offline. Every archive must match the hash in the signed index, and every file must match the hash in its manifest. A withdrawn version is refused even from the cache.
-- **Data only.** A starter is files plus a manifest. It never runs its own scripts; devtool runs only `flutter create`, `flutter pub get`, `dart format` and `npm install --ignore-scripts`, with arguments it builds itself from typed answers.
+- **Checked before use.** The catalog index is signed with Ed25519 and checked against keys built into codz. An index older than one this machine has seen is refused, and so is an expired one, so a mirror cannot hide a withdrawn version. A catalog can also name online keys that sign a short-lived `timestamp.json` confirming the index is still current; codz then checks that signature, that it points at this exact index, and that it has not expired or gone backwards, so the long-lived index can stay signed offline. Every archive must match the hash in the signed index, and every file must match the hash in its manifest. A withdrawn version is refused even from the cache.
+- **Data only.** A starter is files plus a manifest. It never runs its own scripts; codz runs only `flutter create`, `flutter pub get`, `dart format` and `npm install --ignore-scripts`, with arguments it builds itself from typed answers.
 - **Strict reading.** The archive reader accepts regular files and folders only. Links, devices, `..`, absolute paths, Windows reserved names, case or Unicode clashes, and oversized or bomb archives stop it before anything is written.
-- **One step, and undoable.** The preview lists every file and step. The project is built in a temporary folder and moved into place in one rename. `devtool undo` inside the new project removes it again while you have not changed it; files from `pub get`, `npm install` and `devtool init` do not count as changes.
-- **Plans and agents.** `--plan` (or `--json` without `--yes`) saves a plan, and `devtool apply <id>` creates exactly that. From MCP, `new` only plans, `login` is not a tool, and a paid starter has to be downloaded once by a person first.
-- **Offline.** `--cached` uses only what is already downloaded. In CI, set `DEVTOOL_TOKEN` instead of logging in.
+- **One step, and undoable.** The preview lists every file and step. The project is built in a temporary folder and moved into place in one rename. `codz undo` inside the new project removes it again while you have not changed it; files from `pub get`, `npm install` and `codz init` do not count as changes.
+- **Plans and agents.** `--plan` (or `--json` without `--yes`) saves a plan, and `codz apply <id>` creates exactly that. From MCP, `new` only plans, `login` is not a tool, and a paid starter has to be downloaded once by a person first.
+- **Offline.** `--cached` uses only what is already downloaded. In CI, set `CODZ_TOKEN` instead of logging in.
 
-The catalog is served by the separate devtool store project (accounts, purchases, `devtool login`); until a release points at it, `new` works with template folders or `DEVTOOL_REGISTRY`. Starter sources live in `starters/`, and `scripts/starters.ts` checks, packs and signs them (see starters/README.md).
+The catalog is served by the separate codz store project (accounts, purchases, `codz login`); until a release points at it, `new` works with template folders or `CODZ_REGISTRY`. Starter sources live in `starters/`, and `scripts/starters.ts` checks, packs and signs them (see starters/README.md).
 
 ### Fresh projects: setup
 
-When a project has no API layer yet, `devtool init` asks which architecture to create and for the API base URL, then shows one diff with everything:
+When a project has no API layer yet, `codz init` asks which architecture to create and for the API base URL, then shows one diff with everything:
 
 | Framework | Architecture | What it creates |
 | --- | --- | --- |
@@ -121,24 +121,24 @@ When a project has no API layer yet, `devtool init` asks which architecture to c
 
 Android dependencies go into `gradle/libs.versions.toml` and the module's `build.gradle.kts` when the project has a version catalog, otherwise straight into `build.gradle.kts` (Groovy build files get a list of what to add).
 
-It also saves the folder conventions, so every later `api add` puts models and repositories in the right place and registers new repositories (`Get.lazyPut`, a Riverpod provider, or a get_it registration) with no manual step. After setup, devtool runs `flutter pub get` when Flutter is installed.
+It also saves the folder conventions, so every later `api add` puts models and repositories in the right place and registers new repositories (`Get.lazyPut`, a Riverpod provider, or a get_it registration) with no manual step. After setup, codz runs `flutter pub get` when Flutter is installed.
 
 Without a terminal (scripts, CI, agents), pass the choice as flags:
 
 ```bash
-devtool setup --architecture getx --base-url https://api.example.com --yes
-devtool init  --architecture riverpod --base-url https://api.example.com --yes
+codz setup --architecture getx --base-url https://api.example.com --yes
+codz init  --architecture riverpod --base-url https://api.example.com --yes
 ```
 
 ### GetX modules and wiring
 
-For GetX projects (set up by devtool or created with the GetX CLI), devtool writes features in the GetX CLI layout:
+For GetX projects (set up by codz or created with the GetX CLI), codz writes features in the GetX CLI layout:
 
 ```bash
-devtool module add profile                      # binding, controller, view, route
-devtool api add --into profile < request.txt    # new endpoint, called from ProfileController
-devtool api wire getProducts --into home        # existing endpoint into HomeController
-devtool module add catalog --api getProducts    # new module with an endpoint already wired
+codz module add profile                      # binding, controller, view, route
+codz api add --into profile < request.txt    # new endpoint, called from ProfileController
+codz api wire getProducts --into home        # existing endpoint into HomeController
+codz module add catalog --api getProducts    # new module with an endpoint already wired
 ```
 
 - `module add` creates `lib/app/modules/<name>/{bindings,controllers,views}` and registers the page in `lib/app/routes/app_pages.dart` and `app_routes.dart`. If those files don't exist yet, it creates them and points `GetMaterialApp` at `AppPages.routes`. Route constants follow your file: `Routes.PROFILE` in a GetX CLI project, `Routes.profile` otherwise. `--initial` makes the module the first screen.
@@ -147,9 +147,9 @@ devtool module add catalog --api getProducts    # new module with an endpoint al
 ### Importing a whole API
 
 ```bash
-devtool api import openapi.yaml                 # OpenAPI 3 (YAML or JSON)
-devtool api import swagger.json --tag users     # Swagger 2, only operations tagged "users"
-devtool api import shop.postman_collection.json --only getUser,listUsers
+codz api import openapi.yaml                 # OpenAPI 3 (YAML or JSON)
+codz api import swagger.json --tag users     # Swagger 2, only operations tagged "users"
+codz api import shop.postman_collection.json --only getUser,listUsers
 ```
 
 Every operation becomes an endpoint exactly as `api add` would write it. Shared schemas become one model, endpoints of one resource land in one file, and endpoints the project already has are skipped. Postman examples are used as response samples; requests without one are typed `unknown`/`dynamic` with a warning.
@@ -157,8 +157,8 @@ Every operation becomes an endpoint exactly as `api add` would write it. Shared 
 **From the browser (HAR).** In Chrome DevTools → Network, use "Save all as HAR with content", then:
 
 ```bash
-devtool api import app.har --list --base-url https://api.example.com   # see what it found
-devtool api import app.har --base-url https://api.example.com
+codz api import app.har --list --base-url https://api.example.com   # see what it found
+codz api import app.har --base-url https://api.example.com
 ```
 
 JSON calls are grouped by method and path (`/users/42` and `/users/43` become `/users/{id}`, with both responses as samples). Analytics hosts, images, scripts and failed responses (`--include-errors` keeps those) are skipped. Headers and cookies are never read, secret query parameters are dropped, and response bodies are only used to work out types: no value from the file is written, cached or kept in history. A HAR file still holds your session cookies, so do not commit it.
@@ -173,7 +173,7 @@ JSON calls are grouped by method and path (`/users/42` and `/users/43` become `/
 | `--method GET,POST` | those methods |
 | `--max 20` | the first 20 that match |
 | `--base-url <url>` | HAR: requests under that URL only |
-| `--skip-conflicts` | imports what works when some endpoints cannot be added (by default devtool lists them and stops) |
+| `--skip-conflicts` | imports what works when some endpoints cannot be added (by default codz lists them and stops) |
 
 Imports of more than 50 operations need `--max` or `--yes`, so a whole spec is never added by accident.
 
@@ -182,21 +182,21 @@ The spec's server URL stands in for your app's own base URL (often another envir
 ### Changing endpoints
 
 ```bash
-devtool api update getUser --sample new-user.json   # rebuild the model from a new response
-devtool api rename listUsers fetchUsers             # rename the function and every call site
-devtool api remove deleteUser                       # remove it; lists callers that will break
+codz api update getUser --sample new-user.json   # rebuild the model from a new response
+codz api rename listUsers fetchUsers             # rename the function and every call site
+codz api remove deleteUser                       # remove it; lists callers that will break
 ```
 
-`api update` rewrites the model in place and prints the fields that were added, removed or changed type, plus every line in your code that uses a removed or changed field. Code you added to a model is kept: in Dart, every member devtool does not generate (`copyWith`, `==`/`hashCode`, `toString`, getters, other constructors and methods) comes back after the regenerated fields, with a warning if one of them still uses a field that was removed; in TypeScript, comments above interface fields stay.
+`api update` rewrites the model in place and prints the fields that were added, removed or changed type, plus every line in your code that uses a removed or changed field. Code you added to a model is kept: in Dart, every member codz does not generate (`copyWith`, `==`/`hashCode`, `toString`, getters, other constructors and methods) comes back after the regenerated fields, with a warning if one of them still uses a field that was removed; in TypeScript, comments above interface fields stay.
 
-`api rename` and `api remove` find uses with your project's own TypeScript compiler when `typescript` is installed in it (it is in almost every Next.js project), so a local variable or parameter that happens to share the name, an object key, or another file's own function with that name is never touched. Without it, devtool falls back to its text scanner (`DEVTOOL_NO_AST=1` forces the fallback).
+`api rename` and `api remove` find uses with your project's own TypeScript compiler when `typescript` is installed in it (it is in almost every Next.js project), so a local variable or parameter that happens to share the name, an object key, or another file's own function with that name is never touched. Without it, codz falls back to its text scanner (`CODZ_NO_AST=1` forces the fallback).
 
 ### Other stacks
 
-devtool writes in the style the project already uses:
+codz writes in the style the project already uses:
 
 - **axios (Next.js):** API functions call your `axios.create` instance (`const res = await api.get<User>(...)`), with query parameters as `{ params }`. Without an instance they call `axios` with the base URL from your environment. `mock add` adds a request interceptor to the instance.
-- **TanStack Query (Next.js):** when the project already uses `@tanstack/react-query`, `api add` also writes a hook: `useQuery` for a GET (key `[resource, ...path params, query params]`), `useMutation` for the rest, invalidating the resource's queries on success. Hooks go into the hooks file that already imports from the same API file, otherwise `hooks/use-<resource>.ts`. Set `dataFetching: none` in `devtool.config.yaml` to turn this off.
+- **TanStack Query (Next.js):** when the project already uses `@tanstack/react-query`, `api add` also writes a hook: `useQuery` for a GET (key `[resource, ...path params, query params]`), `useMutation` for the rest, invalidating the resource's queries on success. Hooks go into the hooks file that already imports from the same API file, otherwise `hooks/use-<resource>.ts`. Set `dataFetching: none` in `codz.config.yaml` to turn this off.
 - **freezed (Flutter):** models are `@freezed` classes with a const factory constructor (`abstract class` for freezed 3, `class` for freezed 2, following your existing models). `api update` keeps your `@Default(...)` values and hand-written members. Run `dart run build_runner build` afterwards.
 - **React Native:** the same TypeScript generation as Next.js (your `apiFetch` helper or axios instance, relative imports when the project has no `@/` alias), with the API URL from `src/config/env.ts`. Screens are React Navigation screens (an entry in `RootStackParamList` and a `<Stack.Screen>`) or Expo Router files under `app/` (`[id].tsx`, `useLocalSearchParams`); lists use `FlatList` with pull to refresh. Tests are Jest.
 - **Android (Kotlin):** endpoints become `suspend` methods on a Retrofit interface per resource (`@GET("users/{id}") suspend fun getUser(@Path("id") id: Int): User`), with paths relative to the base URL. Models are data classes in the project's JSON library: kotlinx.serialization (`@Serializable`, `@SerialName`), Moshi (`@JsonClass`, `@Json`) or Gson (`@SerializedName`); optional fields default to `null`. A new interface is registered where Retrofit is created: a `@Provides` function in the Hilt module, a `single { }` in the Koin module, or a `by lazy` property on the service locator. `api update`, `rename` and `remove` work on Kotlin too. A `{"data": ...}` envelope needs `--no-unwrap`.
@@ -205,10 +205,10 @@ devtool writes in the style the project already uses:
 ### Keeping up with the API: api sync
 
 ```bash
-devtool api sync openapi.yaml            # update endpoints whose spec changed
-devtool api sync openapi.yaml --add      # ...and add the ones the project does not have yet
-devtool api sync openapi.yaml --remove   # ...and delete endpoints the spec no longer has
-devtool api sync openapi.yaml --check    # CI: exit 1 when the project is out of date with the spec
+codz api sync openapi.yaml            # update endpoints whose spec changed
+codz api sync openapi.yaml --add      # ...and add the ones the project does not have yet
+codz api sync openapi.yaml --remove   # ...and delete endpoints the spec no longer has
+codz api sync openapi.yaml --check    # CI: exit 1 when the project is out of date with the spec
 ```
 
 Endpoints are matched by method and path (a base prefix like `/v1` that your base URL already holds is allowed). A matched endpoint is rewritten from the spec in place: its response and request models (keeping your own members and comments, and the field order you have), its parameters, keeping your path and parameter names. Unchanged endpoints are left alone, and a second sync finds nothing to do. Changes that break callers (a response field removed or changed type, a new required parameter, a new request body) are listed with the lines that use them. Endpoints only in your project are listed, not removed, unless you pass `--remove`; they may belong to another API.
@@ -216,10 +216,10 @@ Endpoints are matched by method and path (a base prefix like `/v1` that your bas
 ### Before you merge: api diff
 
 ```bash
-devtool api diff openapi-main.yaml openapi-pr.yaml                      # what changed, what breaks, where it is used
-devtool api diff old.yaml new.yaml --format md --report api-diff.md     # a pull request comment
-devtool api diff old.yaml new.yaml --format sarif --report api.sarif    # GitHub code scanning
-devtool api diff old.yaml new.yaml --fail-on warning                    # exit 1 on warnings too (default: breaking)
+codz api diff openapi-main.yaml openapi-pr.yaml                      # what changed, what breaks, where it is used
+codz api diff old.yaml new.yaml --format md --report api-diff.md     # a pull request comment
+codz api diff old.yaml new.yaml --format sarif --report api.sarif    # GitHub code scanning
+codz api diff old.yaml new.yaml --fail-on warning                    # exit 1 on warnings too (default: breaking)
 ```
 
 Breaking: an operation removed, a response field removed or retyped, a new path parameter, a new required request field. Warning: a response field that can now be null, a removed query parameter, a retyped request field. Added operations, response fields and optional request fields are listed as additions. Inside a project each change names the endpoint function and the files and lines that use it (its callers, the screens, the model); outside a project it compares the two files only. Nothing is written except the `--report` file.
@@ -227,8 +227,8 @@ Breaking: an operation removed, a response field removed or retyped, a new path 
 ### Mock responses
 
 ```bash
-devtool mock add --all                       # a mock for every endpoint
-devtool mock add getUser --sample user.json  # use a real response as the mock
+codz mock add --all                       # a mock for every endpoint
+codz mock add getUser --sample user.json  # use a real response as the mock
 ```
 
 - Flutter: `mocks/mock_responses.dart` and a `MockInterceptor` next to your Dio setup, added to Dio only when you run `flutter run --dart-define=USE_MOCKS=true`.
@@ -239,16 +239,16 @@ Mock data is generated from the models (`email` fields get emails, `id`s count u
 ### Locales
 
 ```bash
-devtool locale add hi                                   # copy every key from the default language
-devtool locale key cart.empty "Your cart is empty" --value hi="आपकी कार्ट खाली है"
+codz locale add hi                                   # copy every key from the default language
+codz locale key cart.empty "Your cart is empty" --value hi="आपकी कार्ट खाली है"
 ```
 
-Works with JSON message files (next-intl, i18next; `cart.empty` becomes a nested key), Flutter ARB files (keys become identifiers like `cartEmpty`, `{name}` placeholders get metadata) and GetX `Translations`. A GetX project without translations gets `lib/app/translations/app_translations.dart`, wired into `GetMaterialApp` with `translations:`, `locale:` and `fallbackLocale:`. Languages without a `--value` get the default text and are listed by `devtool doctor` as untranslated. Only the changed keys are touched; the rest of each file keeps its formatting.
+Works with JSON message files (next-intl, i18next; `cart.empty` becomes a nested key), Flutter ARB files (keys become identifiers like `cartEmpty`, `{name}` placeholders get metadata) and GetX `Translations`. A GetX project without translations gets `lib/app/translations/app_translations.dart`, wired into `GetMaterialApp` with `translations:`, `locale:` and `fallbackLocale:`. Languages without a `--value` get the default text and are listed by `codz doctor` as untranslated. Only the changed keys are touched; the rest of each file keeps its formatting.
 
 ### Theme
 
 ```bash
-devtool theme set primary "#6750A4" radius 12 font Inter
+codz theme set primary "#6750A4" radius 12 font Inter
 ```
 
 The kind comes from the value: `#hex` is a color, a number is a size, anything else is a font.
@@ -256,28 +256,28 @@ The kind comes from the value: `#hex` is a color, a number is a size, anything e
 - Flutter: `AppColors`, `AppSizes` and `AppTheme` (light and dark, seeded from `AppColors.primary`) in `lib/app/theme` (GetX) or `lib/core/theme`, or wherever your project already keeps `AppColors`. `MaterialApp` / `GetMaterialApp` gets `theme: AppTheme.light`. The Flutter template theme is replaced; a theme you wrote yourself is left alone, with a note.
 - Next.js: Tailwind v4 `@theme` variables (`bg-primary`), Tailwind v3 `theme.extend` in `tailwind.config`, or plain CSS variables in `:root` in `globals.css`.
 - React Native: `colors`, `sizes` and `fonts` in `src/theme/index.ts`.
-- Android: `val Primary = Color(0xFF...)` in `ui/theme/Color.kt` and sizes as `dp` in `ui/theme/Dimens.kt` (a project made by `devtool create` already feeds `Primary` into its Material 3 color scheme). Fonts are not set on Android yet.
+- Android: `val Primary = Color(0xFF...)` in `ui/theme/Color.kt` and sizes as `dp` in `ui/theme/Dimens.kt` (a project made by `codz create` already feeds `Primary` into its Material 3 color scheme). Fonts are not set on Android yet.
 
 ### Whole features and sign-in
 
 ```bash
-devtool feature add orders --spec openapi.yaml       # endpoints, list, detail, create and edit screens, routes, tests
-devtool feature add users --spec openapi.yaml --tag users --no-tests
-devtool auth add                                     # sign-in screen, secure token storage, token on every request
-devtool auth add --login-path /v1/session --refresh-path /v1/session/refresh --public /pricing
+codz feature add orders --spec openapi.yaml       # endpoints, list, detail, create and edit screens, routes, tests
+codz feature add users --spec openapi.yaml --tag users --no-tests
+codz auth add                                     # sign-in screen, secure token storage, token on every request
+codz auth add --login-path /v1/session --refresh-path /v1/session/refresh --public /pricing
 ```
 
 `feature add` takes the operations whose path or tag names the feature (or `--tag` / `--path`), adds their endpoints, makes a list screen, a detail screen, a create form and an edit form where the API has them, links them (tapping a row opens the detail, a New button opens the form) and adds tests. Every step is planned in a private copy of the project and shown as one diff: one apply, one undo. A model clash stops the whole feature unless you pass `--skip-conflicts`.
 
 A project with no API layer yet (fresh from `flutter create`, `create-next-app`, Vite, Expo, the React Native CLI, Android Studio or Xcode) is set up first, in the same change: the recommended architecture, or the one you pass with `--architecture` (Flutter: riverpod, getx, get_it, bloc; Next.js: fetch-helper, plain-fetch; React Native and React web: fetch-helper, axios, axios-react-query; Android: retrofit-hilt, retrofit-koin, retrofit; iOS: urlsession). The base URL comes from `--base-url` or the spec's server. Then the endpoints, screens and tests are written in that architecture, and new dependencies are installed after apply.
 
-`auth add` adds sign-in to an existing project. Next.js: an HttpOnly cookie session, server actions, a login page and `middleware.ts` that sends signed-out visitors to `/login`. React Native: tokens in `expo-secure-store` or the Keychain, the token on every request and sign-out on 401, an `AuthProvider` and a login screen. Flutter: `flutter_secure_storage`, a Dio interceptor (with refresh when you pass `--refresh-path`) and a go_router redirect. Android (Hilt): encrypted token storage, an OkHttp interceptor, a login screen and ViewModel. When your network setup has a shape devtool does not recognise, it says exactly what to add by hand.
+`auth add` adds sign-in to an existing project. Next.js: an HttpOnly cookie session, server actions, a login page and `middleware.ts` that sends signed-out visitors to `/login`. React Native: tokens in `expo-secure-store` or the Keychain, the token on every request and sign-out on 401, an `AuthProvider` and a login screen. Flutter: `flutter_secure_storage`, a Dio interceptor (with refresh when you pass `--refresh-path`) and a go_router redirect. Android (Hilt): encrypted token storage, an OkHttp interceptor, a login screen and ViewModel. When your network setup has a shape codz does not recognise, it says exactly what to add by hand.
 
 ### Screens
 
 ```bash
-devtool screen add catalog --api getProducts
-devtool screen add order-details --api getOrder --path /orders/:id
+codz screen add catalog --api getProducts
+codz screen add order-details --api getOrder --path /orders/:id
 ```
 
 One change with the route, the page, the call to the endpoint, and the loading, error (with retry) and data states. Path parameters feed the endpoint's arguments by name.
@@ -292,8 +292,8 @@ One change with the route, the page, the call to the endpoint, and the loading, 
 Only GET endpoints make a data screen. For POST, PUT and PATCH endpoints, `--form` makes a form instead:
 
 ```bash
-devtool screen add new-user --api createUser --form
-devtool screen add edit-user --api updateUser --path /users/:id/edit --form
+codz screen add new-user --api createUser --form
+codz screen add edit-user --api updateUser --path /users/:id/edit --form
 ```
 
 One input per field of the request model (text, email, number, checkbox, date, comma-separated list), required fields marked, and submit calling the endpoint with saving, saved and error states. Next.js gets a client page (`'use client'`, path parameters from `useParams`); Flutter gets a `Form` with validators and a `SnackBar` (Riverpod, get_it, Bloc and GetX; in GetX the module's view is the form, with route parameters from `Get.parameters`). React Native gets `TextInput`s and `Switch`es with an `Alert` on the result. Android gets `OutlinedTextField`s (number keyboard for numbers), `Switch`es for booleans and a Save button that calls `viewModel.submit(...)`, with the error shown and an `onDone` callback on success. A required field a form cannot fill, such as a nested object, stops the command with the field named.
@@ -301,8 +301,8 @@ One input per field of the request model (text, email, number, checkbox, date, c
 ### Tests for API functions
 
 ```bash
-devtool test add getUser        # one endpoint
-devtool test add --all          # every endpoint without a test
+codz test add getUser        # one endpoint
+codz test add --all          # every endpoint without a test
 ```
 
 Tests that fake the network, so they run offline: Next.js tests (Vitest, or Jest when the project uses it) replace `fetch`, or the axios instance's method, with a spy that answers example data, then check the method, the URL and the result, and that a failed response throws. Flutter tests give Dio a fake `HttpClientAdapter`, check the method, the path and the typed result, and that a 500 throws a `DioException`. React Native tests are Jest. Android tests are JUnit tests on the JVM against OkHttp's `MockWebServer` (`app/src/test/java/.../UserApiTest.kt`): each one enqueues example JSON, calls the method, checks the method, the path and the parsed result, and one test per interface checks that a 500 throws `HttpException`; MockWebServer, kotlinx-coroutines-test and JUnit are added as `testImplementation` when missing. Run them with `./gradlew :app:testDebugUnitTest`. One test file per API file (`users.test.ts` next to it, or `test/.../user_repository_test.dart`); endpoints that already have a test are skipped.
@@ -310,11 +310,11 @@ Tests that fake the network, so they run offline: Next.js tests (Vitest, or Jest
 ### Custom templates
 
 ```bash
-devtool templates list                          # which templates the project customizes
-devtool templates init api-function.ts          # start one from a file that reproduces devtool's output
+codz templates list                          # which templates the project customizes
+codz templates init api-function.ts          # start one from a file that reproduces codz's output
 ```
 
-Templates live in `devtool/templates/` (`templatesFolder` in the config); commit them. A template is the text to write with `{{placeholders}}`; `{{default}}` is what devtool would have written, so a template can wrap it or replace it.
+Templates live in `codz/templates/` (`templatesFolder` in the config); commit them. A template is the text to write with `{{placeholders}}`; `{{default}}` is what codz would have written, so a template can wrap it or replace it.
 
 | Template | Shapes | Placeholders |
 | --- | --- | --- |
@@ -323,13 +323,13 @@ Templates live in `devtool/templates/` (`templatesFolder` in the config); commit
 | `api-method.dart` | a Flutter repository or Retrofit method | `{{default}}`, `{{name}}`, `{{method}}`, `{{path}}`, `{{returnType}}` |
 | `model.ts`, `model.dart` | a model | `{{default}}`, `{{name}}` |
 
-Whatever a template writes must still be code devtool can read back (an exported function, a class method), or later commands will not find it.
+Whatever a template writes must still be code codz can read back (an exported function, a class method), or later commands will not find it.
 
 ### Routes
 
 ```bash
-devtool route add settings
-devtool route add order-details --path /orders/:id
+codz route add settings
+codz route add order-details --path /orders/:id
 ```
 
 - GetX: a module (same as `module add`).
@@ -342,9 +342,9 @@ devtool route add order-details --path /orders/:id
 ### Doctor
 
 ```bash
-devtool doctor                   # everything
-devtool doctor --only locales    # locales, api, urls, models
-devtool doctor --strict --json   # for CI: exit 1 on warnings too
+codz doctor                   # everything
+codz doctor --only locales    # locales, api, urls, models
+codz doctor --strict --json   # for CI: exit 1 on warnings too
 ```
 
 | Check | Reports |
@@ -357,8 +357,8 @@ devtool doctor --strict --json   # for CI: exit 1 on warnings too
 Each finding has a file and line and, where there is one, the command that fixes it. The exit code is 1 when there are errors.
 
 ```bash
-devtool doctor --fix             # repair what is safe, as one change: diff, confirm, undo
-devtool check                    # CI gate: config check + doctor; exit 1 on any error or warning
+codz doctor --fix             # repair what is safe, as one change: diff, confirm, undo
+codz check                    # CI gate: config check + doctor; exit 1 on any error or warning
 ```
 
 `doctor --fix` adds missing locale keys (with the default language's text, so they still show as untranslated), rewrites hardcoded URLs that start with your base URL (Next.js: `` `${process.env.NEXT_PUBLIC_API_URL}/path` ``; Flutter: a relative path inside Dio calls), and removes models nothing uses (a file left empty is deleted, with its barrel export). Untyped responses and calls without error handling are listed with the fix, because they need a real response or a decision about the error screen.
@@ -366,26 +366,26 @@ devtool check                    # CI gate: config check + doctor; exit 1 on any
 ### Looking around: api list, api show, config, plans
 
 ```bash
-devtool api list                 # every endpoint: method, path, function, response, file
-devtool api list users           # filter by name, path or method
-devtool api show getUser         # signature, models with fields, every place that uses it
+codz api list                 # every endpoint: method, path, function, response, file
+codz api list users           # filter by name, path or method
+codz api show getUser         # signature, models with fields, every place that uses it
 
-devtool config                   # the conventions in use, marking which were detected
-devtool config get quote
-devtool config set modelsFolder src/types   # edits devtool.config.yaml in place (diff, undo)
-devtool config set baseUrlEnv ''            # '' = go back to detecting it
-devtool config check             # tabs, unknown keys (with "did you mean"), bad values, paths
+codz config                   # the conventions in use, marking which were detected
+codz config get quote
+codz config set modelsFolder src/types   # edits codz.config.yaml in place (diff, undo)
+codz config set baseUrlEnv ''            # '' = go back to detecting it
+codz config check             # tabs, unknown keys (with "did you mean"), bad values, paths
 
-devtool plans                    # saved --plan changes: ready, applied or stale
-devtool plans show <id>          # the diff again
-devtool plans clean              # remove applied and stale plans (--all for every plan)
+codz plans                    # saved --plan changes: ready, applied or stale
+codz plans show <id>          # the diff again
+codz plans clean              # remove applied and stale plans (--all for every plan)
 ```
 
-**History.** `devtool history` lists applied changes; `devtool history show <id>` shows one change's files (and whether each was edited since) with the diff it made; `devtool undo --to <id>` undoes every change back to that one, newest first.
+**History.** `codz history` lists applied changes; `codz history show <id>` shows one change's files (and whether each was edited since) with the diff it made; `codz undo --to <id>` undoes every change back to that one, newest first.
 
 **Workflow flags** for every command that changes code: `--commit` commits exactly the changed files (`--commit-message "..."`, or a message built from the summary), `--open` opens the diff in `$EDITOR` before asking, and `api add --clipboard` reads the cURL command from the clipboard (pbpaste, wl-paste, xclip or xsel). Every preview starts with a line like `4 files: 2 created, 2 changed (+17 −0 lines)`.
 
-`config set` refuses values devtool does not understand (for example `quote: backtick`) and paths outside the project. A plan is stale when a file it touches changed since it was made; `devtool apply` refuses those, so make the change again.
+`config set` refuses values codz does not understand (for example `quote: backtick`) and paths outside the project. A plan is stale when a file it touches changed since it was made; `codz apply` refuses those, so make the change again.
 
 ### Pasting a cURL with its response
 
@@ -397,7 +397,7 @@ response:
 {"data": {"id": 9001, "total_price": 20, "items": [{"sku": "A1", "qty": 2}]}}
 ```
 
-devtool removes the `Authorization` header (and cookies, API keys, tokens in the query) and never writes them anywhere. It then generates:
+codz removes the `Authorization` header (and cookies, API keys, tokens in the query) and never writes them anywhere. It then generates:
 
 - the models (`Order`, `OrderItem`, `CreateUserOrderRequest`) in your models folder, in your file naming;
 - `createUserOrder(userId, body, params?)` in the existing `users` API file or repository, through your own request helper when you have one;
@@ -412,15 +412,15 @@ devtool removes the `Authorization` header (and cookies, API keys, tokens in the
 | React Native | Expo and bare React Native CLI projects, TypeScript; `fetch` through a shared helper or an axios instance, TanStack Query hooks; React Navigation (native stack) or Expo Router; API URL in a config file | Redux Toolkit Query, plain JavaScript projects |
 | React (web) | Vite or Create React App, TypeScript; `fetch` through a shared helper or an axios instance, TanStack Query hooks; React Router (`<Routes>` or `createBrowserRouter`); API URL from `VITE_API_URL` / `REACT_APP_API_URL` | `auth add`, Next.js-style server components (use the Next.js adapter) |
 | Android | Kotlin app module; Retrofit with `suspend` functions; kotlinx.serialization, Moshi or Gson data classes; Hilt, Koin or a service locator object; screens in Jetpack Compose (Navigation Compose) or XML Views (an Activity, a layout and a ViewModel per screen, registered in the manifest); version catalog or direct Gradle Kotlin DSL dependencies | Ktor, Java sources, Fragments, `mock add` |
-| iOS | Swift with SwiftUI: an `APIClient` over URLSession with async/await, `Codable` structs, SwiftUI views with `ObservableObject` view models, `NavigationLink` navigation; Xcode 16 synchronized folders (older projects: devtool lists the files to add to the target) | UIKit screens, Alamofire, `test add`, `mock add`, `auth add` |
+| iOS | Swift with SwiftUI: an `APIClient` over URLSession with async/await, `Codable` structs, SwiftUI views with `ObservableObject` view models, `NavigationLink` navigation; Xcode 16 synchronized folders (older projects: codz lists the files to add to the target) | UIKit screens, Alamofire, `test add`, `mock add`, `auth add` |
 | Anything else | Generic adapter: structure, locale files and `.env` base URLs in `explain` | `api add`, `theme`, `route` |
 
-When something is outside the supported setup, devtool says so before doing anything rather than generating the wrong style.
+When something is outside the supported setup, codz says so before doing anything rather than generating the wrong style.
 
 ## How it decides what to write
 
-- **Conventions** (folders, naming, quotes, semicolons, helper, DI, imports) are detected on `init` and saved to `devtool.config.yaml`. Correct anything wrong once and commit the file; devtool uses your values from then on.
-- **The project map** is a cache in `.devtool/` (git-ignored). It is rebuilt automatically when files change, so hand edits never leave it stale.
+- **Conventions** (folders, naming, quotes, semicolons, helper, DI, imports) are detected on `init` and saved to `codz.config.yaml`. Correct anything wrong once and commit the file; codz uses your values from then on.
+- **The project map** is a cache in `.codz/` (git-ignored). It is rebuilt automatically when files change, so hand edits never leave it stale.
 - **Model inference** follows fixed rules: several `--sample`s are merged; a field missing or null in any sample is nullable; money-like names (`price`, `amount`, `lat`, ...) become doubles; ISO strings become dates; enums are never guessed; a field that is only ever `null`, or a list that is only ever empty, is marked unknown with a warning instead of a guess; `{"data": ...}` envelopes are unwrapped (`--no-unwrap` to keep them).
 - **Existing models** with the same name and fields are reused. A different model with the same name stops the run (`--model-name` to choose another name); nested clashes get a prefixed name.
 - **Base URLs**: when the URL's host matches a configured base URL (`.env` for Next.js, Dio's `baseUrl` for Flutter), only the path is written, minus any prefix like `/v1`.
@@ -432,40 +432,40 @@ When something is outside the supported setup, devtool says so before doing anyt
 - Checks that every target file is unchanged since the preview; otherwise nothing is applied.
 - Writes all files to temporary names first and swaps them in together; any failure restores everything.
 - Runs your formatter (Prettier, `dart format`) and analyzer (`tsc`, `dart analyze`) when installed. If the analyzer reports a new error in a changed file, the change is reverted (`--no-verify` to skip).
-- `devtool undo` restores from backups in `.devtool/backups/`, and refuses (without `--force`) if you edited the files since.
-- Never edits outside the project root or inside `.devtool/`. No network access, no telemetry.
+- `codz undo` restores from backups in `.codz/backups/`, and refuses (without `--force`) if you edited the files since.
+- Never edits outside the project root or inside `.codz/`. No network access, no telemetry.
 
 ## For scripts and AI agents
 
 Every command accepts `--json` and prints one JSON object: `{"ok": true, ...}` or `{"ok": false, "error": {"code", "message", "hint"}}`. A typical agent flow:
 
 ```bash
-devtool explain --json                          # learn the project
-devtool api add --curl "..." --plan --json      # get the diff and a plan id
-devtool apply <plan-id> --json                  # apply exactly what was shown
+codz explain --json                          # learn the project
+codz api add --curl "..." --plan --json      # get the diff and a plan id
+codz apply <plan-id> --json                  # apply exactly what was shown
 ```
 
 ### MCP server
 
 ```bash
-devtool mcp                 # in the project folder (or: devtool mcp --cwd /path/to/project)
+codz mcp                 # in the project folder (or: codz mcp --cwd /path/to/project)
 ```
 
-`devtool mcp` serves devtool over the Model Context Protocol on stdio, for AI agents and editors that support MCP. Every command becomes a tool (`api add` → `api_add`, `api sync` → `api_sync`, `doctor`, ...), with a JSON schema built from its options. Tools that edit code never write: they return the diff and a `planId`, and the `apply` tool applies that plan exactly as shown. Two resources: `devtool://project` (what devtool knows about the project) and `devtool://commands` (every command and option).
+`codz mcp` serves codz over the Model Context Protocol on stdio, for AI agents and editors that support MCP. Every command becomes a tool (`api add` → `api_add`, `api sync` → `api_sync`, `doctor`, ...), with a JSON schema built from its options. Tools that edit code never write: they return the diff and a `planId`, and the `apply` tool applies that plan exactly as shown. Two resources: `codz://project` (what codz knows about the project) and `codz://commands` (every command and option).
 
-To add it to an MCP client, register a stdio server whose command is `devtool` with the arguments `["mcp", "--cwd", "/path/to/project"]`. Many clients take a JSON entry like:
+To add it to an MCP client, register a stdio server whose command is `codz` with the arguments `["mcp", "--cwd", "/path/to/project"]`. Many clients take a JSON entry like:
 
 ```json
-{ "mcpServers": { "devtool": { "command": "devtool", "args": ["mcp", "--cwd", "/path/to/project"] } } }
+{ "mcpServers": { "codz": { "command": "codz", "args": ["mcp", "--cwd", "/path/to/project"] } } }
 ```
 
 ### VS Code extension
 
-`extensions/vscode` runs devtool from the command palette: add an endpoint from a cURL command or URL, sync with a spec, show an endpoint and jump to its uses, rename, mock and test every endpoint, doctor findings in the Problems panel, undo. Every change opens as a diff first and is applied only when you click Apply. Package it with `npx @vscode/vsce package` in that folder and install the `.vsix`; see its README.
+`extensions/vscode` runs codz from the command palette: add an endpoint from a cURL command or URL, sync with a spec, show an endpoint and jump to its uses, rename, mock and test every endpoint, doctor findings in the Problems panel, undo. Every change opens as a diff first and is applied only when you click Apply. Package it with `npx @vscode/vsce package` in that folder and install the `.vsix`; see its README.
 
 ## Beta testers
 
-See [BETA.md](BETA.md): install, the first 10 minutes, what is stable, and how to send feedback with `devtool report`.
+See [BETA.md](BETA.md): install, the first 10 minutes, what is stable, and how to send feedback with `codz report`.
 
 ## Development
 
@@ -476,27 +476,27 @@ npm run typecheck              # needs: npm i -D typescript @types/node
 ./scripts/check-generated.sh   # compile generated code with real SDKs (Flutter + tsc), pages (.tsx) included
 node scripts/starters.ts check starters/*/   # starter publishing gates (manifest, hashes, secrets, determinism)
 ./scripts/check-android.sh     # create an Android project per architecture, run a session, then Gradle assembleDebug + unit tests (needs the Android SDK)
-./scripts/corpus.sh            # run devtool (read-only, --dry-run) on the public projects in scripts/corpus.txt
+./scripts/corpus.sh            # run codz (read-only, --dry-run) on the public projects in scripts/corpus.txt
 npm run docs                   # regenerate docs/COMMANDS.md from the command table
 npm run check:all              # beta build check: feature/auth/screen add on every platform, then real builds (tsc, vitest, dart analyze, Gradle, swiftc)
-npm run beta:pack              # tests + dist/ + release/devtool-<version>.tgz, checked by installing it in a clean folder
+npm run beta:pack              # tests + dist/ + release/codz-<version>.tgz, checked by installing it in a clean folder
 FUZZ_RUNS=5000 FUZZ_SEED=3 node --test test/fuzz.test.ts   # fuzz the parsers harder
 ```
 
-Every command and option is defined once, in `src/core/commands.ts`: `--help`, `devtool <command> --help`, shell completion, the option parser and [docs/COMMANDS.md](docs/COMMANDS.md) are generated from it, and a test fails if the CLI handles a command or reads an option the table does not list. A mistyped option (`--dryrun`) is an error with a suggestion, never silently ignored.
+Every command and option is defined once, in `src/core/commands.ts`: `--help`, `codz <command> --help`, shell completion, the option parser and [docs/COMMANDS.md](docs/COMMANDS.md) are generated from it, and a test fails if the CLI handles a command or reads an option the table does not list. A mistyped option (`--dryrun`) is an error with a suggestion, never silently ignored.
 
-CI (`.github/workflows/ci.yml`) runs the tests and the typecheck on Linux, macOS and Windows, fuzzes the parsers, checks that docs/COMMANDS.md is current for every push and pull request, and runs `check-generated.sh` with Flutter installed, so the Dart output is analyzed too: on the fixtures and on a project made by `flutter create`. An `android` job runs `check-android.sh` with Java 17, Gradle and the runner's Android SDK, so the Kotlin that devtool writes (setup, endpoints, screens, forms, routes, tests, theme) is compiled and its generated tests run. `.github/workflows/corpus.yml` runs the corpus check weekly; a crash or a timeout on any project fails it.
+CI (`.github/workflows/ci.yml`) runs the tests and the typecheck on Linux, macOS and Windows, fuzzes the parsers, checks that docs/COMMANDS.md is current for every push and pull request, and runs `check-generated.sh` with Flutter installed, so the Dart output is analyzed too: on the fixtures and on a project made by `flutter create`. An `android` job runs `check-android.sh` with Java 17, Gradle and the runner's Android SDK, so the Kotlin that codz writes (setup, endpoints, screens, forms, routes, tests, theme) is compiled and its generated tests run. `.github/workflows/corpus.yml` runs the corpus check weekly; a crash or a timeout on any project fails it.
 
 Layout:
 
 ```
-bin/devtool.js         entry point
+bin/codz.js         entry point
 src/cli.ts             commands and flags
 src/core/              types, cache, config and YAML reader, JSON editing, diff, change sets, git
 src/input/             cURL, paste, OpenAPI/Swagger/Postman parsing, naming, model inference
 src/core/commands.ts   the command and option table (help, completion, parser, docs, MCP tools)
-src/skills/mcp.ts      devtool mcp: the Model Context Protocol server
-src/starters/          devtool new and the starter catalog (the only network code; loaded on demand)
+src/skills/mcp.ts      codz mcp: the Model Context Protocol server
+src/starters/          codz new and the starter catalog (the only network code; loaded on demand)
 starters/              the internal starter templates; scripts/starters.ts publishes them
 extensions/vscode/     the VS Code extension
 dist/                  compiled output for the npm package (npm run build; not committed)

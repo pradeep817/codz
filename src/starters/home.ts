@@ -1,16 +1,16 @@
-// devtool's per-user folder (~/.devtool, or DEVTOOL_HOME): the login token,
+// codz's per-user folder (~/.codz, or CODZ_HOME): the login token,
 // the last signed catalog index and the cache of verified starter archives.
 
 import { chmodSync, existsSync, mkdirSync, readFileSync, renameSync, rmSync, writeFileSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { dirname, join } from 'node:path';
 
-export function devtoolHome(): string {
-  return process.env.DEVTOOL_HOME || join(homedir(), '.devtool');
+export function codzHome(): string {
+  return process.env.CODZ_HOME || join(homedir(), '.codz');
 }
 
 export function homePath(...parts: string[]): string {
-  return join(devtoolHome(), ...parts);
+  return join(codzHome(), ...parts);
 }
 
 export function readHomeFile(...parts: string[]): Buffer | null {

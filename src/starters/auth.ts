@@ -1,7 +1,7 @@
-// Login for paid starters: the OAuth device-code flow (devtool prints a short
+// Login for paid starters: the OAuth device-code flow (codz prints a short
 // code, you approve it in the browser), a short-lived access token and a
-// rotating refresh token in ~/.devtool/auth.json (owner-only). CI uses
-// DEVTOOL_TOKEN instead. Tokens never appear in output, history or plans.
+// rotating refresh token in ~/.codz/auth.json (owner-only). CI uses
+// CODZ_TOKEN instead. Tokens never appear in output, history or plans.
 
 import { spawn } from 'node:child_process';
 import { ToolError } from '../core/types.ts';
@@ -40,21 +40,21 @@ function tokens(body: Record<string, unknown>, account: string): StoredAuth {
   const access = body.access_token;
   const refresh = body.refresh_token;
   const ttl = Number(body.expires_in ?? 900);
-  if (typeof access !== 'string' || typeof refresh !== 'string' || !access || !refresh) throw new ToolError('login_failed', 'The login server did not return tokens.', 'Try devtool login again.');
+  if (typeof access !== 'string' || typeof refresh !== 'string' || !access || !refresh) throw new ToolError('login_failed', 'The login server did not return tokens.', 'Try codz login again.');
   return { accessToken: access, refreshToken: refresh, expiresAt: Date.now() + Math.max(30, ttl) * 1000, account: typeof body.account === 'string' ? printable(body.account).slice(0, 200) : account, registry: registryConfig().api.href };
 }
 
 export const auth = {
   /** A usable access token, refreshed when it is about to expire; null when not logged in. */
   async accessToken(): Promise<string | undefined> {
-    if (process.env.DEVTOOL_TOKEN) return process.env.DEVTOOL_TOKEN;
+    if (process.env.CODZ_TOKEN) return process.env.CODZ_TOKEN;
     const a = load();
     if (!a) return undefined;
     if (a.expiresAt - 60_000 > Date.now()) return a.accessToken;
     const r = await request(api('v1/token/refresh'), { method: 'POST', json: { refresh_token: a.refreshToken }, maxBytes: 64 * 1024 });
     if (r.status === 400 || r.status === 401) {
       removeHome('auth.json');
-      throw new ToolError('token_expired', 'Your session has expired.', 'Run devtool login again.');
+      throw new ToolError('token_expired', 'Your session has expired.', 'Run codz login again.');
     }
     if (r.status !== 200) throw apiError(r, { hadToken: true, what: 'refreshing the login' });
     const next = tokens(json(r.body, 'the refresh answer'), a.account);
@@ -63,13 +63,13 @@ export const auth = {
   },
 
   account(): string | null {
-    if (process.env.DEVTOOL_TOKEN) return 'DEVTOOL_TOKEN';
+    if (process.env.CODZ_TOKEN) return 'CODZ_TOKEN';
     return load()?.account ?? null;
   },
 
   async login(opts: { print: (line: string) => void; browser: boolean; sleep?: (ms: number) => Promise<void> }): Promise<{ account: string }> {
     const sleep = opts.sleep ?? ((ms: number) => new Promise<void>((r) => setTimeout(r, ms)));
-    const r = await request(api('v1/device/code'), { method: 'POST', json: { client: 'devtool-cli' }, maxBytes: 64 * 1024 });
+    const r = await request(api('v1/device/code'), { method: 'POST', json: { client: 'codz-cli' }, maxBytes: 64 * 1024 });
     if (r.status !== 200) throw apiError(r, { hadToken: false, what: 'login' });
     const d = json(r.body, 'the login answer');
     const deviceCode = String(d.device_code ?? '');
@@ -77,15 +77,15 @@ export const auth = {
     const verify = checkUrl(String(d.verification_uri ?? ''), 'the login page');
     let interval = Math.max(0, Number(d.interval ?? 5));
     const deadline = Date.now() + Math.min(Number(d.expires_in ?? 900), 1800) * 1000;
-    if (!deviceCode || !userCode) throw new ToolError('login_failed', 'The login server did not return a code.', 'Try devtool login again.');
-    // The page must be on the catalog's own hosts; devtool never opens a link a server made up elsewhere.
+    if (!deviceCode || !userCode) throw new ToolError('login_failed', 'The login server did not return a code.', 'Try codz login again.');
+    // The page must be on the catalog's own hosts; codz never opens a link a server made up elsewhere.
     const cfg = registryConfig();
     if (verify.host !== cfg.api.host && verify.host !== cfg.base.host && !verify.host.endsWith(`.${cfg.base.host}`)) throw new ToolError('login_failed', `The login page ${verify.host} is not on the catalog's site.`, 'Do not continue; report it.');
     opts.print(`Open ${verify.href} and enter code: ${userCode}`);
     if (opts.browser) openBrowser(verify.href);
     opts.print('Waiting for approval...');
     for (;;) {
-      if (Date.now() > deadline) throw new ToolError('login_expired', 'The login code expired before it was approved.', 'Run devtool login again.');
+      if (Date.now() > deadline) throw new ToolError('login_expired', 'The login code expired before it was approved.', 'Run codz login again.');
       await sleep(interval * 1000);
       const p = await request(api('v1/device/token'), { method: 'POST', json: { device_code: deviceCode }, maxBytes: 64 * 1024 });
       const body = p.body.length ? json(p.body, 'the login answer') : {};
@@ -100,8 +100,8 @@ export const auth = {
         interval += 5;
         continue;
       }
-      if (err === 'access_denied') throw new ToolError('login_denied', 'The login was declined in the browser.', 'Run devtool login again to retry.');
-      if (err === 'expired_token') throw new ToolError('login_expired', 'The login code expired before it was approved.', 'Run devtool login again.');
+      if (err === 'access_denied') throw new ToolError('login_denied', 'The login was declined in the browser.', 'Run codz login again to retry.');
+      if (err === 'expired_token') throw new ToolError('login_expired', 'The login code expired before it was approved.', 'Run codz login again.');
       throw apiError(p, { hadToken: false, what: 'login' });
     }
   },
@@ -122,7 +122,7 @@ export const auth = {
 
   async whoami(): Promise<{ account: string; owned: { id: string; updatesUntil?: string }[] }> {
     const token = await auth.accessToken();
-    if (!token) throw new ToolError('not_logged_in', 'You are not logged in.', 'Run devtool login.');
+    if (!token) throw new ToolError('not_logged_in', 'You are not logged in.', 'Run codz login.');
     const r = await request(api('v1/me'), { token, maxBytes: 256 * 1024 });
     if (r.status !== 200) throw apiError(r, { hadToken: true, what: 'your account' });
     const b = json(r.body, 'the account answer');

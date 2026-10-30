@@ -1,10 +1,10 @@
 {
-  "name": "devtool",
+  "name": "codz",
   "version": "0.1.0",
   "description": "Project-aware dev CLI: understands a project once, then makes deterministic, reviewable changes to it.",
   "type": "module",
   "bin": {
-    "devtool": "bin/devtool.js"
+    "codz": "bin/codz.js"
   },
   "files": [
     "bin",

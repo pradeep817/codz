@@ -4,5 +4,5 @@
 •   POST   /v1/products/{productId}/reviews  →  createReview()  in lib/api/products.ts
 ! listProducts: The URL host https://api.yourapp.com does not match any configured base URL (NEXT_PUBLIC_API_URL=https://api.example.com). The call goes through apiFetch, which uses its own base URL; check that this endpoint lives on the same server.
 ! getProduct: The URL host https://api.yourapp.com does not match any configured base URL (NEXT_PUBLIC_API_URL=https://api.example.com). The call goes through apiFetch, which uses its own base URL; check that this endpoint lives on the same server.
-! createReview: The collection has no saved example response, so the response type is unknown. Save an example in Postman, or run devtool api update createReview --sample <file> later.
+! createReview: The collection has no saved example response, so the response type is unknown. Save an example in Postman, or run codz api update createReview --sample <file> later.
 ! createReview: The URL host https://api.yourapp.com does not match any configured base URL (NEXT_PUBLIC_API_URL=https://api.example.com). The call goes through apiFetch, which uses its own base URL; check that this endpoint lives on the same server.

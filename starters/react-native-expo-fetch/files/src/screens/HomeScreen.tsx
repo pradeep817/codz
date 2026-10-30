@@ -8,7 +8,7 @@ export default function HomeScreen() {
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <Text style={[styles.title, { color: colors.text }]}>{'{{appTitle}}'}</Text>
       <Text style={[styles.body, { color: colors.muted }]}>
-        Add your first endpoint with devtool api add, then a screen with devtool screen add.
+        Add your first endpoint with codz api add, then a screen with codz screen add.
       </Text>
     </View>
   );

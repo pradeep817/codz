@@ -112,7 +112,7 @@ function networkFile(arch: string, pkg: string): string {
   if (arch === 'retrofit-hilt') {
     imports.push('dagger.Module', 'dagger.Provides', 'dagger.hilt.InstallIn', 'dagger.hilt.components.SingletonComponent', 'javax.inject.Singleton');
     body = [
-      '/** Creates Retrofit and every API interface. devtool api add adds a provider here for each new interface. */',
+      '/** Creates Retrofit and every API interface. codz api add adds a provider here for each new interface. */',
       '@Module',
       '@InstallIn(SingletonComponent::class)',
       'object NetworkModule {',
@@ -140,7 +140,7 @@ function networkFile(arch: string, pkg: string): string {
   } else if (arch === 'retrofit-koin') {
     imports.push('org.koin.dsl.module');
     body = [
-      '/** Retrofit and every API interface. devtool api add adds a single { } here for each new interface. */',
+      '/** Retrofit and every API interface. codz api add adds a single { } here for each new interface. */',
       'val networkModule = module {',
       '    single { Json { ignoreUnknownKeys = true } }',
       `    single { OkHttpClient.Builder().addInterceptor(${logging}).build() }`,
@@ -149,7 +149,7 @@ function networkFile(arch: string, pkg: string): string {
     ];
   } else {
     body = [
-      '/** Holds Retrofit and the API interfaces. devtool api add adds one val per new interface. */',
+      '/** Holds Retrofit and the API interfaces. codz api add adds one val per new interface. */',
       'object ServiceLocator {',
       '    private val json = Json { ignoreUnknownKeys = true }',
       '',

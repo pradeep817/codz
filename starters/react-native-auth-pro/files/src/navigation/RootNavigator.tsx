@@ -8,7 +8,7 @@ import LoginScreen from '../screens/LoginScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 
 /**
- * Every screen and its parameters. devtool route add and screen add add entries here, and new
+ * Every screen and its parameters. codz route add and screen add add entries here, and new
  * screens become tabs; move a Tab.Screen into the Stack below to push it over the tabs instead.
  */
 export type RootStackParamList = {

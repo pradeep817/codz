@@ -102,15 +102,15 @@ describe('stage B: TypeScript syntax trees', { skip: TS_DIR ? false : 'no TypeSc
     }
   });
 
-  it('DEVTOOL_NO_AST=1 falls back to the text scanner', async () => {
+  it('CODZ_NO_AST=1 falls back to the text scanner', async () => {
     const dir = copyFixture('nextjs-helper');
-    process.env.DEVTOOL_NO_AST = '1';
+    process.env.CODZ_NO_AST = '1';
     try {
       withTypeScript(dir);
       const cs = await planApiRename(dir, nextjs, 'getUser', 'fetchUser');
       assert.match(after(cs, 'app/profile/page.tsx')!, /await fetchUser\(1\)/);
     } finally {
-      delete process.env.DEVTOOL_NO_AST;
+      delete process.env.CODZ_NO_AST;
       cleanup(dir);
     }
   });

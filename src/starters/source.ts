@@ -27,11 +27,11 @@ export interface VerifiedTemplate {
 export function verifyFiles(m: Manifest, files: Map<string, Buffer>): void {
   const listed = new Set(m.files.map((f) => f.path));
   const extra = [...files.keys()].filter((p) => !listed.has(p));
-  if (extra.length) throw new ToolError('checksum_mismatch', `The template has files its manifest does not list: ${extra.slice(0, 5).join(', ')}${extra.length > 5 ? ', ...' : ''}.`, 'Clear the cache with devtool starters cache --clear and retry; report it if it persists.');
+  if (extra.length) throw new ToolError('checksum_mismatch', `The template has files its manifest does not list: ${extra.slice(0, 5).join(', ')}${extra.length > 5 ? ', ...' : ''}.`, 'Clear the cache with codz starters cache --clear and retry; report it if it persists.');
   for (const f of m.files) {
     const data = files.get(f.path);
-    if (!data) throw new ToolError('checksum_mismatch', `The template is missing ${f.path}.`, 'Clear the cache with devtool starters cache --clear and retry; report it if it persists.');
-    if (data.length !== f.size || sha256(data) !== f.sha256) throw new ToolError('checksum_mismatch', `${f.path} does not match its hash in the manifest.`, 'Clear the cache with devtool starters cache --clear and retry; report it if it persists.');
+    if (!data) throw new ToolError('checksum_mismatch', `The template is missing ${f.path}.`, 'Clear the cache with codz starters cache --clear and retry; report it if it persists.');
+    if (data.length !== f.size || sha256(data) !== f.sha256) throw new ToolError('checksum_mismatch', `${f.path} does not match its hash in the manifest.`, 'Clear the cache with codz starters cache --clear and retry; report it if it persists.');
   }
 }
 

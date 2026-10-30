@@ -1,5 +1,5 @@
 // templates list | templates init [id...]: see which templates the project
-// customizes, and start one from a file that reproduces devtool's own output.
+// customizes, and start one from a file that reproduces codz's own output.
 
 import { join } from 'node:path';
 import { buildChangeSet } from '../core/changeset.ts';
@@ -26,6 +26,6 @@ export function planTemplatesInit(root: string, ids: string[]): ChangeSet {
     summary.push(`Create ${file}: ${t.about} (placeholders: ${Object.keys(t.vars).map((v) => `{{${v}}}`).join(', ')})`);
   }
   if (!files.size) summary.push(`Every chosen template already exists in ${folder}.`);
-  else summary.push('Edit them and commit them; devtool uses them from the next command on. {{default}} is what devtool would write.');
+  else summary.push('Edit them and commit them; codz uses them from the next command on. {{default}} is what codz would write.');
   return buildChangeSet(root, 'templates init', { files, summary, warnings: [], generated: [] });
 }

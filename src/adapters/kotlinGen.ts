@@ -57,7 +57,7 @@ export function renderDataClass(m: InferredModel, c: Conventions, pkg: string): 
     if (usesUnknown(f.type) && ser === 'kotlinx') imports.add('kotlinx.serialization.json.JsonElement');
     const optional = f.nullable || f.type.kind === 'unknown';
     const type = kotlinType(f.type, c) + (optional ? '?' : '');
-    const unknown = usesUnknown(f.type) ? ' // devtool: type unknown from the samples; set it by hand' : '';
+    const unknown = usesUnknown(f.type) ? ' // codz: type unknown from the samples; set it by hand' : '';
     return `    ${ann}val ${name}: ${type}${optional ? ' = null' : ''},${unknown}`;
   });
   const classAnn = ser === 'kotlinx' ? '@Serializable\n' : ser === 'moshi' ? '@JsonClass(generateAdapter = true)\n' : '';

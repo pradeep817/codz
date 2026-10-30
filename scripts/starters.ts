@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Publishing tool for starter templates (internal; not part of the devtool CLI).
+// Publishing tool for starter templates (internal; not part of the codz CLI).
 //
 //   node scripts/starters.ts keygen <dir>                       new Ed25519 signing key (keep the private key offline)
 //   node scripts/starters.ts files <template>                   refresh manifest.json's file list from files/
@@ -10,7 +10,7 @@
 //   node scripts/starters.ts timestamp <registry> --key <pem>   sign v1/timestamp.json with the online key (--hours 48)
 //
 // The SDK gates (flutter analyze/test/build, next build), the init contract and
-// the api add smoke test run in CI on a project made with devtool new.
+// the api add smoke test run in CI on a project made with codz new.
 
 import { chmodSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
@@ -31,7 +31,7 @@ try {
       writeFileSync(join(dir, `starters-${k.keyid}.pem`), k.privatePem, { mode: 0o600 });
       chmodSync(join(dir, `starters-${k.keyid}.pem`), 0o600);
       writeFileSync(join(dir, `starters-${k.keyid}.pub`), `${k.publicRaw}\n`);
-      console.log(`Key id ${k.keyid}\nPublic key (put it in OFFICIAL_KEYS or DEVTOOL_REGISTRY_KEYS): ${k.publicRaw}\nPrivate key: ${join(dir, `starters-${k.keyid}.pem`)} — keep it offline.`);
+      console.log(`Key id ${k.keyid}\nPublic key (put it in OFFICIAL_KEYS or CODZ_REGISTRY_KEYS): ${k.publicRaw}\nPrivate key: ${join(dir, `starters-${k.keyid}.pem`)} — keep it offline.`);
       break;
     }
     case 'files':

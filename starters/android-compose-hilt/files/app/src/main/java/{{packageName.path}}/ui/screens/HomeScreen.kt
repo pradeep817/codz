@@ -27,7 +27,7 @@ fun HomeScreen() {
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Text(
-                "Add your first endpoint with devtool api add, then a screen with devtool screen add.",
+                "Add your first endpoint with codz api add, then a screen with codz screen add.",
                 style = MaterialTheme.typography.bodyLarge,
                 textAlign = TextAlign.Center,
             )

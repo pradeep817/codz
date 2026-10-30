@@ -1,4 +1,4 @@
-# Public projects the corpus run checks devtool against.
+# Public projects the corpus run checks codz against.
 # One per line: owner/repo, optionally #subfolder for a project inside a monorepo.
 # Next.js
 vercel/commerce

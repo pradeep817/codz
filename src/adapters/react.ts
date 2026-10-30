@@ -74,7 +74,7 @@ async function scan(root: string, configConventions: Conventions): Promise<Proje
 
   if (conv.routerFile && exists(join(root, conv.routerFile))) map.routes = reactRoutes(conv.routerFile, text(conv.routerFile));
   map.routes.sort((a, b) => a.path.localeCompare(b.path));
-  if (conv.router === 'none') map.notes.push('No React Router found; screen add and route add need it (devtool setup adds React Router).');
+  if (conv.router === 'none') map.notes.push('No React Router found; screen add and route add need it (codz setup adds React Router).');
   return map;
 }
 

@@ -1,4 +1,4 @@
-// devtool create: new projects, set up and ready for api add.
+// codz create: new projects, set up and ready for api add.
 
 import assert from 'node:assert/strict';
 import { existsSync, mkdtempSync, readFileSync, rmSync } from 'node:fs';
@@ -14,7 +14,7 @@ import { INPUTS } from './helpers.ts';
 
 function withParent(fn: (parent: string) => Promise<void>) {
   return async () => {
-    const parent = mkdtempSync(join(tmpdir(), 'devtool-create-'));
+    const parent = mkdtempSync(join(tmpdir(), 'codz-create-'));
     try {
       await fn(parent);
     } finally {
@@ -25,14 +25,14 @@ function withParent(fn: (parent: string) => Promise<void>) {
 
 const base = (parent: string, o: Partial<CreateOptions>): CreateOptions => ({ type: 'flutter', name: 'shop_app', parent, architecture: 'riverpod', baseUrl: 'https://api.shop.dev/v1', org: 'com.acme', offline: true, install: false, git: false, ...o });
 
-describe('devtool create', () => {
+describe('codz create', () => {
   for (const t of PROJECT_TYPES) {
     for (const a of t.architectures) {
       it(`${t.label} + ${a.label}: created, configured, and api add works`, withParent(async (parent) => {
         const name = t.id === 'flutter' ? 'shop_app' : 'shop-app';
         const r = await createProject(base(parent, { type: t.id, name, architecture: a.id }));
         assert.equal(r.created, 'skeleton');
-        assert.ok(existsSync(join(r.dir, 'devtool.config.yaml')));
+        assert.ok(existsSync(join(r.dir, 'codz.config.yaml')));
         assert.equal(loadConfig(r.dir).framework, t.framework);
         const { map } = await loadMap(r.dir, ADAPTERS[t.framework], loadConfig(r.dir).conventions);
         assert.equal(map.framework, t.framework);
@@ -62,7 +62,7 @@ describe('devtool create', () => {
     assert.match(readFileSync(join(r.dir, '.env.example'), 'utf8'), /NEXT_PUBLIC_API_URL=https:\/\/api\.shop\.dev/);
     if (r.steps.includes('git init and a first commit')) {
       assert.ok(existsSync(join(r.dir, '.git')));
-      assert.match(readFileSync(join(r.dir, '.gitignore'), 'utf8'), /\.devtool\//);
+      assert.match(readFileSync(join(r.dir, '.gitignore'), 'utf8'), /\.codz\//);
     }
   }));
 

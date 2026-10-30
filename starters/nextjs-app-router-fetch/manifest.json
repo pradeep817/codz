@@ -7,7 +7,7 @@
   "framework": "nextjs",
   "mode": "full",
   "requires": {
-    "devtool": ">=0.1.0",
+    "codz": ">=0.1.0",
     "node": ">=18.18"
   },
   "provides": {
@@ -75,13 +75,13 @@
     },
     {
       "path": ".gitignore",
-      "sha256": "7a8f84e6c2be35a67c09465a0b40450eb4ba206d8582949941bde66b5ac329bb",
-      "size": 76
+      "sha256": "283fa23e0bdac737306d187bc3ade16c1655b5838d639f56dba42eae7f2dccc1",
+      "size": 73
     },
     {
       "path": "README.md",
-      "sha256": "33f822e20c562c989dfd2e2ecfb20383932c4706b12b1265ab03b8a551ae0936",
-      "size": 500
+      "sha256": "67298e6ca23198271afed335f79e3f64370a1e9d83749cfa616eca22cab79ce4",
+      "size": 485
     },
     {
       "path": "app/error.tsx",
@@ -105,8 +105,8 @@
     },
     {
       "path": "app/page.tsx",
-      "sha256": "2506ce79038b718f72242d6ca5939f78612124a80e7569853834ce68b7073711",
-      "size": 202
+      "sha256": "e48e3daac7effbd731a9173aecfafefecca2eeb5a1aead60ae58978da0f8f40f",
+      "size": 196
     },
     {
       "path": "lib/api/client.ts",

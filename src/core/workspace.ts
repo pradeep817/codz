@@ -48,7 +48,7 @@ export interface Workspace {
 }
 
 export function openWorkspace(realRoot: string): Workspace {
-  const root = mkdtempSync(join(tmpdir(), 'devtool-ws-'));
+  const root = mkdtempSync(join(tmpdir(), 'codz-ws-'));
   cpSync(realRoot, root, { recursive: true, filter: keep(realRoot), verbatimSymlinks: true });
   const generated: GeneratedRecord[] = [];
   const rewrites = new Set<string>();

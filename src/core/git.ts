@@ -7,7 +7,7 @@ export function isGitRepo(root: string): boolean {
 
 /**
  * Files with uncommitted changes under `root`, relative to `root` (not to the
- * repository), excluding devtool's own folder. Works when the project is a
+ * repository), excluding codz's own folder. Works when the project is a
  * subfolder of a larger repository, and with renames and unusual file names.
  */
 export function dirtyFiles(root: string): string[] {
@@ -26,7 +26,7 @@ export function dirtyFiles(root: string): string[] {
     // A rename or copy is followed by its original path; skip that.
     if (status[0] === 'R' || status[0] === 'C') i++;
     const rel = sub && path.startsWith(sub) ? path.slice(sub.length) : path;
-    if (rel === '.devtool' || rel.startsWith('.devtool/')) continue;
+    if (rel === '.codz' || rel.startsWith('.codz/')) continue;
     out.push(rel);
   }
   return out;

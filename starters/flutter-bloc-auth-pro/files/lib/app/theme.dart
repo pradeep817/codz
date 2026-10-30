@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-/// Colors and text styles in one place. devtool theme set primary "#hex" changes the seed.
+/// Colors and text styles in one place. codz theme set primary "#hex" changes the seed.
 class AppColors {
   static const primary = Color(0xFF3F51B5);
 }

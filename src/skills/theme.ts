@@ -89,12 +89,12 @@ function planFlutterTheme(root: string, map: ProjectMap, token: ThemeToken, file
   };
 
   if (token.kind === 'color') {
-    const t = ensure(colorsFile, 'AppColors', 'App colors. Change them with: devtool theme set <name> <#hex>');
+    const t = ensure(colorsFile, 'AppColors', 'App colors. Change them with: codz theme set <name> <#hex>');
     const had = new RegExp(`\\bstatic\\s+const\\s+(?:Color\\s+)?${name}\\s*=`).test(t);
     save(colorsFile, dartReplaceOrAdd(t, 'AppColors', new RegExp(`static\\s+const\\s+(?:Color\\s+)?${name}\\s*=[^;]*;`), `static const Color ${name} = Color(0x${dartArgb(token.value)});`));
     summary.push(`${had ? 'Update' : 'Add'} AppColors.${name} = #${token.value} in ${colorsFile}`);
   } else if (token.kind === 'size') {
-    const t = ensure(sizesFile, 'AppSizes', 'Spacing, radius and other sizes. Change them with: devtool theme set <name> <number>');
+    const t = ensure(sizesFile, 'AppSizes', 'Spacing, radius and other sizes. Change them with: codz theme set <name> <number>');
     const had = new RegExp(`\\bstatic\\s+const\\s+(?:double\\s+)?${name}\\s*=`).test(t);
     const v = token.value.includes('.') ? token.value : `${token.value}.0`;
     save(sizesFile, dartReplaceOrAdd(t, 'AppSizes', new RegExp(`static\\s+const\\s+(?:double\\s+)?${name}\\s*=[^;]*;`), `static const double ${name} = ${v};`));
@@ -111,7 +111,7 @@ function planFlutterTheme(root: string, map: ProjectMap, token: ThemeToken, file
       t = [
         "import 'package:flutter/material.dart';",
         '',
-        '/// The app theme. Colors come from AppColors; change them with devtool theme set.',
+        '/// The app theme. Colors come from AppColors; change them with codz theme set.',
         'class AppTheme {',
         '  AppTheme._();',
         '',
@@ -129,7 +129,7 @@ function planFlutterTheme(root: string, map: ProjectMap, token: ThemeToken, file
       ].join('\n');
       if (seed) t = addDartImport(t, importUri(themeFile, colorsFile, c));
       summary.push(`Create ${themeFile}: AppTheme.light / AppTheme.dark${seed ? ` seeded from AppColors.${seed}` : ''}`);
-      if (!seed) warnings.push('AppTheme uses Colors.deepPurple until you set a color: devtool theme set primary #6750A4');
+      if (!seed) warnings.push('AppTheme uses Colors.deepPurple until you set a color: codz theme set primary #6750A4');
     }
     if (token.kind === 'font') {
       const font = `fontFamily: '${token.value.replace(/'/g, "\\'")}',`;
@@ -345,7 +345,7 @@ function planRnTheme(root: string, map: ProjectMap, token: ThemeToken, files: Ma
 /** Android: Color.kt / Dimens.kt values in ui/theme; primary also feeds the color scheme when Theme.kt uses Primary. */
 function planAndroidTheme(root: string, map: ProjectMap, token: ThemeToken, files: Map<string, string>, summary: string[], warnings: string[]): void {
   const c = map.conventions;
-  if (token.kind === 'font') return void warnings.push(`Fonts are not set by devtool on Android yet; add a FontFamily for ${token.value} to ui/theme/Type.kt.`);
+  if (token.kind === 'font') return void warnings.push(`Fonts are not set by codz on Android yet; add a FontFamily for ${token.value} to ui/theme/Type.kt.`);
   const srcDir = c.srcDir || 'app/src/main/java';
   const dir = `${srcDir}/${(c.namespace || 'app').replace(/\./g, '/')}/ui/theme`;
   const pkg = `${c.namespace}.ui.theme`;
@@ -364,7 +364,7 @@ function planAndroidTheme(root: string, map: ProjectMap, token: ThemeToken, file
 }
 
 export async function planThemeSet(root: string, adapter: Adapter, tokens: { name: string; value: string }[]): Promise<ChangeSet> {
-  if (!tokens.length) throw new ToolError('bad_args', 'Usage: devtool theme set <name> <value> [<name> <value> ...]');
+  if (!tokens.length) throw new ToolError('bad_args', 'Usage: codz theme set <name> <value> [<name> <value> ...]');
   const { map } = await loadMap(root, adapter, loadConfig(root).conventions);
   const files = new Map<string, string>();
   const summary: string[] = [];

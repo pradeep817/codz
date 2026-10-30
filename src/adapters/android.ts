@@ -127,7 +127,7 @@ async function scan(root: string, configConventions: Conventions): Promise<Proje
 
   map.conventions = { ...c, ...configConventions };
   const conv = map.conventions;
-  if (conv.http !== 'retrofit') map.notes.push(conv.http === 'ktor' ? 'This project uses Ktor; api add writes Retrofit interfaces only so far.' : 'No HTTP client found; devtool setup adds Retrofit.');
+  if (conv.http !== 'retrofit') map.notes.push(conv.http === 'ktor' ? 'This project uses Ktor; api add writes Retrofit interfaces only so far.' : 'No HTTP client found; codz setup adds Retrofit.');
   if (!conv.namespace) map.notes.push('No namespace found in the app build file, so package names cannot be worked out.');
 
   for (const f of apiFiles) {
@@ -155,7 +155,7 @@ function register(files: Map<string, string>, read: (p: string) => string | null
   const di = c.diFile;
   const text = di ? read(di) : null;
   if (!di || text === null) {
-    warnings.push(`No ${c.di === 'none' ? 'Retrofit setup' : `${c.di} module`} was found, so ${iface} is not registered. Create it with retrofit.create(${iface}::class.java), or run devtool setup.`);
+    warnings.push(`No ${c.di === 'none' ? 'Retrofit setup' : `${c.di} module`} was found, so ${iface} is not registered. Create it with retrofit.create(${iface}::class.java), or run codz setup.`);
     return;
   }
   const fn = iface[0].toLowerCase() + iface.slice(1);
@@ -190,8 +190,8 @@ function register(files: Map<string, string>, read: (p: string) => string | null
 async function planEndpoint(ctx: AdapterContext, input: EndpointSpec, overlay?: Map<string, string>, opts: { replaceModels?: boolean; targetFile?: string } = {}): Promise<PlannedEdits> {
   const { root, map } = ctx;
   const c = map.conventions;
-  if (c.http !== 'retrofit') throw new ToolError('unsupported_setup', c.http === 'ktor' ? 'This project uses Ktor; the Android adapter writes Retrofit interfaces only so far.' : 'This project has no Retrofit yet.', 'Run devtool setup to add Retrofit, or add it yourself.');
-  if (!c.namespace) throw new ToolError('no_package', 'No namespace was found in the app build file, so package names cannot be written.', 'Set namespace in devtool.config.yaml.');
+  if (c.http !== 'retrofit') throw new ToolError('unsupported_setup', c.http === 'ktor' ? 'This project uses Ktor; the Android adapter writes Retrofit interfaces only so far.' : 'This project has no Retrofit yet.', 'Run codz setup to add Retrofit, or add it yourself.');
+  if (!c.namespace) throw new ToolError('no_package', 'No namespace was found in the app build file, so package names cannot be written.', 'Set namespace in codz.config.yaml.');
   if (input.unwrapData) throw new ToolError('unsupported_setup', 'This response wraps its data in {"data": ...}, and a Retrofit method returns the whole body.', 'Run again with --no-unwrap to generate a model for the whole body.');
   const files = new Map<string, string>(overlay ?? []);
   const read = (p: string) => files.get(p) ?? readText(join(root, p));

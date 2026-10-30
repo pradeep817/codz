@@ -10,7 +10,7 @@ export default function HomeScreen() {
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <Text style={[styles.title, { color: colors.text }]}>Hi {user?.name}</Text>
       <Text style={[styles.body, { color: colors.muted }]}>
-        Add an endpoint with devtool api add: it writes the API function and a React Query hook. Then add a screen with devtool screen add.
+        Add an endpoint with codz api add: it writes the API function and a React Query hook. Then add a screen with codz screen add.
       </Text>
     </View>
   );

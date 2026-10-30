@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Runs devtool commands (api add/import/update/rename/remove, mocks,
+# Runs codz commands (api add/import/update/rename/remove, mocks,
 # locales, theme, routes) on copies of the fixture projects, then compiles the
 # result with the real toolchains: `dart analyze` for Flutter (needs the
 # Flutter SDK) and `tsc` for Next.js (downloaded through npx).
@@ -8,7 +8,7 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 WORK="$(mktemp -d)"
-DT=(node "$ROOT/bin/devtool.js")
+DT=(node "$ROOT/bin/codz.js")
 IN="$ROOT/test/inputs"
 FLAGS=(--yes --allow-dirty --no-verify --no-color)
 status=0
@@ -226,12 +226,12 @@ printf '{ "compilerOptions": { %s, %s, %s }, "include": ["src/**/*.ts", "src/**/
   "$TSX_OPTS" "$JSX_TYPES" "$LIB_TYPES" "${JSX_SHIM:+, \"$JSX_SHIM\"}" "${LIB_SHIM:+, \"$LIB_SHIM\"}" > "$d/tsconfig.check.json"
 (cd "$d" && $TSC -p tsconfig.check.json) && echo "✓ nextjs-axios (axios + TanStack Query hooks): tsc clean" || { echo "✗ nextjs-axios"; status=1; }
 
-# devtool create: brand-new projects for every architecture, then an endpoint each.
+# codz create: brand-new projects for every architecture, then an endpoint each.
 if command -v flutter >/dev/null 2>&1; then
   for arch in riverpod getx bloc get_it; do
     (cd "$WORK" && "${DT[@]}" create "made_$arch" --type flutter --architecture "$arch" --base-url https://api.example.com --no-git --no-install --yes --no-color >/dev/null 2>&1)
     (cd "$WORK/made_$arch" && "${DT[@]}" api add "${FLAGS[@]}" < "$IN/order-curl.txt" >/dev/null 2>&1)
-    (cd "$WORK/made_$arch" && flutter pub get >/dev/null && dart analyze lib) && echo "✓ devtool create flutter + $arch: dart analyze clean" || { echo "✗ devtool create flutter + $arch"; status=1; }
+    (cd "$WORK/made_$arch" && flutter pub get >/dev/null && dart analyze lib) && echo "✓ codz create flutter + $arch: dart analyze clean" || { echo "✗ codz create flutter + $arch"; status=1; }
   done
 fi
 for arch in fetch-helper plain-fetch; do
@@ -240,10 +240,10 @@ for arch in fetch-helper plain-fetch; do
   (cd "$d" && "${DT[@]}" api add "${FLAGS[@]}" < "$IN/order-curl.txt" >/dev/null 2>&1)
   printf '{ "compilerOptions": { %s, "paths": { "@/*": ["./*"] } }, "include": ["lib/**/*.ts", "types/**/*.ts", "env.d.ts"] }\n' "$TSC_OPTS" > "$d/tsconfig.check.json"
   printf 'declare const process: { env: Record<string, string | undefined> };\n' > "$d/env.d.ts"
-  (cd "$d" && $TSC -p tsconfig.check.json) && echo "✓ devtool create nextjs + $arch: tsc clean" || { echo "✗ devtool create nextjs + $arch"; status=1; }
+  (cd "$d" && $TSC -p tsconfig.check.json) && echo "✓ codz create nextjs + $arch: tsc clean" || { echo "✗ codz create nextjs + $arch"; status=1; }
 done
 
-# React Native: devtool create (Expo and CLI, every architecture), then endpoints,
+# React Native: codz create (Expo and CLI, every architecture), then endpoints,
 # screens, a form, a route, mocks, tests and the theme, type-checked with stand-in
 # types for react-native, React Navigation, TanStack Query, axios and Jest.
 write_rn_shims() {
@@ -321,27 +321,27 @@ for flavor in expo bare; do
   done
 done
 
-# devtool new: the internal starters exactly as a user gets them (real flutter create / npm install),
+# codz new: the internal starters exactly as a user gets them (real flutter create / npm install),
 # then the init contract, an endpoint and a screen, then the platform's own checks.
 if command -v flutter >/dev/null 2>&1; then
   d="$WORK/starter_app"
-  (cd "$WORK" && "${DT[@]}" new starter_app --template "$ROOT/starters/flutter-riverpod-dio" --org com.acme --yes --no-color >/dev/null 2>&1) || { echo "✗ devtool new flutter-riverpod-dio"; status=1; }
+  (cd "$WORK" && "${DT[@]}" new starter_app --template "$ROOT/starters/flutter-riverpod-dio" --org com.acme --yes --no-color >/dev/null 2>&1) || { echo "✗ codz new flutter-riverpod-dio"; status=1; }
   if [ -d "$d" ]; then
     (cd "$d" && "${DT[@]}" init --yes --no-color >/dev/null 2>&1)
     (cd "$d" && "${DT[@]}" api add --url 'https://api.example.com/products?category=home' --sample "$IN/products.json" "${FLAGS[@]}" >/dev/null 2>&1)
     (cd "$d" && "${DT[@]}" screen add products --api getProducts "${FLAGS[@]}" >/dev/null 2>&1)
-    (cd "$d" && flutter pub get >/dev/null && flutter analyze && flutter test) && echo "✓ devtool new flutter-riverpod-dio + api add + screen: analyze and tests pass" || { echo "✗ starter flutter-riverpod-dio"; status=1; }
+    (cd "$d" && flutter pub get >/dev/null && flutter analyze && flutter test) && echo "✓ codz new flutter-riverpod-dio + api add + screen: analyze and tests pass" || { echo "✗ starter flutter-riverpod-dio"; status=1; }
   fi
 fi
 d="$WORK/starter-next"
-(cd "$WORK" && "${DT[@]}" new starter-next --template "$ROOT/starters/nextjs-app-router-fetch" --yes --no-color >/dev/null 2>&1) || { echo "✗ devtool new nextjs-app-router-fetch"; status=1; }
+(cd "$WORK" && "${DT[@]}" new starter-next --template "$ROOT/starters/nextjs-app-router-fetch" --yes --no-color >/dev/null 2>&1) || { echo "✗ codz new nextjs-app-router-fetch"; status=1; }
 if [ -d "$d/node_modules/next" ]; then
   (cd "$d" && "${DT[@]}" init --yes --no-color >/dev/null 2>&1)
   (cd "$d" && "${DT[@]}" api add --url 'https://api.example.com/products' --sample "$IN/products.json" "${FLAGS[@]}" >/dev/null 2>&1)
   (cd "$d" && "${DT[@]}" screen add products --api getProducts "${FLAGS[@]}" >/dev/null 2>&1)
-  (cd "$d" && npx --no-install tsc --noEmit && NEXT_TELEMETRY_DISABLED=1 npx --no-install next build >/dev/null) && echo "✓ devtool new nextjs-app-router-fetch + api add + screen: tsc and next build pass" || { echo "✗ starter nextjs-app-router-fetch"; status=1; }
+  (cd "$d" && npx --no-install tsc --noEmit && NEXT_TELEMETRY_DISABLED=1 npx --no-install next build >/dev/null) && echo "✓ codz new nextjs-app-router-fetch + api add + screen: tsc and next build pass" || { echo "✗ starter nextjs-app-router-fetch"; status=1; }
 else
-  echo "- devtool new nextjs-app-router-fetch: npm install did not run (offline?), so the build check was skipped"
+  echo "- codz new nextjs-app-router-fetch: npm install did not run (offline?), so the build check was skipped"
 fi
 node "$ROOT/scripts/starters.ts" check "$ROOT"/starters/*/ >/dev/null && echo "✓ starters pass the publishing gates" || { echo "✗ starters publishing gates"; node "$ROOT/scripts/starters.ts" check "$ROOT"/starters/*/; status=1; }
 

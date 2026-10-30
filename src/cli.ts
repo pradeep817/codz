@@ -1,4 +1,4 @@
-// devtool command line. Every command supports --json for scripts and AI agents.
+// codz command line. Every command supports --json for scripts and AI agents.
 
 import { baseUrlProblem } from './core/safe.ts';
 import { existsSync, openSync, writeFileSync } from 'node:fs';
@@ -46,12 +46,12 @@ import { buildReport, renderReport } from './skills/report.ts';
 import { spawnSync } from 'node:child_process';
 import { homedir } from 'node:os';
 
-/** Operating-system errors that are not devtool bugs, with what to do about them. */
+/** Operating-system errors that are not codz bugs, with what to do about them. */
 const SYSTEM_ERRORS: Record<string, { code: string; say: string; hint: string }> = {
-  ENOSPC: { code: 'disk_full', say: 'The disk is full, so devtool could not write its files.', hint: 'Free some disk space and run the command again.' },
-  EACCES: { code: 'permission_denied', say: 'devtool is not allowed to write here.', hint: 'Check the folder permissions (or that the files are not read-only) and run the command again.' },
+  ENOSPC: { code: 'disk_full', say: 'The disk is full, so codz could not write its files.', hint: 'Free some disk space and run the command again.' },
+  EACCES: { code: 'permission_denied', say: 'codz is not allowed to write here.', hint: 'Check the folder permissions (or that the files are not read-only) and run the command again.' },
   EPERM: { code: 'permission_denied', say: 'The operating system did not allow the change.', hint: 'Check the folder permissions, and that no other app (an editor or antivirus) has the files locked.' },
-  EROFS: { code: 'read_only', say: 'This folder is on a read-only disk.', hint: 'Run devtool in a writable copy of the project.' },
+  EROFS: { code: 'read_only', say: 'This folder is on a read-only disk.', hint: 'Run codz in a writable copy of the project.' },
   EMFILE: { code: 'too_many_files', say: 'Too many files are open at once.', hint: 'Close other programs or raise the limit (ulimit -n 4096), then run the command again.' },
 };
 
@@ -247,7 +247,7 @@ function printApplied(out: Out, r: ApplyResult): void {
   if (r.formatNote) out.warn(r.formatNote);
   if (r.verified) out.print('Checked with the project analyzer: no new errors.');
   if (r.verifyNote) out.warn(r.verifyNote);
-  out.print('Undo with: devtool undo');
+  out.print('Undo with: codz undo');
 }
 
 interface ChangeOptions {
@@ -272,7 +272,7 @@ async function handleChange(root: string, out: Out, flags: Args['flags'], cs: Ch
   if (flags.plan) {
     savePlan(root, cs);
     printChangeSet(out, cs);
-    out.print(`\nSaved plan ${cs.id}. Apply exactly this change with: devtool apply ${cs.id}`);
+    out.print(`\nSaved plan ${cs.id}. Apply exactly this change with: codz apply ${cs.id}`);
     out.result({ applied: false, planId: cs.id, changeSet: changeSetJson(cs) });
     return 0;
   }
@@ -282,7 +282,7 @@ async function handleChange(root: string, out: Out, flags: Args['flags'], cs: Ch
   if (!go && !out.json && process.stderr.isTTY) go = (await confirm('\nApply these changes?')) ?? false;
   if (!go) {
     savePlan(root, cs);
-    out.print(`\nNot applied. To apply exactly this diff later: devtool apply ${cs.id}  (or re-run with --yes)`);
+    out.print(`\nNot applied. To apply exactly this diff later: codz apply ${cs.id}  (or re-run with --yes)`);
     out.result({ applied: false, planId: cs.id, changeSet: changeSetJson(cs) });
     return 0;
   }
@@ -291,7 +291,7 @@ async function handleChange(root: string, out: Out, flags: Args['flags'], cs: Ch
   let commit: string | undefined;
   if (flags.commit === true) {
     commit = commitChange(root, cs, typeof flags['commit-message'] === 'string' ? flags['commit-message'] : undefined);
-    out.print(`Committed ${commit}. Undo with: devtool undo (then git reset --soft HEAD~1 if you want the commit gone too)`);
+    out.print(`Committed ${commit}. Undo with: codz undo (then git reset --soft HEAD~1 if you want the commit gone too)`);
   }
   const extra = opts.afterApply?.() ?? {};
   out.result({ applied: true, id: cs.id, ...r, ...(commit ? { commit } : {}), ...extra, changeSet: changeSetJson(cs, false) });
@@ -321,19 +321,19 @@ function installDependencies(root: string, adapter: Adapter, out: Out): string |
 async function runSetup(d: Detected, out: Out, flags: Args['flags'], architecture: string, baseUrl: string): Promise<number> {
   const { changeSet, plan } = planSetup(d.root, d.adapter, d.map, { architecture, baseUrl });
   return handleChange(d.root, out, flags, changeSet, d.adapter, {
-    // A fresh project is often not committed yet; undo still works from devtool's backups.
+    // A fresh project is often not committed yet; undo still works from codz's backups.
     allowDirty: true,
     // New packages are not installed until after apply, so the analyzer would fail on their imports.
     verify: false,
     afterApply: () => {
       const installed = plan.dependenciesChanged ? installDependencies(d.root, d.adapter, out) : undefined;
-      out.print('\nReady. Add your first endpoint with: devtool api add');
+      out.print('\nReady. Add your first endpoint with: codz api add');
       return { installed };
     },
   });
 }
 
-/** devtool create: asks what it needs (or takes flags), then creates and sets up the project. */
+/** codz create: asks what it needs (or takes flags), then creates and sets up the project. */
 /** What the starter commands need from the CLI: flags, output and (in a terminal) questions. */
 function starterCtx(args: Args, out: Out, cwd: string) {
   const canAsk = interactive(out) && args.flags.yes !== true && args.flags.y !== true;
@@ -351,7 +351,7 @@ function starterCtx(args: Args, out: Out, cwd: string) {
 async function runCreate(nameArg: string | undefined, flags: Args['flags'], out: Out, parent: string): Promise<number> {
   const str = (k: string) => (typeof flags[k] === 'string' ? (flags[k] as string) : '');
   const canAsk = interactive(out) && flags.yes !== true && flags.y !== true;
-  const need = (what: string, flag: string) => new ToolError('bad_args', `Which ${what}? Pass --${flag}, or run devtool create in a terminal to be asked.`);
+  const need = (what: string, flag: string) => new ToolError('bad_args', `Which ${what}? Pass --${flag}, or run codz create in a terminal to be asked.`);
   let typeId = str('type');
   if (!typeId) {
     if (!canAsk) throw need('project type', 'type');
@@ -369,7 +369,7 @@ async function runCreate(nameArg: string | undefined, flags: Args['flags'], out:
   }
   let name = nameArg ?? '';
   if (!name) {
-    if (!canAsk) throw need('project name', 'name (devtool create <name>)');
+    if (!canAsk) throw need('project name', 'name (codz create <name>)');
     name = (await ask(`Project name: `, (v) => type.checkName(v))) ?? '';
     if (!name) return 1;
   }
@@ -400,7 +400,7 @@ async function runCreate(nameArg: string | undefined, flags: Args['flags'], out:
   const r = await createProject(opts, (l) => out.print(l));
   out.print(r.steps.map((s) => `• ${s}`).join('\n'));
   for (const w of r.warnings) out.warn(w);
-  out.print(`\nNext: cd ${name} && devtool api add`);
+  out.print(`\nNext: cd ${name} && codz api add`);
   out.result({ ...r });
   return 0;
 }
@@ -414,7 +414,7 @@ async function chooseSetup(options: ArchitectureOption[], out: Out, flags: Args[
   if (!architecture) {
     if (!interactive(out)) return null;
     const labels = [...options.map((o) => `${o.label}${o.recommended ? ' (recommended)' : ''}: ${o.description}`), 'Skip: set it up myself'];
-    const picked = await choose('\nNo API layer was found in this project. Which architecture should devtool set up?', labels, 0);
+    const picked = await choose('\nNo API layer was found in this project. Which architecture should codz set up?', labels, 0);
     if (picked === null || picked === options.length) return null;
     architecture = options[picked].id;
     if (!baseUrl) {
@@ -473,8 +473,8 @@ export async function main(argv: string[]): Promise<number> {
       // Every refusal says what to do next; errors written without their own hint get one by kind.
       const [c0, c1] = args.positional;
       const spec = c0 ? findCommand(c0, c1) : undefined;
-      const usage = spec ? `devtool ${spec.cmd}${spec.sub ? ` ${spec.sub}` : ''} --help` : 'devtool --help';
-      const hint = e.hint ?? (e.code === 'not_supported' || e.code === 'unsupported_setup' ? `devtool explain shows what devtool found in this project; README "What it supports" lists the setups each command handles.` : `See the options and examples with: ${usage}`);
+      const usage = spec ? `codz ${spec.cmd}${spec.sub ? ` ${spec.sub}` : ''} --help` : 'codz --help';
+      const hint = e.hint ?? (e.code === 'not_supported' || e.code === 'unsupported_setup' ? `codz explain shows what codz found in this project; README "What it supports" lists the setups each command handles.` : `See the options and examples with: ${usage}`);
       if (out.json) process.stdout.write(JSON.stringify({ ok: false, error: { code: e.code, message: e.message, hint } }, null, 2) + '\n');
       else {
         process.stderr.write((out.color ? `\x1b[31m✗ ${e.message}\x1b[0m` : `✗ ${e.message}`) + '\n');
@@ -482,7 +482,7 @@ export async function main(argv: string[]): Promise<number> {
       }
       return 1;
     }
-    // Problems with the machine, not devtool: say what to do instead of calling it a bug.
+    // Problems with the machine, not codz: say what to do instead of calling it a bug.
     const sys = SYSTEM_ERRORS[(e as NodeJS.ErrnoException)?.code ?? ''];
     if (sys) {
       const message = e instanceof Error ? e.message : String(e);
@@ -495,10 +495,10 @@ export async function main(argv: string[]): Promise<number> {
     }
     // An unexpected error still answers in the format the caller asked for.
     const message = e instanceof Error ? e.message : String(e);
-    if (out.json) process.stdout.write(JSON.stringify({ ok: false, error: { code: 'internal', message, hint: 'This is a devtool bug. Run again with DEVTOOL_DEBUG=1 for the stack trace and report it.' } }, null, 2) + '\n');
+    if (out.json) process.stdout.write(JSON.stringify({ ok: false, error: { code: 'internal', message, hint: 'This is a codz bug. Run again with CODZ_DEBUG=1 for the stack trace and report it.' } }, null, 2) + '\n');
     else {
       process.stderr.write((out.color ? `\x1b[31m✗ ${message}\x1b[0m` : `✗ ${message}`) + '\n');
-      process.stderr.write(process.env.DEVTOOL_DEBUG && e instanceof Error && e.stack ? `${e.stack}\n` : '  This is a devtool bug. Run again with DEVTOOL_DEBUG=1 for the stack trace and report it.\n');
+      process.stderr.write(process.env.CODZ_DEBUG && e instanceof Error && e.stack ? `${e.stack}\n` : '  This is a codz bug. Run again with CODZ_DEBUG=1 for the stack trace and report it.\n');
     }
     return 1;
   }
@@ -514,7 +514,7 @@ async function run(args: Args, out: Out): Promise<number> {
   const [cmd, sub] = positional;
   if (cmd === 'help' && positional[1]) {
     const spec = findCommand(positional[1], positional[2]);
-    if (!spec) throw new ToolError('bad_args', `Unknown command "${positional.slice(1).join(' ')}".`, 'See every command with: devtool --help');
+    if (!spec) throw new ToolError('bad_args', `Unknown command "${positional.slice(1).join(' ')}".`, 'See every command with: codz --help');
     out.print(renderCommandHelp(spec));
     return 0;
   }
@@ -536,7 +536,7 @@ async function run(args: Args, out: Out): Promise<number> {
     for (const name of [...Object.keys(flags), ...Object.keys(args.multi)]) {
       if (allowed.includes(name)) continue;
       const near = closest(name, allowed);
-      throw new ToolError('bad_args', `devtool ${spec.cmd}${spec.sub ? ` ${spec.sub}` : ''} has no option --${name}.`, near ? `Did you mean --${near}? (devtool ${spec.cmd}${spec.sub ? ` ${spec.sub}` : ''} --help lists the options)` : `See its options with: devtool ${spec.cmd}${spec.sub ? ` ${spec.sub}` : ''} --help`);
+      throw new ToolError('bad_args', `codz ${spec.cmd}${spec.sub ? ` ${spec.sub}` : ''} has no option --${name}.`, near ? `Did you mean --${near}? (codz ${spec.cmd}${spec.sub ? ` ${spec.sub}` : ''} --help lists the options)` : `See its options with: codz ${spec.cmd}${spec.sub ? ` ${spec.sub}` : ''} --help`);
     }
   }
   const start = resolve(typeof flags.cwd === 'string' ? flags.cwd : process.cwd());
@@ -550,7 +550,7 @@ async function run(args: Args, out: Out): Promise<number> {
     const starters = await import('./starters/commands.ts');
     return starters.runStarterCommand(cmd, starterCtx(args, out, start));
   }
-  if (cmd === 'apply' && sub && /^[\w-]+$/.test(sub) && existsSync(join(process.env.DEVTOOL_HOME || join(homedir(), '.devtool'), 'starters', 'plans', `${sub}.json`))) {
+  if (cmd === 'apply' && sub && /^[\w-]+$/.test(sub) && existsSync(join(process.env.CODZ_HOME || join(homedir(), '.codz'), 'starters', 'plans', `${sub}.json`))) {
     const starters = await import('./starters/commands.ts');
     return (await starters.applyStarterPlan(sub, starterCtx(args, out, start))) ?? 1;
   }
@@ -562,7 +562,7 @@ async function run(args: Args, out: Out): Promise<number> {
     const defaultBaseUrl = m.baseUrls[0]?.value ?? '';
     if (cmd === 'setup') {
       if (!options.length) {
-        throw new ToolError('already_set_up', d.adapter.architectures ? 'This project already has an API layer, so setup is not needed.' : `setup is not available for the ${d.adapter.id} adapter.`, 'Run devtool explain to see it, then devtool api add.');
+        throw new ToolError('already_set_up', d.adapter.architectures ? 'This project already has an API layer, so setup is not needed.' : `setup is not available for the ${d.adapter.id} adapter.`, 'Run codz explain to see it, then codz api add.');
       }
       const choice = await chooseSetup(options, out, flags, defaultBaseUrl, true);
       if (!choice) {
@@ -587,12 +587,12 @@ async function run(args: Args, out: Out): Promise<number> {
     const w = writeInitFiles(d.root, files, keepConfig);
     if (w.configWritten) out.print(`Wrote ${CONFIG_FILE}. Review the detected conventions once and correct anything wrong, then commit it.`);
     else out.print(`${CONFIG_FILE} already exists; kept your values (use --force to detect again).`);
-    if (w.gitignoreUpdated) out.print('Added .devtool/ to .gitignore.');
+    if (w.gitignoreUpdated) out.print('Added .codz/ to .gitignore.');
     if (options.length) {
-      out.print(`\nNo API layer was found. Create one with: devtool setup --architecture ${options[0].id} --base-url https://api.example.com`);
+      out.print(`\nNo API layer was found. Create one with: codz setup --architecture ${options[0].id} --base-url https://api.example.com`);
       out.print(`Architectures: ${options.map((o) => o.id).join(', ')}`);
     } else {
-      out.print('Next: devtool explain');
+      out.print('Next: codz explain');
     }
     out.result({
       root: d.root,
@@ -612,7 +612,7 @@ async function run(args: Args, out: Out): Promise<number> {
 
   // Commands that must work even when the config file is broken.
   if (cmd === 'completion') {
-    if (!sub || !(SHELLS as readonly string[]).includes(sub)) throw new ToolError('bad_args', 'Which shell? Usage: devtool completion bash|zsh|fish', 'bash: eval "$(devtool completion bash)" in ~/.bashrc; zsh: source <(devtool completion zsh) in ~/.zshrc; fish: devtool completion fish > ~/.config/fish/completions/devtool.fish');
+    if (!sub || !(SHELLS as readonly string[]).includes(sub)) throw new ToolError('bad_args', 'Which shell? Usage: codz completion bash|zsh|fish', 'bash: eval "$(codz completion bash)" in ~/.bashrc; zsh: source <(codz completion zsh) in ~/.zshrc; fish: codz completion fish > ~/.config/fish/completions/codz.fish');
     process.stdout.write(completionScript(sub));
     return 0;
   }
@@ -625,7 +625,7 @@ async function run(args: Args, out: Out): Promise<number> {
       // A broken config is reported by the config_valid check.
     }
     const r = runSetupDoctor(root, a);
-    out.print(renderSetupDoctor(r, `devtool doctor --setup  (${a.id}@${a.version}, ${root})`, out.color));
+    out.print(renderSetupDoctor(r, `codz doctor --setup  (${a.id}@${a.version}, ${root})`, out.color));
     out.result({ checks: r.checks, summary: r.summary });
     return r.summary.fail ? 1 : 0;
   }
@@ -641,7 +641,7 @@ async function run(args: Args, out: Out): Promise<number> {
   // api diff compares two files; it works anywhere and uses the project only for the impact lines.
   if (cmd === 'api' && sub === 'diff') {
     const [oldFile, newFile] = [positional[2], positional[3]];
-    if (!oldFile || !newFile) throw new ToolError('bad_args', 'Usage: devtool api diff <old spec> <new spec> [--format text|md|json|sarif] [--report <file>] [--fail-on breaking|warning|any|none]');
+    if (!oldFile || !newFile) throw new ToolError('bad_args', 'Usage: codz api diff <old spec> <new spec> [--format text|md|json|sarif] [--report <file>] [--fail-on breaking|warning|any|none]');
     const format = typeof flags.format === 'string' ? flags.format : 'text';
     if (!['text', 'md', 'markdown', 'json', 'sarif'].includes(format)) throw new ToolError('bad_args', `--format must be text, md, json or sarif, got "${format}".`);
     const failOn = typeof flags['fail-on'] === 'string' ? flags['fail-on'] : 'breaking';
@@ -679,28 +679,28 @@ async function run(args: Args, out: Out): Promise<number> {
     }
     case 'explain': {
       const cfg = loadConfig(root);
-      if (!cfg.exists) out.warn(`No ${CONFIG_FILE} yet; showing detected values. Run devtool init to save them.`);
+      if (!cfg.exists) out.warn(`No ${CONFIG_FILE} yet; showing detected values. Run codz init to save them.`);
       const { map } = await loadMap(root, adapter, cfg.conventions, { force: flags.rescan === true });
       out.print(renderExplain(map, adapter, out.color));
       out.result({ map, supportedSetup: adapter.supportedSetup });
       return 0;
     }
     case 'mock': {
-      if (sub !== 'add') throw new ToolError('bad_args', `Unknown command "mock ${sub ?? ''}".`, 'Usage: devtool mock add <endpoint> [--sample file.json] | devtool mock add --all');
+      if (sub !== 'add') throw new ToolError('bad_args', `Unknown command "mock ${sub ?? ''}".`, 'Usage: codz mock add <endpoint> [--sample file.json] | codz mock add --all');
       const cs = await planMockAdd(root, adapter, { endpoints: positional.slice(2), all: flags.all === true, sample: typeof flags.sample === 'string' ? flags.sample : args.multi.sample?.[0], keepValues: flags['keep-values'] === true, force: flags.force === true });
       return handleChange(root, out, flags, cs, adapter);
     }
     case 'locale': {
       if (sub === 'add') {
         const lang = positional[2];
-        if (!lang) throw new ToolError('bad_args', 'Usage: devtool locale add <lang> [--from <lang>]');
+        if (!lang) throw new ToolError('bad_args', 'Usage: codz locale add <lang> [--from <lang>]');
         const cs = await planLocaleAdd(root, adapter, lang, { from: typeof flags.from === 'string' ? flags.from : undefined });
         return handleChange(root, out, flags, cs, adapter);
       }
       if (sub === 'key') {
         const key = positional[2];
         const text = positional.slice(3).join(' ');
-        if (!key || !text) throw new ToolError('bad_args', 'Usage: devtool locale key <key> "<text>" [--value hi="..."]');
+        if (!key || !text) throw new ToolError('bad_args', 'Usage: codz locale key <key> "<text>" [--value hi="..."]');
         const values = new Map<string, string>();
         for (const v of args.multi.value ?? []) {
           const i = v.indexOf('=');
@@ -710,7 +710,7 @@ async function run(args: Args, out: Out): Promise<number> {
         const cs = await planLocaleKey(root, adapter, key, text, { values, force: flags.force === true });
         return handleChange(root, out, flags, cs, adapter);
       }
-      throw new ToolError('bad_args', `Unknown command "locale ${sub ?? ''}".`, 'Usage: devtool locale add <lang> | devtool locale key <key> "<text>"');
+      throw new ToolError('bad_args', `Unknown command "locale ${sub ?? ''}".`, 'Usage: codz locale add <lang> | codz locale key <key> "<text>"');
     }
     case 'config': {
       if (!sub || sub === 'show' || sub === 'list') {
@@ -723,7 +723,7 @@ async function run(args: Args, out: Out): Promise<number> {
       }
       if (sub === 'get') {
         const key = positional[2];
-        if (!key) throw new ToolError('bad_args', 'Usage: devtool config get <key>');
+        if (!key) throw new ToolError('bad_args', 'Usage: codz config get <key>');
         const v = await configView(root, adapter);
         const row = v.rows.find((r) => r.key === key);
         if (!row) throw new ToolError('unknown_key', `"${key}" is not a ${adapter.id} convention.`, `Known keys: ${v.rows.map((r) => r.key).join(', ')}`);
@@ -734,11 +734,11 @@ async function run(args: Args, out: Out): Promise<number> {
       if (sub === 'set') {
         const key = positional[2];
         const value = positional.length > 3 ? positional.slice(3).join(' ') : undefined;
-        if (!key || value === undefined) throw new ToolError('bad_args', 'Usage: devtool config set <key> <value>', 'Use \'\' as the value to go back to detecting it.');
+        if (!key || value === undefined) throw new ToolError('bad_args', 'Usage: codz config set <key> <value>', 'Use \'\' as the value to go back to detecting it.');
         const cs = planConfigSet(root, adapter, key, value === "''" || value === '""' ? '' : value, { force: flags.force === true });
         return handleChange(root, out, flags, cs, adapter, { allowDirty: true, verify: false });
       }
-      throw new ToolError('bad_args', `Unknown command "config ${sub}".`, 'Usage: devtool config [show] | get <key> | set <key> <value> | check');
+      throw new ToolError('bad_args', `Unknown command "config ${sub}".`, 'Usage: codz config [show] | get <key> | set <key> <value> | check');
     }
     case 'plans': {
       if (!sub || sub === 'list') {
@@ -750,9 +750,9 @@ async function run(args: Args, out: Out): Promise<number> {
       }
       if (sub === 'show') {
         const id = positional[2];
-        if (!id) throw new ToolError('bad_args', 'Which plan? Usage: devtool plans show <plan-id>', 'List them with: devtool plans list');
+        if (!id) throw new ToolError('bad_args', 'Which plan? Usage: codz plans show <plan-id>', 'List them with: codz plans list');
         const { plan, status } = showPlan(root, id);
-        out.print(`${plan.id}  ${plan.skill}  (${status}${status === 'stale' ? ': a file changed since; run the command again' : status === 'ready' ? `: apply with devtool apply ${plan.id}` : ''})`);
+        out.print(`${plan.id}  ${plan.skill}  (${status}${status === 'stale' ? ': a file changed since; run the command again' : status === 'ready' ? `: apply with codz apply ${plan.id}` : ''})`);
         printChangeSet(out, plan);
         out.result({ status, ...changeSetJson(plan) });
         return 0;
@@ -763,7 +763,7 @@ async function run(args: Args, out: Out): Promise<number> {
         out.result({ removed });
         return 0;
       }
-      throw new ToolError('bad_args', `Unknown command "plans ${sub}".`, 'Usage: devtool plans [list] | show <plan-id> | clean [--all]');
+      throw new ToolError('bad_args', `Unknown command "plans ${sub}".`, 'Usage: codz plans [list] | show <plan-id> | clean [--all]');
     }
     case 'doctor': {
       const only = (args.multi.only ?? []).flatMap((x) => x.split(',')).map((x) => x.trim()).filter(Boolean);
@@ -797,35 +797,35 @@ async function run(args: Args, out: Out): Promise<number> {
     }
     case 'templates': {
       if (sub === 'init') return handleChange(root, out, flags, planTemplatesInit(root, positional.slice(2)), adapter);
-      if (sub && sub !== 'list') throw new ToolError('bad_args', `Unknown command "templates ${sub}".`, 'Usage: devtool templates list | templates init [id...]');
+      if (sub && sub !== 'list') throw new ToolError('bad_args', `Unknown command "templates ${sub}".`, 'Usage: codz templates list | templates init [id...]');
       const l = listTemplates(root);
       out.print(`Templates in ${l.folder}:`);
       for (const t of l.templates) out.print(`  ${t.custom ? '✓' : ' '} ${t.id.padEnd(18)} ${t.about}`);
-      out.print(`\nStart one with: devtool templates init <id>   (placeholders are listed in the file's summary)`);
+      out.print(`\nStart one with: codz templates init <id>   (placeholders are listed in the file's summary)`);
       out.result({ ...l });
       return 0;
     }
     case 'test': {
-      if (sub !== 'add') throw new ToolError('bad_args', `Unknown command "test ${sub ?? ''}".`, 'Usage: devtool test add <endpoint>... | --all');
+      if (sub !== 'add') throw new ToolError('bad_args', `Unknown command "test ${sub ?? ''}".`, 'Usage: codz test add <endpoint>... | --all');
       const cs = await planTestAdd(root, adapter, { endpoints: positional.slice(2), all: flags.all === true });
       return handleChange(root, out, flags, cs, adapter);
     }
     case 'screen': {
-      if (sub !== 'add') throw new ToolError('bad_args', `Unknown command "screen ${sub ?? ''}".`, 'Usage: devtool screen add <name> --api <endpoint> [--path /orders/:id]');
+      if (sub !== 'add') throw new ToolError('bad_args', `Unknown command "screen ${sub ?? ''}".`, 'Usage: codz screen add <name> --api <endpoint> [--path /orders/:id]');
       const name = positional[2];
-      if (!name) throw new ToolError('bad_args', 'Which screen? Usage: devtool screen add <name> --api <endpoint> [--path /orders/:id]');
+      if (!name) throw new ToolError('bad_args', 'Which screen? Usage: codz screen add <name> --api <endpoint> [--path /orders/:id]');
       const cs = await planScreenAdd(root, adapter, { name, api: args.multi.api?.[0], path: typeof flags.path === 'string' ? flags.path : undefined, initial: flags.initial === true, form: flags.form === true });
       return handleChange(root, out, flags, cs, adapter);
     }
     case 'route': {
-      if (sub !== 'add') throw new ToolError('bad_args', `Unknown command "route ${sub ?? ''}".`, 'Usage: devtool route add <name> [--path /orders/:id]');
+      if (sub !== 'add') throw new ToolError('bad_args', `Unknown command "route ${sub ?? ''}".`, 'Usage: codz route add <name> [--path /orders/:id]');
       const name = positional[2];
-      if (!name) throw new ToolError('bad_args', 'Which route? Usage: devtool route add <name> [--path /orders/:id]');
+      if (!name) throw new ToolError('bad_args', 'Which route? Usage: codz route add <name> [--path /orders/:id]');
       const cs = await planRouteAdd(root, adapter, { name, path: typeof flags.path === 'string' ? flags.path : undefined, initial: flags.initial === true });
       return handleChange(root, out, flags, cs, adapter);
     }
     case 'theme': {
-      if (sub !== 'set') throw new ToolError('bad_args', `Unknown command "theme ${sub ?? ''}".`, 'Usage: devtool theme set primary "#6750A4" radius 12 font Inter');
+      if (sub !== 'set') throw new ToolError('bad_args', `Unknown command "theme ${sub ?? ''}".`, 'Usage: codz theme set primary "#6750A4" radius 12 font Inter');
       const rest = positional.slice(2);
       const tokens: { name: string; value: string }[] = [];
       for (const r of rest) {
@@ -835,14 +835,14 @@ async function run(args: Args, out: Out): Promise<number> {
         else tokens.push({ name: r, value: '' });
       }
       const missing = tokens.find((t) => !t.value);
-      if (!tokens.length || missing) throw new ToolError('bad_args', missing ? `${missing.name} needs a value.` : 'Usage: devtool theme set <name> <value>', 'Example: devtool theme set primary "#6750A4" radius 12 font Inter');
+      if (!tokens.length || missing) throw new ToolError('bad_args', missing ? `${missing.name} needs a value.` : 'Usage: codz theme set <name> <value>', 'Example: codz theme set primary "#6750A4" radius 12 font Inter');
       const cs = await planThemeSet(root, adapter, tokens);
       return handleChange(root, out, flags, cs, adapter);
     }
     case 'feature': {
-      if (sub !== 'add') throw new ToolError('bad_args', `Unknown command "feature ${sub ?? ''}".`, 'Usage: devtool feature add <name> --spec <file> | --api <endpoint>...');
+      if (sub !== 'add') throw new ToolError('bad_args', `Unknown command "feature ${sub ?? ''}".`, 'Usage: codz feature add <name> --spec <file> | --api <endpoint>...');
       const name = positional[2];
-      if (!name) throw new ToolError('bad_args', 'Which feature? Usage: devtool feature add <name> --spec <openapi.yaml>', 'Example: devtool feature add orders --spec api.yaml');
+      if (!name) throw new ToolError('bad_args', 'Which feature? Usage: codz feature add <name> --spec <openapi.yaml>', 'Example: codz feature add orders --spec api.yaml');
       const split = (xs?: (string | boolean | undefined)[]) => xs?.flatMap((x) => (typeof x === 'string' ? x.split(',') : [])).map((x) => x.trim()).filter(Boolean) ?? [];
       const r = await planFeatureAdd(root, adapter, {
         name,
@@ -869,7 +869,7 @@ async function run(args: Args, out: Out): Promise<number> {
       });
     }
     case 'auth': {
-      if (sub !== 'add') throw new ToolError('bad_args', `Unknown command "auth ${sub ?? ''}".`, 'Usage: devtool auth add [--login-path /auth/login] [--me-path /auth/me]');
+      if (sub !== 'add') throw new ToolError('bad_args', `Unknown command "auth ${sub ?? ''}".`, 'Usage: codz auth add [--login-path /auth/login] [--me-path /auth/me]');
       const str = (k: string) => (typeof flags[k] === 'string' ? (flags[k] as string) : undefined);
       const r = await planAuthAdd(root, adapter, {
         loginPath: str('login-path'),
@@ -883,16 +883,16 @@ async function run(args: Args, out: Out): Promise<number> {
       return handleChange(root, out, flags, r.changeSet, adapter);
     }
     case 'module': {
-      if (sub !== 'add') throw new ToolError('bad_args', `Unknown command "module ${sub ?? ''}".`, 'Did you mean: devtool module add <name>');
+      if (sub !== 'add') throw new ToolError('bad_args', `Unknown command "module ${sub ?? ''}".`, 'Did you mean: codz module add <name>');
       const name = positional[2];
-      if (!name) throw new ToolError('bad_args', 'Which module? Usage: devtool module add <name>');
+      if (!name) throw new ToolError('bad_args', 'Which module? Usage: codz module add <name>');
       const cs = await planModuleAdd(root, adapter, { name, initial: flags.initial === true, apis: args.multi.api, noLoad: flags['no-load'] === true });
       return handleChange(root, out, flags, cs, adapter);
     }
     case 'api': {
       if (sub === 'list') {
         const rows = await apiList(root, adapter, { filter: positional[2] });
-        if (!rows.length) out.print(positional[2] ? `No endpoints match "${positional[2]}".` : 'No endpoints found yet. Add one with: devtool api add');
+        if (!rows.length) out.print(positional[2] ? `No endpoints match "${positional[2]}".` : 'No endpoints found yet. Add one with: codz api add');
         const w = Math.max(0, ...rows.map((r) => r.name.length));
         const pw = Math.max(0, ...rows.map((r) => r.path.length));
         for (const r of rows) out.print(`${r.method.padEnd(6)} ${r.path.padEnd(pw)}  ${r.name.padEnd(w)}  ${(r.response ?? '?').padEnd(14)}  ${r.file}${r.uses ? '' : '  (not called yet)'}`);
@@ -901,7 +901,7 @@ async function run(args: Args, out: Out): Promise<number> {
       }
       if (sub === 'show') {
         const name = positional[2];
-        if (!name) throw new ToolError('bad_args', 'Which endpoint? Usage: devtool api show <name>', 'List them with: devtool api list');
+        if (!name) throw new ToolError('bad_args', 'Which endpoint? Usage: codz api show <name>', 'List them with: codz api list');
         const d = await apiShow(root, adapter, name);
         const e = d.endpoint;
         out.print(`${e.name}  ${e.method} ${e.path}`);
@@ -917,13 +917,13 @@ async function run(args: Args, out: Out): Promise<number> {
       if (sub === 'wire') {
         const endpoint = positional[2];
         const into = typeof flags.into === 'string' ? flags.into : positional[3];
-        if (!endpoint || !into) throw new ToolError('bad_args', 'Usage: devtool api wire <endpoint> --into <module>');
+        if (!endpoint || !into) throw new ToolError('bad_args', 'Usage: codz api wire <endpoint> --into <module>');
         const cs = await planApiWire(root, adapter, { endpoint, module: into, noLoad: flags['no-load'] === true });
         return handleChange(root, out, flags, cs, adapter);
       }
       if (sub === 'import') {
         const file = positional[2];
-        if (!file) throw new ToolError('bad_args', 'Usage: devtool api import <openapi.yaml|swagger.json|postman.json|file.har> [--tag t] [--only name] [--path /users/**] [--method GET] [--max n] [--list]');
+        if (!file) throw new ToolError('bad_args', 'Usage: codz api import <openapi.yaml|swagger.json|postman.json|file.har> [--tag t] [--only name] [--path /users/**] [--method GET] [--max n] [--list]');
         const split = (xs?: (string | boolean | undefined)[]) => xs?.flatMap((x) => (typeof x === 'string' ? x.split(',') : [])).map((x) => x.trim()).filter(Boolean) ?? [];
         const max = typeof flags.max === 'string' ? Number(flags.max) : undefined;
         if (max !== undefined && (!Number.isInteger(max) || max < 1)) throw new ToolError('bad_args', `--max needs a whole number, got "${flags.max}".`);
@@ -964,7 +964,7 @@ async function run(args: Args, out: Out): Promise<number> {
       }
       if (sub === 'sync') {
         const file = positional[2];
-        if (!file) throw new ToolError('bad_args', 'Usage: devtool api sync <openapi.yaml|swagger.json|postman.json|file.har> [--add] [--remove] [--check] [--tag t] [--path /users/**]');
+        if (!file) throw new ToolError('bad_args', 'Usage: codz api sync <openapi.yaml|swagger.json|postman.json|file.har> [--add] [--remove] [--check] [--tag t] [--path /users/**]');
         const split = (xs?: (string | boolean | undefined)[]) => xs?.flatMap((x) => (typeof x === 'string' ? x.split(',') : [])).map((x) => x.trim()).filter(Boolean) ?? [];
         if (flags.check === true) setCacheWrites(false);
         const r = await planApiSync(root, adapter, {
@@ -981,7 +981,7 @@ async function run(args: Args, out: Out): Promise<number> {
           const drift = r.changeSet.changes.length > 0 || r.newInSpec.length > 0 || (flags.remove === true && r.missingFromSpec.length > 0);
           out.print(r.changeSet.summary.join('\n'));
           for (const w of r.changeSet.warnings) out.warn(w);
-          if (drift) out.print(`\nOut of sync with ${file}. Run devtool api sync ${file}${r.newInSpec.length ? ' --add' : ''} to update.`);
+          if (drift) out.print(`\nOut of sync with ${file}. Run codz api sync ${file}${r.newInSpec.length ? ' --add' : ''} to update.`);
           out.result({ inSync: !drift, updated: r.updated, unchanged: r.unchanged, newInSpec: r.newInSpec, missingFromSpec: r.missingFromSpec, breaking: r.breaking, files: r.changeSet.changes.map((c) => c.path) });
           return drift ? 1 : 0;
         }
@@ -989,18 +989,18 @@ async function run(args: Args, out: Out): Promise<number> {
       }
       if (sub === 'update') {
         const name = positional[2];
-        if (!name) throw new ToolError('bad_args', 'Usage: devtool api update <endpoint> --sample <file.json>');
+        if (!name) throw new ToolError('bad_args', 'Usage: codz api update <endpoint> --sample <file.json>');
         const r = await planApiUpdate(root, adapter, name, args.multi.sample ?? [], { noUnwrap: flags['no-unwrap'] === true });
         return handleChange(root, out, flags, r.changeSet, adapter);
       }
       if (sub === 'remove') {
         const name = positional[2];
-        if (!name) throw new ToolError('bad_args', 'Usage: devtool api remove <endpoint>');
+        if (!name) throw new ToolError('bad_args', 'Usage: codz api remove <endpoint>');
         return handleChange(root, out, flags, await planApiRemove(root, adapter, name), adapter);
       }
       if (sub === 'rename') {
         const [from, to] = [positional[2], positional[3]];
-        if (!from || !to) throw new ToolError('bad_args', 'Usage: devtool api rename <endpoint> <newName>');
+        if (!from || !to) throw new ToolError('bad_args', 'Usage: codz api rename <endpoint> <newName>');
         return handleChange(root, out, flags, await planApiRename(root, adapter, from, to), adapter);
       }
       if (sub !== 'add') throw new ToolError('bad_args', `Unknown command "api ${sub ?? ''}".`, 'Commands: api add, import, sync, update, remove, rename, wire, list, show');
@@ -1023,12 +1023,12 @@ async function run(args: Args, out: Out): Promise<number> {
         if (piped.trim()) opts.paste = piped;
         else if (process.stdin.isTTY && !out.json) opts.paste = await readPasteInteractive();
       }
-      if (!loadConfig(root).exists) out.warn(`No ${CONFIG_FILE} yet; using detected conventions. Run devtool init to review them.`);
+      if (!loadConfig(root).exists) out.warn(`No ${CONFIG_FILE} yet; using detected conventions. Run codz init to review them.`);
       const { changeSet } = await planApiAdd(root, adapter, opts);
       return handleChange(root, out, flags, changeSet, adapter);
     }
     case 'apply': {
-      if (!sub) throw new ToolError('bad_args', 'Which plan? Usage: devtool apply <plan-id>');
+      if (!sub) throw new ToolError('bad_args', 'Which plan? Usage: codz apply <plan-id>');
       const cs = loadPlan(root, sub);
       const r = applyChangeSet(root, cs, { allowDirty: flags['allow-dirty'] === true, adapter, format: !flags['no-format'], verify: !flags['no-verify'] });
       printApplied(out, r);
@@ -1044,7 +1044,7 @@ async function run(args: Args, out: Out): Promise<number> {
       }
       const last = [...readHistory(root)].reverse().find((e) => !e.undone);
       if (last?.skill === 'new') {
-        // The project itself was made by devtool new: undo removes the whole folder.
+        // The project itself was made by codz new: undo removes the whole folder.
         const { undoNew } = await import('./starters/engine.ts');
         const r = undoNew(root, { force: flags.force === true });
         out.print(`Undid new (${r.id}): removed ${r.removed}`);
@@ -1059,7 +1059,7 @@ async function run(args: Args, out: Out): Promise<number> {
     case 'history': {
       if (sub === 'show') {
         const id = positional[2];
-        if (!id) throw new ToolError('bad_args', 'Which change? Usage: devtool history show <id>', 'List them with: devtool history');
+        if (!id) throw new ToolError('bad_args', 'Which change? Usage: codz history show <id>', 'List them with: codz history');
         const d = historyShow(root, id);
         out.print(`${d.entry.id}  ${d.entry.skill}${d.entry.undone ? '  (undone)' : ''}`);
         for (const l of d.entry.summary) out.print(`  • ${l}`);
@@ -1072,11 +1072,11 @@ async function run(args: Args, out: Out): Promise<number> {
       const h = readHistory(root);
       if (!h.length) out.print('No changes applied yet.');
       for (const e of h) out.print(`${e.id}  ${e.skill.padEnd(12)}${e.undone ? '  (undone)' : ''}  ${e.summary[0] ?? ''}`);
-      if (h.length) out.print('\nDetails: devtool history show <id>   Undo back to one: devtool undo --to <id>');
+      if (h.length) out.print('\nDetails: codz history show <id>   Undo back to one: codz undo --to <id>');
       out.result({ history: h });
       return 0;
     }
     default:
-      throw new ToolError('bad_args', `Unknown command "${cmd}".`, 'Run devtool --help.');
+      throw new ToolError('bad_args', `Unknown command "${cmd}".`, 'Run codz --help.');
   }
 }

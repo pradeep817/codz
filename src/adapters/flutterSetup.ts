@@ -210,7 +210,7 @@ export function planFlutterSetup(ctx: AdapterContext, choice: SetupChoice): Setu
   if (!conventions.packageName) throw new ToolError('no_package', 'pubspec.yaml has no name, so package imports cannot be written.');
 
   const create = (path: string, content: string, what: string) => {
-    if (read(path) !== null) throw new ToolError('file_exists', `${path} already exists, so setup stopped without changing anything.`, 'Remove or rename it, or set up the project by hand and run devtool init again.');
+    if (read(path) !== null) throw new ToolError('file_exists', `${path} already exists, so setup stopped without changing anything.`, 'Remove or rename it, or set up the project by hand and run codz init again.');
     files.set(path, content);
     summary.push(`Create ${path}: ${what}`);
   };

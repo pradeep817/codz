@@ -1,6 +1,6 @@
-// Keeps hand-written code when devtool regenerates a model.
+// Keeps hand-written code when codz regenerates a model.
 //
-// Dart: a regenerated class gets back every member devtool does not generate
+// Dart: a regenerated class gets back every member codz does not generate
 // (copyWith, ==, hashCode, toString, getters, other constructors and methods).
 // TypeScript: doc comments above interface fields survive.
 
@@ -77,7 +77,7 @@ function memberName(code: string): string {
   return field ? field[1] : c.split(/\s+/).slice(-1)[0];
 }
 
-/** True for members devtool writes itself in a model class. */
+/** True for members codz writes itself in a model class. */
 function isGenerated(m: Member, cls: string): boolean {
   const c = m.code.replace(/@\w+(\([^)]*\))?/g, '').trim();
   if (new RegExp(`^(const\\s+)?${cls}\\s*\\(`).test(c)) return true; // unnamed constructor

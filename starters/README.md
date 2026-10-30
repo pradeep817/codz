@@ -1,6 +1,6 @@
 # Starter templates (internal)
 
-Source folders for the starters `devtool new` installs. Each has `manifest.json`,
+Source folders for the starters `codz new` installs. Each has `manifest.json`,
 `LICENSE` and `files/`. After editing files, refresh the hashes and run the gates:
 
 ```bash
@@ -19,6 +19,6 @@ node scripts/starters.ts pack starters/flutter-riverpod-dio ../registry   # then
 | `flutter-bloc-auth-pro` | Flutter, sign-in with bloc and token refresh | paid |
 | `react-native-auth-pro` | React Native (Expo), sign-in and tabs | paid |
 
-Free or paid is decided in the registry's `catalog.json`, not here. Each starter passes `check`, and `devtool init` on a new project finds the conventions in its manifest's `expectedConventions`, so `devtool api add` and `screen add` work right away.
+Free or paid is decided in the registry's `catalog.json`, not here. Each starter passes `check`, and `codz init` on a new project finds the conventions in its manifest's `expectedConventions`, so `codz api add` and `screen add` work right away.
 
-Try one locally without the catalog: `devtool new my_app --template ./starters/flutter-riverpod-dio`.
+Try one locally without the catalog: `codz new my_app --template ./starters/flutter-riverpod-dio`.

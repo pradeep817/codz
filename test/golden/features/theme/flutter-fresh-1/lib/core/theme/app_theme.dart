@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'app_colors.dart';
 
-/// The app theme. Colors come from AppColors; change them with devtool theme set.
+/// The app theme. Colors come from AppColors; change them with codz theme set.
 class AppTheme {
   AppTheme._();
 

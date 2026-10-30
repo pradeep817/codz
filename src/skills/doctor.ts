@@ -40,7 +40,7 @@ function codeFiles(root: string, map: ProjectMap): Map<string, string> {
   const exts = map.framework === 'flutter' ? ['.dart'] : map.framework === 'android' ? ['.kt'] : ['.ts', '.tsx', '.js', '.jsx', '.mjs'];
   const start = map.framework === 'flutter' ? 'lib' : '.';
   const out = new Map<string, string>();
-  for (const f of walk(root, start, { exts, extraIgnored: ['.devtool', 'test', '__tests__', 'generated', 'build', '.gradle', 'androidTest'] })) {
+  for (const f of walk(root, start, { exts, extraIgnored: ['.codz', 'test', '__tests__', 'generated', 'build', '.gradle', 'androidTest'] })) {
     if (/\.(g|freezed|d)\.(dart|ts)$/.test(f) || /(^|\/)(next|tailwind|postcss|eslint|vitest|jest)\.config\./.test(f)) continue;
     out.set(f, stripComments(readText(join(root, f)) ?? ''));
   }
@@ -95,7 +95,7 @@ function checkLocales(root: string, map: ProjectMap, code: Map<string, string>, 
     const extra = [...keys.keys()].filter((k) => !def.has(k));
     const same = [...keys.entries()].filter(([k, v]) => def.get(k) === v && /[A-Za-z]{3,}/.test(v) && !/^[A-Z0-9_]+$/.test(v));
     if (missing.length) {
-      findings.push({ check: 'locales', severity: 'error', file, message: `${lang} is missing ${missing.length} key${missing.length === 1 ? '' : 's'}: ${list(missing)}`, fix: `devtool doctor --fix adds them with the ${set.defaultLang} text, or: devtool locale key ${missing[0]} "${(def.get(missing[0]) ?? '').replace(/"/g, '\\"')}" --value ${lang}="<${lang} text>" --force`, data: { kind: 'missingKeys', lang, keys: missing } });
+      findings.push({ check: 'locales', severity: 'error', file, message: `${lang} is missing ${missing.length} key${missing.length === 1 ? '' : 's'}: ${list(missing)}`, fix: `codz doctor --fix adds them with the ${set.defaultLang} text, or: codz locale key ${missing[0]} "${(def.get(missing[0]) ?? '').replace(/"/g, '\\"')}" --value ${lang}="<${lang} text>" --force`, data: { kind: 'missingKeys', lang, keys: missing } });
     }
     if (extra.length) findings.push({ check: 'locales', severity: 'warning', file, message: `${lang} has ${extra.length} key${extra.length === 1 ? '' : 's'} the ${set.defaultLang} file does not: ${list(extra)}` });
     if (same.length) findings.push({ check: 'locales', severity: 'info', file, message: `${same.length} ${lang} text${same.length === 1 ? ' is' : 's are'} the same as ${set.defaultLang} (not translated yet?): ${list(same.map(([k]) => k))}` });
@@ -215,7 +215,7 @@ function checkApi(root: string, map: ProjectMap, code: Map<string, string>, find
         severity: 'warning',
         file: ep.file,
         message: `${ep.name}() (${ep.method} ${ep.path}) returns ${r || 'an untyped value'}; callers get no type checking.`,
-        fix: `devtool api update ${ep.name} --sample response.json builds a typed model from a real response.`,
+        fix: `codz api update ${ep.name} --sample response.json builds a typed model from a real response.`,
         data: { kind: 'untyped', endpoint: ep.name },
       });
     }
@@ -260,7 +260,7 @@ function checkModels(map: ProjectMap, code: Map<string, string>, findings: Findi
       const self = [...t.matchAll(new RegExp(`(class|interface|type|enum)\\s+${model.name}\\b|${model.name}\\.(fromJson|_)|${model.name}\\s*\\(|factory\\s+${model.name}\\b|_\\$${model.name}`, 'g'))].length;
       return n > self;
     });
-    if (!used) findings.push({ check: 'models', severity: 'info', file: model.file, message: `The model ${model.name} is not used anywhere.`, fix: 'Delete it if it is left over from a removed endpoint (devtool doctor --fix does that).', data: { kind: 'unusedModel', name: model.name } });
+    if (!used) findings.push({ check: 'models', severity: 'info', file: model.file, message: `The model ${model.name} is not used anywhere.`, fix: 'Delete it if it is left over from a removed endpoint (codz doctor --fix does that).', data: { kind: 'unusedModel', name: model.name } });
   }
 }
 

@@ -1,13 +1,13 @@
 openapi: 3.0.3
 info:
-  title: Shop API (devtool test)
+  title: Shop API (codz test)
   version: 1.0.0
   description: |
-    Sample API for trying devtool.
-      devtool api import openapi.yaml --list
-      devtool feature add products --spec openapi.yaml   # list, create, detail, edit
-      devtool feature add orders --spec openapi.yaml     # list, create, detail
-      devtool auth add                                   # uses /auth/login and /auth/me
+    Sample API for trying codz.
+      codz api import openapi.yaml --list
+      codz feature add products --spec openapi.yaml   # list, create, detail, edit
+      codz feature add orders --spec openapi.yaml     # list, create, detail
+      codz auth add                                   # uses /auth/login and /auth/me
 servers:
   - url: https://api.example.com/v1
 tags:
@@ -16,7 +16,7 @@ tags:
   - name: orders
 
 paths:
-  # ---------- Sign-in (devtool auth add) ----------
+  # ---------- Sign-in (codz auth add) ----------
   /auth/login:
     post:
       operationId: login

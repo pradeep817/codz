@@ -1,13 +1,13 @@
 // TypeScript syntax trees for exact rename/remove/usage analysis, using the TypeScript compiler the
-// project already has (node_modules/typescript). devtool itself has no runtime
-// dependencies, so when the project has no TypeScript (or DEVTOOL_NO_AST=1),
+// project already has (node_modules/typescript). codz itself has no runtime
+// dependencies, so when the project has no TypeScript (or CODZ_NO_AST=1),
 // callers fall back to the text scanner.
 
 import { createRequire } from 'node:module';
 import { join } from 'node:path';
 import { exists } from './fsutil.ts';
 
-// The parts of the TypeScript API used here, typed loosely so devtool needs no @types.
+// The parts of the TypeScript API used here, typed loosely so codz needs no @types.
 // deno-lint-ignore no-explicit-any
 type TS = any;
 // deno-lint-ignore no-explicit-any
@@ -15,9 +15,9 @@ type Node = any;
 
 const cache = new Map<string, TS | null>();
 
-/** The project's TypeScript module, or devtool's own in development, or null. */
+/** The project's TypeScript module, or codz's own in development, or null. */
 export function loadTypeScript(root: string): TS | null {
-  if (process.env.DEVTOOL_NO_AST === '1') return null;
+  if (process.env.CODZ_NO_AST === '1') return null;
   if (cache.has(root)) return cache.get(root)!;
   let ts: TS | null = null;
   for (const base of [join(root, 'package.json'), import.meta.url]) {

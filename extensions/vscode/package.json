@@ -1,6 +1,6 @@
 {
-  "name": "devtool-vscode",
-  "displayName": "devtool",
+  "name": "codz-vscode",
+  "displayName": "codz",
   "description": "Add endpoints, sync with an API spec, generate mocks and tests, and check your Next.js or Flutter project, with every change previewed as a diff.",
   "version": "0.1.0",
   "publisher": "pradeeppandey",
@@ -8,24 +8,24 @@
   "engines": { "vscode": "^1.85.0" },
   "categories": ["Other", "Linters"],
   "main": "./extension.js",
-  "activationEvents": ["workspaceContains:devtool.config.yaml", "workspaceContains:pubspec.yaml", "workspaceContains:next.config.*"],
+  "activationEvents": ["workspaceContains:codz.config.yaml", "workspaceContains:pubspec.yaml", "workspaceContains:next.config.*"],
   "contributes": {
     "commands": [
-      { "command": "devtool.addEndpoint", "title": "Add endpoint (cURL or URL)", "category": "devtool" },
-      { "command": "devtool.syncSpec", "title": "Sync with API spec", "category": "devtool" },
-      { "command": "devtool.showEndpoint", "title": "Show endpoint and its uses", "category": "devtool" },
-      { "command": "devtool.renameEndpoint", "title": "Rename endpoint", "category": "devtool" },
-      { "command": "devtool.mockAll", "title": "Mock every endpoint", "category": "devtool" },
-      { "command": "devtool.testAll", "title": "Write tests for every endpoint", "category": "devtool" },
-      { "command": "devtool.doctor", "title": "Doctor (show findings in Problems)", "category": "devtool" },
-      { "command": "devtool.doctorFix", "title": "Doctor: fix what is safe", "category": "devtool" },
-      { "command": "devtool.explain", "title": "Explain project", "category": "devtool" },
-      { "command": "devtool.undo", "title": "Undo last change", "category": "devtool" }
+      { "command": "codz.addEndpoint", "title": "Add endpoint (cURL or URL)", "category": "codz" },
+      { "command": "codz.syncSpec", "title": "Sync with API spec", "category": "codz" },
+      { "command": "codz.showEndpoint", "title": "Show endpoint and its uses", "category": "codz" },
+      { "command": "codz.renameEndpoint", "title": "Rename endpoint", "category": "codz" },
+      { "command": "codz.mockAll", "title": "Mock every endpoint", "category": "codz" },
+      { "command": "codz.testAll", "title": "Write tests for every endpoint", "category": "codz" },
+      { "command": "codz.doctor", "title": "Doctor (show findings in Problems)", "category": "codz" },
+      { "command": "codz.doctorFix", "title": "Doctor: fix what is safe", "category": "codz" },
+      { "command": "codz.explain", "title": "Explain project", "category": "codz" },
+      { "command": "codz.undo", "title": "Undo last change", "category": "codz" }
     ],
     "configuration": {
-      "title": "devtool",
+      "title": "codz",
       "properties": {
-        "devtool.path": { "type": "string", "default": "devtool", "description": "The devtool command (a full path if it is not on PATH)." }
+        "codz.path": { "type": "string", "default": "codz", "description": "The codz command (a full path if it is not on PATH)." }
       }
     }
   }

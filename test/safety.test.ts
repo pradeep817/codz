@@ -14,12 +14,12 @@ import { cleanup, copyFixture, REPO } from './helpers.ts';
 
 const EXAMPLE = join(REPO, 'examples', 'openapi.yaml');
 
-/** Every file and folder of the project (devtool's own folder aside), with contents. */
+/** Every file and folder of the project (codz's own folder aside), with contents. */
 function snapshot(root: string): Map<string, string> {
   const out = new Map<string, string>();
   const walk = (dir: string) => {
     for (const name of readdirSync(dir).sort()) {
-      if (name === '.devtool') continue;
+      if (name === '.codz') continue;
       const abs = join(dir, name);
       const rel = relative(root, abs);
       if (statSync(abs).isDirectory()) {
@@ -100,9 +100,9 @@ describe('one change at a time', () => {
     const dir = copyFixture('react-vite');
     try {
       const r = await planFeatureAdd(dir, ADAPTERS.react, { name: 'products', spec: EXAMPLE });
-      mkdirSync(join(dir, '.devtool'), { recursive: true });
+      mkdirSync(join(dir, '.codz'), { recursive: true });
       // The parent process (the test runner) is alive.
-      writeFileSync(join(dir, '.devtool', 'lock'), JSON.stringify({ pid: process.ppid, started: new Date().toISOString() }));
+      writeFileSync(join(dir, '.codz', 'lock'), JSON.stringify({ pid: process.ppid, started: new Date().toISOString() }));
       assert.throws(() => applyChangeSet(dir, r.changeSet, { allowDirty: true, format: false, verify: false }), (e: unknown) => e instanceof ToolError && e.code === 'busy');
       assert.throws(() => undoLast(dir), (e: unknown) => e instanceof ToolError && e.code === 'busy');
     } finally {
@@ -114,17 +114,17 @@ describe('one change at a time', () => {
     const dir = copyFixture('react-vite');
     try {
       const r = await planFeatureAdd(dir, ADAPTERS.react, { name: 'products', spec: EXAMPLE });
-      mkdirSync(join(dir, '.devtool'), { recursive: true });
-      writeFileSync(join(dir, '.devtool', 'lock'), JSON.stringify({ pid: 2 ** 22 - 3, started: new Date().toISOString() }));
+      mkdirSync(join(dir, '.codz'), { recursive: true });
+      writeFileSync(join(dir, '.codz', 'lock'), JSON.stringify({ pid: 2 ** 22 - 3, started: new Date().toISOString() }));
       applyChangeSet(dir, r.changeSet, { allowDirty: true, format: false, verify: false });
-      assert.ok(!readdirSync(join(dir, '.devtool')).includes('lock'));
+      assert.ok(!readdirSync(join(dir, '.codz')).includes('lock'));
     } finally {
       cleanup(dir);
     }
   });
 });
 
-describe('devtool report', () => {
+describe('codz report', () => {
   it('counts commands, failures, applies and undos, with no paths or names in it', async () => {
     const { main } = await import('../src/cli.ts');
     const { readEvents } = await import('../src/core/events.ts');
@@ -165,19 +165,19 @@ describe('devtool report', () => {
     }
   });
 
-  it('records nothing in a folder devtool has not used, or with DEVTOOL_NO_EVENTS=1', async () => {
+  it('records nothing in a folder codz has not used, or with CODZ_NO_EVENTS=1', async () => {
     const { recordEvent, readEvents } = await import('../src/core/events.ts');
     const dir = copyFixture('react-vite');
     try {
       recordEvent(dir, { t: new Date().toISOString(), cmd: 'explain', ok: true, ms: 1, v: 'x' });
-      assert.ok(!readdirSync(dir).includes('.devtool'));
-      mkdirSync(join(dir, '.devtool'));
-      process.env.DEVTOOL_NO_EVENTS = '1';
+      assert.ok(!readdirSync(dir).includes('.codz'));
+      mkdirSync(join(dir, '.codz'));
+      process.env.CODZ_NO_EVENTS = '1';
       recordEvent(dir, { t: new Date().toISOString(), cmd: 'explain', ok: true, ms: 1, v: 'x' });
-      delete process.env.DEVTOOL_NO_EVENTS;
+      delete process.env.CODZ_NO_EVENTS;
       assert.equal(readEvents(dir).length, 0);
     } finally {
-      delete process.env.DEVTOOL_NO_EVENTS;
+      delete process.env.CODZ_NO_EVENTS;
       cleanup(dir);
     }
   });

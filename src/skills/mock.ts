@@ -30,11 +30,11 @@ export interface MockOptions {
   force?: boolean;
 }
 
-/** Marker above each generated mock: the hash of the value devtool wrote, to notice hand edits. */
-const markerFor = (value: string) => `// devtool:${hash(value.trim()).slice(0, 10)}`;
-const MARKER = /^[ \t]*\/\/ devtool:([0-9a-f]{10})[ \t]*\n/;
+/** Marker above each generated mock: the hash of the value codz wrote, to notice hand edits. */
+const markerFor = (value: string) => `// codz:${hash(value.trim()).slice(0, 10)}`;
+const MARKER = /^[ \t]*\/\/ codz:([0-9a-f]{10})[ \t]*\n/;
 
-/** Was the mock at `entryStart` edited since devtool wrote it? No marker counts as edited. */
+/** Was the mock at `entryStart` edited since codz wrote it? No marker counts as edited. */
 function handEdited(text: string, entryStart: number, value: string): boolean {
   const lineStart = text.lastIndexOf('\n', entryStart - 1);
   const prevStart = text.lastIndexOf('\n', lineStart - 1) + 1;
@@ -182,7 +182,7 @@ function flutterMocks(root: string, map: ProjectMap, eps: EndpointInfo[], sample
 
   let responses = readText(join(root, responsesFile)) ?? [
     '// Mock responses, used when the app runs with --dart-define=USE_MOCKS=true.',
-    '// Managed by `devtool mock add`; edit the JSON freely.',
+    '// Managed by `codz mock add`; edit the JSON freely.',
     'const mockResponses = <String, String>{',
     '};',
     '',
@@ -192,7 +192,7 @@ function flutterMocks(root: string, map: ProjectMap, eps: EndpointInfo[], sample
   for (const ep of eps) {
     const key = mockKey(ep);
     const escKey = key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    const existing = new RegExp(`(?:[ \\t]*// devtool:[0-9a-f]{10}[ \\t]*\\n)?  '${escKey}': r'''\\n([\\s\\S]*?)\\n''',`).exec(responses);
+    const existing = new RegExp(`(?:[ \\t]*// codz:[0-9a-f]{10}[ \\t]*\\n)?  '${escKey}': r'''\\n([\\s\\S]*?)\\n''',`).exec(responses);
     if (existing && !sample && !force) {
       const at = responses.indexOf(`  '${key}': r`, existing.index);
       if (handEdited(responses, at, existing[1])) {
@@ -294,7 +294,7 @@ function nextMocks(root: string, map: ProjectMap, eps: EndpointInfo[], sample: s
   }
   const hookFile = axiosMode ? c.axiosInstanceFile : c.httpHelperFile;
   if (!axiosMode && (!c.httpHelper || c.httpHelper === 'fetch' || !c.httpHelperFile)) {
-    throw new ToolError('not_supported', 'Mocks need a shared request helper (such as apiFetch) to hook into, and this project calls fetch directly.', 'A fresh project gets one with: devtool setup --architecture fetch-helper');
+    throw new ToolError('not_supported', 'Mocks need a shared request helper (such as apiFetch) to hook into, and this project calls fetch directly.', 'A fresh project gets one with: codz setup --architecture fetch-helper');
   }
   const files = new Map<string, string>();
   const summary: string[] = [];
@@ -308,7 +308,7 @@ function nextMocks(root: string, map: ProjectMap, eps: EndpointInfo[], sample: s
   const mockEnvRead = map.framework === 'react' && c.bundler !== 'cra' ? `import.meta.env.${mockEnv}` : `process.env.${mockEnv}`;
   let mocks = readText(join(root, mocksFile)) ?? [
     rnFlag0 ? '// Mock responses, used when USE_MOCKS is true.' : `// Mock responses, used when ${mockEnv}=true.`,
-    '// Managed by `devtool mock add`; edit the values freely.',
+    '// Managed by `codz mock add`; edit the values freely.',
     `export const mockResponses: Record<string, unknown> = {`,
     `}${semi}`,
     '',
@@ -385,7 +385,7 @@ function nextMocks(root: string, map: ProjectMap, eps: EndpointInfo[], sample: s
     const at = imports[imports.length - 1].index! + imports[imports.length - 1][0].length;
     return t.slice(0, at) + importLine + '\n' + t.slice(at);
   };
-  if (axiosMode && !/devtool: mock responses/.test(helper)) {
+  if (axiosMode && !/codz: mock responses/.test(helper)) {
     // A request interceptor answers from the mocks (matched requests only) with a one-off adapter.
     const inst = (c.axiosInstance || '').replace(/^default:/, '');
     const create = new RegExp(`(?:export\\s+)?(?:const|let)\\s+${inst}\\s*=\\s*axios\\.create\\s*\\(`).exec(helper);
@@ -399,7 +399,7 @@ function nextMocks(root: string, map: ProjectMap, eps: EndpointInfo[], sample: s
       const block = [
         '',
         '',
-        '// devtool: mock responses',
+        '// codz: mock responses',
         `if (${flag}) {`,
         `  ${inst}.interceptors.request.use((config) => {`,
         `    const mock = findMock(config.method ?? ${q}get${q}, config.url ?? ${q}${q})${semi}`,
@@ -413,14 +413,14 @@ function nextMocks(root: string, map: ProjectMap, eps: EndpointInfo[], sample: s
       summary.push(`Update ${hookFile}: answer from mocks when ${flagLabel}`);
     }
   }
-  if (!axiosMode && !/devtool: mock responses/.test(helper)) {
+  if (!axiosMode && !/codz: mock responses/.test(helper)) {
     const m = new RegExp(`export\\s+(?:async\\s+)?function\\s+${c.httpHelper}\\s*<[^>]*>\\s*\\(\\s*(\\w+)\\s*:[^,)]*(?:,\\s*(\\w+))?`).exec(helper);
     if (!m) {
       warnings.push(`Could not find ${c.httpHelper}() in ${c.httpHelperFile}; call findMock() from it yourself.`);
     } else {
       const method = m[2] ? `${m[2]}?.method ?? ${q}GET${q}` : `${q}GET${q}`;
       const block = [
-        `  // devtool: mock responses`,
+        `  // codz: mock responses`,
         `  if (${flag}) {`,
         `    const mock = findMock(${method}, ${m[1]})${semi}`,
         `    if (mock !== undefined) return mock as T${semi}`,
@@ -434,8 +434,8 @@ function nextMocks(root: string, map: ProjectMap, eps: EndpointInfo[], sample: s
       summary.push(`Update ${c.httpHelperFile}: answer from mocks when ${flagLabel}`);
     }
   }
-  if (!rnFlag && !/devtool: mock responses/.test(helper)) {
-    // .env.example only: devtool never writes .env.local, which may hold secrets.
+  if (!rnFlag && !/codz: mock responses/.test(helper)) {
+    // .env.example only: codz never writes .env.local, which may hold secrets.
     for (const envFile of ['.env.example']) {
       const env = readText(join(root, envFile));
       if (env !== null && !new RegExp(`${mockEnv}=`).test(env)) {
@@ -450,7 +450,7 @@ function nextMocks(root: string, map: ProjectMap, eps: EndpointInfo[], sample: s
 
 export async function planMockAdd(root: string, adapter: Adapter, opts: MockOptions): Promise<ChangeSet> {
   if (adapter.id === 'generic') throw new ToolError('not_supported', 'mock add needs the Next.js, Flutter or React Native adapter.');
-  if (adapter.id === 'android') throw new ToolError('not_supported', 'mock add does not support Android yet.', 'For offline tests, devtool test add writes MockWebServer tests; for the app, point ApiConfig.BASE_URL at a local mock server.');
+  if (adapter.id === 'android') throw new ToolError('not_supported', 'mock add does not support Android yet.', 'For offline tests, codz test add writes MockWebServer tests; for the app, point ApiConfig.BASE_URL at a local mock server.');
   const { map } = await loadMap(root, adapter, loadConfig(root).conventions);
   let eps: EndpointInfo[];
   if (opts.all) eps = map.endpoints;
@@ -461,7 +461,7 @@ export async function planMockAdd(root: string, adapter: Adapter, opts: MockOpti
       return ep;
     });
   }
-  if (!eps.length) throw new ToolError('bad_args', 'Which endpoints? Usage: devtool mock add <endpoint> [<endpoint>...] or devtool mock add --all');
+  if (!eps.length) throw new ToolError('bad_args', 'Which endpoints? Usage: codz mock add <endpoint> [<endpoint>...] or codz mock add --all');
   if (opts.sample && eps.length > 1) throw new ToolError('bad_args', '--sample works with one endpoint at a time.');
   const r = adapter.id === 'flutter' ? flutterMocks(root, map, eps, opts.sample, opts.keepValues === true, opts.force === true) : nextMocks(root, map, eps, opts.sample, opts.keepValues === true, opts.force === true);
   return buildChangeSet(root, 'mock add', { ...r, generated: [] });

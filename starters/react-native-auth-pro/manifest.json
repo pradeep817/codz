@@ -7,7 +7,7 @@
   "framework": "react-native",
   "mode": "full",
   "requires": {
-    "devtool": ">=0.1.0",
+    "codz": ">=0.1.0",
     "node": ">=18.18"
   },
   "provides": {
@@ -87,8 +87,8 @@
     },
     {
       "path": ".gitignore",
-      "sha256": "fcb4547d5681a4d59d03a76dbb373f33cef833d8b9187ad3b59465ca300d2720",
-      "size": 138
+      "sha256": "1efcc8ddaf120c8e54a7fe7dba31b32d4ea9d2dd4c1c802d6355ee8b10c596e1",
+      "size": 132
     },
     {
       "path": "App.tsx",
@@ -97,8 +97,8 @@
     },
     {
       "path": "README.md",
-      "sha256": "c054a81ef47ed018c05cefa3fdd16bd4de06eb38215b82995746086d04747be7",
-      "size": 789
+      "sha256": "edf36ec56241521f13deffa180ab53b47d761d7008ef117f07af0fcd6db1020b",
+      "size": 783
     },
     {
       "path": "__tests__/errors.test.ts",
@@ -177,13 +177,13 @@
     },
     {
       "path": "src/navigation/RootNavigator.tsx",
-      "sha256": "3e95cc2bd9c72c7d8df52538a3548fcbbaa2b6b70995770159824eda8dc0381a",
-      "size": 1607
+      "sha256": "675b3427122dae943baddb7e10e5a7e0d0ba555eb14059acc315f75626ab249f",
+      "size": 1604
     },
     {
       "path": "src/screens/HomeScreen.tsx",
-      "sha256": "9c4433144af822a34163368fb577d25b3121402c9840cd481acb73fdabc9d5da",
-      "size": 884
+      "sha256": "fc928a74724044036fe6ee7aad83f51575bf7e5857bee9170208174aaf1f896f",
+      "size": 878
     },
     {
       "path": "src/screens/LoginScreen.tsx",
@@ -197,8 +197,8 @@
     },
     {
       "path": "src/theme/colors.ts",
-      "sha256": "58074c5cd138c9db8f7c1972c9a7b3325c755203894a4187d13d490119ec1256",
-      "size": 379
+      "sha256": "cae99212f8eb4c8bf35a2d03d4c626a3788c4ac054982888e32feabeb793c172",
+      "size": 376
     },
     {
       "path": "src/theme/useTheme.ts",

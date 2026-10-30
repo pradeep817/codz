@@ -1,5 +1,5 @@
-// devtool report: what devtool did in this project, for beta feedback. It is
-// built from devtool's own records (.devtool/history.json and events.jsonl) and
+// codz report: what codz did in this project, for beta feedback. It is
+// built from codz's own records (.codz/history.json and events.jsonl) and
 // holds counts, dates and the setup (framework, HTTP client, router, ...), never
 // code, file names, endpoint paths or URLs, so it can be pasted into a form.
 
@@ -11,7 +11,7 @@ import type { Adapter, ProjectMap } from '../core/types.ts';
 const SETUP_KEYS = ['http', 'dataFetching', 'stateManagement', 'di', 'router', 'ui', 'flavor', 'bundler', 'serialization', 'apiStyle', 'fileSync', 'routerStyle'];
 
 export interface UsageReport {
-  devtool: string;
+  codz: string;
   node: string;
   os: string;
   framework: string;
@@ -58,7 +58,7 @@ export function buildReport(root: string, adapter: Adapter, map: ProjectMap, ver
   const applied = history.length;
   const undone = history.filter((h) => h.undone).length;
   return {
-    devtool: version,
+    codz: version,
     node: process.versions.node,
     os: process.platform,
     framework: adapter.id,
@@ -73,7 +73,7 @@ export function buildReport(root: string, adapter: Adapter, map: ProjectMap, ver
 
 export function renderReport(r: UsageReport): string {
   const out = [
-    `devtool ${r.devtool} · Node ${r.node} · ${r.os}`,
+    `codz ${r.codz} · Node ${r.node} · ${r.os}`,
     `Project: ${r.framework}${Object.keys(r.setup).length ? ` (${Object.entries(r.setup).map(([k, v]) => `${k} ${v}`).join(', ')})` : ''}`,
     `Size: ${r.size.endpoints} endpoints, ${r.size.models} models, ${r.size.routes} routes`,
     `Used on ${r.activity.activeDays} day${r.activity.activeDays === 1 ? '' : 's'}${r.activity.first ? `, ${r.activity.first} to ${r.activity.last}` : ''}`,
@@ -86,7 +86,7 @@ export function renderReport(r: UsageReport): string {
     ...(r.errors.length ? ['', 'Errors:', ...r.errors.map((e) => `  ${e.code.padEnd(24)} ${e.count}`)] : []),
     '',
     'This report has counts and setup names only: no code, file names, endpoint paths or URLs.',
-    'Paste it into the beta feedback form, or share the JSON from devtool report --json.',
+    'Paste it into the beta feedback form, or share the JSON from codz report --json.',
   ];
   return out.join('\n');
 }

@@ -7,7 +7,7 @@
   "framework": "flutter",
   "mode": "overlay",
   "requires": {
-    "devtool": ">=0.1.0",
+    "codz": ">=0.1.0",
     "flutter": ">=3.24"
   },
   "provides": {
@@ -83,8 +83,8 @@
   "files": [
     {
       "path": "README.md",
-      "sha256": "8d0ab1510b19384422eb97b5ff21cc65a7aa656aa3315de35be4de5caea3369e",
-      "size": 800
+      "sha256": "dbaab64bc43ae695d468cf5085245f2dd864215fbfb82f6a9055d221fffd692c",
+      "size": 794
     },
     {
       "path": "analysis_options.yaml",
@@ -103,8 +103,8 @@
     },
     {
       "path": "lib/app/theme.dart",
-      "sha256": "9676bfcbdc28c3adf615f7c1861cd70059ac6ba208ef51700397722ce5714bcb",
-      "size": 768
+      "sha256": "17adb2060433e81d7b3f0698649b6740888b41ed34b7316512920d89735d094e",
+      "size": 765
     },
     {
       "path": "lib/core/di/injection.dart",
@@ -153,8 +153,8 @@
     },
     {
       "path": "lib/features/home/home_page.dart",
-      "sha256": "c4431460e5cc9c2a9f8e8a61471342b5705c5d4b6e742b524f5cace88e90d3a3",
-      "size": 998
+      "sha256": "2f1238951b0c1f01c1998f93f7371e1969b7b5c8b3f561b68c5faf98e971f0a9",
+      "size": 992
     },
     {
       "path": "lib/features/settings/settings_page.dart",

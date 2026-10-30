@@ -39,12 +39,12 @@ describe('stage F: MCP server', () => {
   it('answers the protocol: initialize, tools/list, resources, unknown methods', () => {
     const init = handleMessage({ jsonrpc: '2.0', id: 1, method: 'initialize', params: { protocolVersion: '2024-11-05' } }, REPO, '0.1.0') as { result: { protocolVersion: string; serverInfo: { name: string } } };
     assert.equal(init.result.protocolVersion, '2024-11-05');
-    assert.equal(init.result.serverInfo.name, 'devtool');
+    assert.equal(init.result.serverInfo.name, 'codz');
     assert.equal(handleMessage({ jsonrpc: '2.0', method: 'notifications/initialized' }, REPO, '0.1.0'), null);
     const list = handleMessage({ jsonrpc: '2.0', id: 2, method: 'tools/list' }, REPO, '0.1.0') as { result: { tools: { name: string; inputSchema: object }[] } };
     assert.ok(list.result.tools.every((t) => t.inputSchema && !('spec' in t)));
-    const res = handleMessage({ jsonrpc: '2.0', id: 3, method: 'resources/read', params: { uri: 'devtool://commands' } }, REPO, '0.1.0') as { result: { contents: { text: string }[] } };
-    assert.match(res.result.contents[0].text, /^# devtool commands/);
+    const res = handleMessage({ jsonrpc: '2.0', id: 3, method: 'resources/read', params: { uri: 'codz://commands' } }, REPO, '0.1.0') as { result: { contents: { text: string }[] } };
+    assert.match(res.result.contents[0].text, /^# codz commands/);
     const bad = handleMessage({ jsonrpc: '2.0', id: 4, method: 'nope' }, REPO, '0.1.0') as { error: { code: number } };
     assert.equal(bad.error.code, -32601);
   });
@@ -52,7 +52,7 @@ describe('stage F: MCP server', () => {
   it('over stdio: plan with api_add, then apply writes exactly that plan', async () => {
     const dir = copyFixture('nextjs-helper');
     try {
-      const child = spawn(process.execPath, [join(REPO, 'bin/devtool.js'), 'mcp'], { cwd: dir, stdio: ['pipe', 'pipe', 'pipe'] });
+      const child = spawn(process.execPath, [join(REPO, 'bin/codz.js'), 'mcp'], { cwd: dir, stdio: ['pipe', 'pipe', 'pipe'] });
       const replies = new Map<number, { result?: { content: { text: string }[]; isError: boolean } }>();
       let buf = '';
       const waiters = new Map<number, () => void>();
@@ -145,7 +145,7 @@ describe('stage F: VS Code extension', () => {
   it('turns doctor findings into Problems entries and a plan into one diff document', () => {
     const { ext } = loadExtension();
     assert.deepEqual(ext.findingsToProblems([{ check: 'urls', severity: 'warning', file: 'lib/a.ts', line: 3, message: 'Hardcoded URL', fix: 'Use the env' }, { check: 'locales', severity: 'info', message: 'no file' }]), [
-      { file: 'lib/a.ts', line: 2, severity: 'warning', message: 'Hardcoded URL\nFix: Use the env', source: 'devtool (urls)' },
+      { file: 'lib/a.ts', line: 2, severity: 'warning', message: 'Hardcoded URL\nFix: Use the env', source: 'codz (urls)' },
     ]);
     const text = ext.planText({ id: 'p1', skill: 'api add', summary: ['Create a.ts'], warnings: ['careful'], files: [{ diff: '--- a\n+++ b\n' }] });
     assert.match(text, /^# api add: plan p1\n# • Create a\.ts\n# ! careful\n\n--- a/);

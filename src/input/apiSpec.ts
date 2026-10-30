@@ -376,7 +376,7 @@ function readPostman(doc: Json): ImportResult {
         used.add(spec.name);
         if (!samples.length && method !== 'DELETE') {
           spec.warnings = spec.warnings.filter((w) => !w.startsWith('No response sample'));
-          spec.warnings.push(`The collection has no saved example response, so the response type is unknown. Save an example in Postman, or run devtool api update ${spec.name} --sample <file> later.`);
+          spec.warnings.push(`The collection has no saved example response, so the response type is unknown. Save an example in Postman, or run codz api update ${spec.name} --sample <file> later.`);
         }
         operations.push({ spec, tags: folder.filter(Boolean), source });
       } catch (e) {

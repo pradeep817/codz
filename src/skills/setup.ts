@@ -13,7 +13,7 @@ export function planSetup(root: string, adapter: Adapter, map: ProjectMap, choic
   }
   const options = adapter.architectures(map);
   if (!options.length) {
-    throw new ToolError('already_set_up', 'This project already has an API layer, so setup is not needed.', 'Run devtool explain to see it, then devtool api add.');
+    throw new ToolError('already_set_up', 'This project already has an API layer, so setup is not needed.', 'Run codz explain to see it, then codz api add.');
   }
   if (!options.some((o) => o.id === choice.architecture)) {
     throw new ToolError('bad_args', `Unknown architecture "${choice.architecture}". Choose one of: ${options.map((o) => o.id).join(', ')}.`);

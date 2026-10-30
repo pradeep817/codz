@@ -39,8 +39,8 @@ jobs:
         run: npm run docs && git diff --exit-code docs/COMMANDS.md
       - name: CLI smoke test
         run: |
-          node bin/devtool.js --version
-          node bin/devtool.js doctor --setup --cwd fixtures/nextjs-helper --no-color || true
+          node bin/codz.js --version
+          node bin/codz.js doctor --setup --cwd fixtures/nextjs-helper --no-color || true
 
   generated-code:
     name: Generated code compiles (tsc + dart analyze)
@@ -55,7 +55,7 @@ jobs:
         with:
           channel: stable
           cache: true
-      - name: Run devtool on every fixture and compile the result
+      - name: Run codz on every fixture and compile the result
         env:
           TSC: npx tsc
         run: bash ./scripts/check-generated.sh
@@ -75,7 +75,7 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.11.1'
-      - name: devtool create + session for each architecture, then assembleDebug and unit tests
+      - name: codz create + session for each architecture, then assembleDebug and unit tests
         run: bash ./scripts/check-android.sh
 
   package:
@@ -97,11 +97,11 @@ jobs:
           node-version: '20'
       - name: Use the built CLI on Node 20
         run: |
-          node bin/devtool.js --version
+          node bin/codz.js --version
           cp -R fixtures/nextjs-helper "$RUNNER_TEMP/app"
           cd "$RUNNER_TEMP/app"
-          node "$GITHUB_WORKSPACE/bin/devtool.js" init
-          node "$GITHUB_WORKSPACE/bin/devtool.js" api add --url https://api.example.com/orders --sample "$GITHUB_WORKSPACE/test/inputs/products.json" --yes --allow-dirty --no-verify
+          node "$GITHUB_WORKSPACE/bin/codz.js" init
+          node "$GITHUB_WORKSPACE/bin/codz.js" api add --url https://api.example.com/orders --sample "$GITHUB_WORKSPACE/test/inputs/products.json" --yes --allow-dirty --no-verify
           test -f lib/api/orders.ts
-          node "$GITHUB_WORKSPACE/bin/devtool.js" doctor --setup
-          node "$GITHUB_WORKSPACE/bin/devtool.js" undo
+          node "$GITHUB_WORKSPACE/bin/codz.js" doctor --setup
+          node "$GITHUB_WORKSPACE/bin/codz.js" undo

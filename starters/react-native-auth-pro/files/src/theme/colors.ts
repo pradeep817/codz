@@ -1,4 +1,4 @@
-/** Colors in one place. devtool theme set primary "#hex" changes primary. */
+/** Colors in one place. codz theme set primary "#hex" changes primary. */
 export const palette = {
   primary: '#3F51B5',
   light: { background: '#F7F7FA', card: '#FFFFFF', text: '#1B1B21', muted: '#6B6B76', border: '#E3E3EA', danger: '#B3261E' },

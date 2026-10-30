@@ -18,7 +18,7 @@ import { keyId, OFFICIAL_KEYS, sha256, verifySignature } from './sign.ts';
 import { fromArchive, type VerifiedTemplate } from './source.ts';
 import { parseStrictJson } from './strictJson.ts';
 
-/** The official catalog. Empty until it is live; DEVTOOL_REGISTRY points at another one (staging, tests). */
+/** The official catalog. Empty until it is live; CODZ_REGISTRY points at another one (staging, tests). */
 export const OFFICIAL_REGISTRY = { base: '', api: '' };
 
 export interface RegistryConfig {
@@ -29,13 +29,13 @@ export interface RegistryConfig {
 }
 
 export function registryConfig(): RegistryConfig {
-  const env = process.env.DEVTOOL_REGISTRY;
+  const env = process.env.CODZ_REGISTRY;
   if (env) {
     const keys: Record<string, string> = {};
-    for (const k of (process.env.DEVTOOL_REGISTRY_KEYS ?? '').split(',').map((x) => x.trim()).filter(Boolean)) keys[keyId(k)] = k;
-    return { base: checkUrl(env, 'DEVTOOL_REGISTRY'), api: checkUrl(process.env.DEVTOOL_REGISTRY_API || env, 'DEVTOOL_REGISTRY_API'), keys, official: false };
+    for (const k of (process.env.CODZ_REGISTRY_KEYS ?? '').split(',').map((x) => x.trim()).filter(Boolean)) keys[keyId(k)] = k;
+    return { base: checkUrl(env, 'CODZ_REGISTRY'), api: checkUrl(process.env.CODZ_REGISTRY_API || env, 'CODZ_REGISTRY_API'), keys, official: false };
   }
-  if (!OFFICIAL_REGISTRY.base) throw new ToolError('catalog_unavailable', 'The starter catalog is not online yet.', 'Use a template folder: devtool new <name> --template ./my-starter');
+  if (!OFFICIAL_REGISTRY.base) throw new ToolError('catalog_unavailable', 'The starter catalog is not online yet.', 'Use a template folder: codz new <name> --template ./my-starter');
   return { base: checkUrl(OFFICIAL_REGISTRY.base, 'registry'), api: checkUrl(OFFICIAL_REGISTRY.api || OFFICIAL_REGISTRY.base, 'registry API'), keys: OFFICIAL_KEYS, official: true };
 }
 
@@ -156,7 +156,7 @@ function stored(cfg: RegistryConfig): { bytes: Buffer; sig: Buffer; state: Index
 
 export async function loadIndex(opts: { refresh?: boolean; cached?: boolean } = {}): Promise<LoadedIndex> {
   const cfg = registryConfig();
-  const warnings: string[] = cfg.official ? [] : [`Using the catalog at ${cfg.base.host} from DEVTOOL_REGISTRY, not the official one.`];
+  const warnings: string[] = cfg.official ? [] : [`Using the catalog at ${cfg.base.host} from CODZ_REGISTRY, not the official one.`];
   const have = stored(cfg);
   if (opts.cached) {
     if (!have) throw new ToolError('offline_not_cached', 'There is no downloaded catalog on this machine.', 'Run once online, or use a template folder.');
@@ -226,14 +226,14 @@ export async function loadIndex(opts: { refresh?: boolean; cached?: boolean } = 
 
 export function parseRef(ref: string): { id: string; version?: string } {
   const [id, version] = ref.split('@');
-  if (!ID_RE.test(id ?? '') || (version !== undefined && !VERSION_RE.test(version))) throw new ToolError('bad_args', `"${ref.slice(0, 80)}" is not a starter id (use id or id@x.y.z), or a folder.`, 'List starters with: devtool starters list');
+  if (!ID_RE.test(id ?? '') || (version !== undefined && !VERSION_RE.test(version))) throw new ToolError('bad_args', `"${ref.slice(0, 80)}" is not a starter id (use id or id@x.y.z), or a folder.`, 'List starters with: codz starters list');
   return { id, version };
 }
 
 export function resolveRef(index: CatalogIndex, ref: string): { template: IndexTemplate; version: IndexVersion; warnings: string[] } {
   const { id, version } = parseRef(ref);
   const t = index.templates.find((x) => x.id === id);
-  if (!t) throw new ToolError('template_not_found', `No starter called ${id}.`, 'Check the id with devtool starters list.');
+  if (!t) throw new ToolError('template_not_found', `No starter called ${id}.`, 'Check the id with codz starters list.');
   const want = version ?? t.latest;
   const v = t.versions.find((x) => x.version === want);
   if (!v) throw new ToolError('version_not_found', `No version ${want} of ${id}.`, `Versions: ${t.versions.map((x) => x.version).join(', ')}`);
@@ -267,9 +267,9 @@ export async function fetchTemplate(index: CatalogIndex, t: IndexTemplate, v: In
     let token: string | undefined;
     if (t.tier === 'paid') {
       // Downloading a paid starter uses the account's entitlement: only a person at a terminal starts that.
-      if (process.env.DEVTOOL_MCP === '1') throw new ToolError('needs_approval', `${t.id} is a paid starter and is not downloaded on this machine yet.`, `Ask the user to run devtool new <name> --template ${t.id}@${v.version} in a terminal (or --dry-run to only download it); then it can be planned here.`);
+      if (process.env.CODZ_MCP === '1') throw new ToolError('needs_approval', `${t.id} is a paid starter and is not downloaded on this machine yet.`, `Ask the user to run codz new <name> --template ${t.id}@${v.version} in a terminal (or --dry-run to only download it); then it can be planned here.`);
       token = await auth.accessToken();
-      if (!token) throw new ToolError('not_logged_in', `${t.id} needs an account.`, 'Run devtool login (or set DEVTOOL_TOKEN in CI).');
+      if (!token) throw new ToolError('not_logged_in', `${t.id} needs an account.`, 'Run codz login (or set CODZ_TOKEN in CI).');
       const r = await request(join(cfg.api, 'v1/download-url'), { method: 'POST', json: { id: t.id, version: v.version }, token, maxBytes: 64 * 1024 });
       if (r.status !== 200) throw apiError(r, { hadToken: true, what: `${t.id} ${v.version}` });
       const u = (parseStrictJson(r.body.toString('utf8'), 'the download answer') as { url?: string }).url;

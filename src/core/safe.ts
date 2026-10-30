@@ -24,7 +24,7 @@ const HOST = /^(?:[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?)(?:\.[A-Za-z0-9]
 
 /** Throws unless the URL's host is a plain DNS name or IP address (no quotes, backticks, $ or braces). */
 export function checkHost(url: URL, what = 'The URL'): void {
-  if (!HOST.test(url.hostname)) throw new ToolError('bad_url', `${what} has a host devtool will not write into code: "${url.hostname.slice(0, 80)}".`, 'Use a normal host name such as api.example.com.');
+  if (!HOST.test(url.hostname)) throw new ToolError('bad_url', `${what} has a host codz will not write into code: "${url.hostname.slice(0, 80)}".`, 'Use a normal host name such as api.example.com.');
 }
 
 /** A base URL that is safe to write into generated code and config files: http(s), plain host, optional port and plain path. */
@@ -40,7 +40,7 @@ export function checkBaseUrl(value: string): string {
     u = null;
   }
   if (!u || !BASE_URL.test(v) || (u.protocol !== 'https:' && u.protocol !== 'http:') || u.username || u.password) {
-    throw new ToolError('bad_url', `"${v.slice(0, 120)}" is not a base URL devtool can use.`, 'Use something like https://api.example.com or https://api.example.com/v1 (no quotes, spaces, query or credentials).');
+    throw new ToolError('bad_url', `"${v.slice(0, 120)}" is not a base URL codz can use.`, 'Use something like https://api.example.com or https://api.example.com/v1 (no quotes, spaces, query or credentials).');
   }
   checkHost(u, 'The base URL');
   return v.replace(/\/+$/, '');

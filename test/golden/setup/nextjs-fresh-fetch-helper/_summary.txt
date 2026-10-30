@@ -1,5 +1,5 @@
 • Create lib/api/client.ts: apiFetch<T>() and ApiError, reading the base URL from NEXT_PUBLIC_API_URL
 • Create lib/api/index.ts: exports every API file
 • Create .env.example: NEXT_PUBLIC_API_URL=https://api.yourapp.com
-• Copy NEXT_PUBLIC_API_URL from .env.example into .env.local (devtool does not write .env.local); until then lib/api/client.ts falls back to https://api.yourapp.com
+• Copy NEXT_PUBLIC_API_URL from .env.example into .env.local (codz does not write .env.local); until then lib/api/client.ts falls back to https://api.yourapp.com
 • Save conventions: API files in lib/api, interfaces in types

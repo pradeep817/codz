@@ -1,10 +1,10 @@
-// devtool create: a new project, set up the way devtool would set it up.
+// codz create: a new project, set up the way codz would set it up.
 //
 //   1. project type (Flutter, Next.js, ...) and its architecture
 //   2. name and type-specific options (organization, Tailwind, ...)
 //   3. the platform's own creator (flutter create, create-next-app) when it is
-//      installed and reachable, otherwise a minimal project devtool writes itself
-//   4. the architecture applied with `setup`, devtool.config.yaml written,
+//      installed and reachable, otherwise a minimal project codz writes itself
+//   4. the architecture applied with `setup`, codz.config.yaml written,
 //      an optional theme color, dependencies installed, a first git commit
 //
 // Each type is one entry in PROJECT_TYPES, so more platforms plug in the same way.
@@ -37,7 +37,7 @@ export interface CreateOptions {
   flavor?: 'expo' | 'bare';
   /** A primary color for the theme (#hex). */
   primary?: string;
-  /** Do not run the platform creator; write devtool's minimal project. */
+  /** Do not run the platform creator; write codz's minimal project. */
   offline?: boolean;
   install?: boolean;
   git?: boolean;
@@ -61,14 +61,14 @@ export interface ProjectType {
   options: ('tailwind' | 'flavor')[];
   /** The platform's own creator, run in the parent folder. */
   creator(o: CreateOptions): { cmd: string; args: string[]; label: string } | null;
-  /** devtool's own minimal project, when the creator is not available. */
+  /** codz's own minimal project, when the creator is not available. */
   skeleton(o: CreateOptions): Map<string, string>;
   /** Installs dependencies in the new project. */
   install(o: CreateOptions): { cmd: string; args: string[]; label: string } | null;
   framework: keyof typeof ADAPTERS;
 }
 
-const NONE: Architecture = { id: 'none', label: 'None', description: 'No API layer yet; set one up later with devtool setup' };
+const NONE: Architecture = { id: 'none', label: 'None', description: 'No API layer yet; set one up later with codz setup' };
 
 function flutterSkeleton(o: CreateOptions): Map<string, string> {
   const files = new Map<string, string>();
@@ -210,7 +210,7 @@ export const PROJECT_TYPES: ProjectType[] = [
       { id: 'getx', label: 'GetX', description: 'GetX modules (binding, controller, view), Dio registered in an InitialBinding' },
       { id: 'bloc', label: 'Bloc', description: 'Cubits for screens, get_it for Dio and repositories' },
       { id: 'get_it', label: 'get_it', description: 'Service locator for Dio and repositories, no state library' },
-      { ...NONE, label: 'Plain Flutter', description: 'No state library or API layer; add one later with devtool setup' },
+      { ...NONE, label: 'Plain Flutter', description: 'No state library or API layer; add one later with codz setup' },
     ],
     checkName: (n) => (!/^[a-z][a-z0-9_]*$/.test(n) ? 'Use lowercase letters, digits and underscores, starting with a letter (for example my_app).' : DART_RESERVED.has(n) ? `"${n}" is a Dart keyword.` : null),
     needsOrg: true,
@@ -270,12 +270,12 @@ export const PROJECT_TYPES: ProjectType[] = [
       { id: 'retrofit-hilt', label: 'Retrofit + Hilt', description: 'Retrofit, kotlinx.serialization and OkHttp provided by a Hilt NetworkModule' },
       { id: 'retrofit-koin', label: 'Retrofit + Koin', description: 'Retrofit and API interfaces in a Koin module, started in the Application class' },
       { id: 'retrofit', label: 'Retrofit only', description: 'A ServiceLocator object holds Retrofit and the API interfaces; no DI library' },
-      { ...NONE, label: 'Plain Compose', description: 'Compose and Navigation only; add an API layer later with devtool setup' },
+      { ...NONE, label: 'Plain Compose', description: 'Compose and Navigation only; add an API layer later with codz setup' },
     ],
     checkName: (n) => (/^[a-z][a-z0-9-]*$/.test(n) ? null : 'Use lowercase letters, digits and dashes, starting with a letter (for example shop-app).'),
     needsOrg: true,
     options: [],
-    // Android has no command-line project creator; devtool writes the Empty Activity template itself.
+    // Android has no command-line project creator; codz writes the Empty Activity template itself.
     creator: () => null,
     skeleton: (o) => androidSkeleton(o),
     install: () => null,
@@ -303,9 +303,9 @@ export function describeCreate(o: CreateOptions): string[] {
   const t = projectType(o.type);
   const dir = resolve(o.parent, o.name);
   const c = t.creator(o);
-  const steps = [`Create ${dir}`, o.offline || !c ? `Write a minimal ${t.label} project (devtool's own files)` : `Run ${c.label}: ${c.cmd} ${c.args.join(' ')}  (falls back to devtool's minimal project if it is not available)`];
+  const steps = [`Create ${dir}`, o.offline || !c ? `Write a minimal ${t.label} project (codz's own files)` : `Run ${c.label}: ${c.cmd} ${c.args.join(' ')}  (falls back to codz's minimal project if it is not available)`];
   if (o.architecture !== 'none') steps.push(`Set up the ${t.architectures.find((a) => a.id === o.architecture)?.label ?? o.architecture} architecture with base URL ${o.baseUrl || 'https://api.example.com'}`);
-  steps.push('Write devtool.config.yaml');
+  steps.push('Write codz.config.yaml');
   if (o.primary) steps.push(`Set the theme's primary color to ${o.primary}`);
   if (o.install !== false) steps.push(`Install dependencies (${t.install(o)?.label ?? 'none'})`);
   if (o.git !== false) steps.push('git init and a first commit');
@@ -349,7 +349,7 @@ export async function createProject(o: CreateOptions, log: (line: string) => voi
       created = 'creator';
       steps.push(`Created ${dir} with ${creator.label}`);
     } else {
-      warnings.push(r.missing ? `${creator.label} is not installed, so devtool wrote a minimal ${t.label} project instead.` : `${creator.label} failed (${r.output.split('\n').slice(-1)[0] || 'no output'}), so devtool wrote a minimal ${t.label} project instead.`);
+      warnings.push(r.missing ? `${creator.label} is not installed, so codz wrote a minimal ${t.label} project instead.` : `${creator.label} failed (${r.output.split('\n').slice(-1)[0] || 'no output'}), so codz wrote a minimal ${t.label} project instead.`);
     }
   }
   if (created === 'skeleton') {
@@ -357,8 +357,8 @@ export async function createProject(o: CreateOptions, log: (line: string) => voi
       mkdirSync(dirname(join(dir, path)), { recursive: true });
       writeFileSync(join(dir, path), content);
     }
-    steps.push(`Created ${dir} (devtool's minimal ${t.label} project)`);
-    if (t.id === 'react-native') warnings.push(o.flavor === 'bare' ? `There are no android/ or ios/ folders yet. With network access, create the project with the React Native CLI instead (devtool create without --offline), or copy them from a fresh npx @react-native-community/cli init.` : 'Expo creates the android/ and ios/ folders when you need them: npx expo prebuild (or just run npx expo start with Expo Go).');
+    steps.push(`Created ${dir} (codz's minimal ${t.label} project)`);
+    if (t.id === 'react-native') warnings.push(o.flavor === 'bare' ? `There are no android/ or ios/ folders yet. With network access, create the project with the React Native CLI instead (codz create without --offline), or copy them from a fresh npx @react-native-community/cli init.` : 'Expo creates the android/ and ios/ folders when you need them: npx expo prebuild (or just run npx expo start with Expo Go).');
     if (t.id === 'android') {
       if (addGradleWrapper(dir)) steps.push('Added the Gradle wrapper (gradlew)');
       else warnings.push(`Gradle is not installed here, so there is no gradlew yet. Open the project in Android Studio (it adds the wrapper), or run gradle wrapper in ${o.name}/.`);
@@ -378,7 +378,7 @@ export async function createProject(o: CreateOptions, log: (line: string) => voi
   } else {
     writeInitFiles(dir, initFiles(dir, adapter, d.map.conventions), false);
   }
-  steps.push('Wrote devtool.config.yaml');
+  steps.push('Wrote codz.config.yaml');
 
   // 3. Theme.
   if (o.primary && t.id === 'android') steps.push(`Theme: primary color ${o.primary}`);
@@ -406,8 +406,8 @@ export async function createProject(o: CreateOptions, log: (line: string) => voi
     if (existsSync(join(dir, '.git')) || g('init', '-q').ok) {
       g('add', '-A');
       // Your own git identity when one is set; a neutral one only when git has none.
-      const identity = g('config', 'user.email').ok ? [] : ['-c', 'user.name=devtool', '-c', 'user.email=devtool@localhost'];
-      const c = g(...identity, 'commit', '-qm', `Create ${o.name} with devtool (${t.label}, ${o.architecture})`);
+      const identity = g('config', 'user.email').ok ? [] : ['-c', 'user.name=codz', '-c', 'user.email=codz@localhost'];
+      const c = g(...identity, 'commit', '-qm', `Create ${o.name} with codz (${t.label}, ${o.architecture})`);
       if (c.ok) steps.push('git init and a first commit');
       else warnings.push('git init worked, but the first commit failed; commit yourself.');
     } else warnings.push('git is not available, so the project is not a repository yet.');

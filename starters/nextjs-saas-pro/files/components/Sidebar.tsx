@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
-/** The app's sections. devtool screen add puts new pages under app/(app); add them here too. */
+/** The app's sections. codz screen add puts new pages under app/(app); add them here too. */
 const LINKS = [
   { href: '/dashboard', label: 'Dashboard' },
   { href: '/settings', label: 'Settings' },

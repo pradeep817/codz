@@ -116,7 +116,7 @@ describe('cli --json', () => {
     const dir = copyFixture('nextjs-helper');
     try {
       const run = (...args: string[]) => {
-        const r = spawnSync(process.execPath, [join(REPO, 'bin/devtool.js'), ...args, '--json', '--cwd', dir], { encoding: 'utf8', input: '' });
+        const r = spawnSync(process.execPath, [join(REPO, 'bin/codz.js'), ...args, '--json', '--cwd', dir], { encoding: 'utf8', input: '' });
         return JSON.parse(r.stdout);
       };
       const init = run('init');

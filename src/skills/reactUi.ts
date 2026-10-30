@@ -69,10 +69,10 @@ interface Placement {
 
 function place(root: string, map: ProjectMap, opts: Opts): Placement {
   const c = map.conventions;
-  if (c.router !== 'react-router') throw new ToolError('not_supported', 'This project has no React Router, so devtool cannot add a page to it.', 'Run devtool setup (it adds React Router), or add react-router-dom.');
+  if (c.router !== 'react-router') throw new ToolError('not_supported', 'This project has no React Router, so codz cannot add a page to it.', 'Run codz setup (it adds React Router), or add react-router-dom.');
   const routerFile = c.routerFile;
   const routerText = routerFile ? readText(join(root, routerFile)) : null;
-  if (!routerFile || routerText === null) throw new ToolError('no_router', `The router file ${routerFile || '(none)'} was not found.`, 'Set routerFile in devtool.config.yaml to the file with createBrowserRouter or <Routes>.');
+  if (!routerFile || routerText === null) throw new ToolError('no_router', `The router file ${routerFile || '(none)'} was not found.`, 'Set routerFile in codz.config.yaml to the file with createBrowserRouter or <Routes>.');
   const n = names(opts.name);
   const route = (opts.path ?? `/${kebab(n.base)}`).replace(/\{([\w-]+)\}/g, ':$1');
   return { file: `${c.pagesFolder || 'src/pages'}/${n.component}.tsx`, route, routerFile, routerText };
@@ -136,7 +136,7 @@ export function planReactRoute(root: string, map: ProjectMap, opts: Opts): Chang
 
 function findEp(map: ProjectMap, name: string): EndpointInfo {
   const ep = map.endpoints.find((e) => e.name === name) ?? map.endpoints.find((e) => e.name.toLowerCase() === name.toLowerCase());
-  if (!ep) throw new ToolError('no_endpoint', `No endpoint called ${name} was found.`, map.endpoints.length ? `Endpoints: ${map.endpoints.map((e) => e.name).join(', ')}` : 'Add one first with: devtool api add');
+  if (!ep) throw new ToolError('no_endpoint', `No endpoint called ${name} was found.`, map.endpoints.length ? `Endpoints: ${map.endpoints.map((e) => e.name).join(', ')}` : 'Add one first with: codz api add');
   return ep;
 }
 
@@ -279,7 +279,7 @@ function planReactForm(root: string, map: ProjectMap, opts: Opts, ep: EndpointIn
   if (!body) throw new ToolError('form_needs_body', `${ep.name}() takes no request body, so there is nothing for a form to send.`);
   const partial = /^Partial</.test(body.type);
   const model: ModelInfo | undefined = map.models.find((m) => m.name === body.type.replace(/^Partial<(.+)>$/, '$1'));
-  if (!model) throw new ToolError('form_fields', `The request type ${body.type} is not a model devtool knows, so it cannot build the inputs.`);
+  if (!model) throw new ToolError('form_fields', `The request type ${body.type} is not a model codz knows, so it cannot build the inputs.`);
   const fields = model.fields.map((f) => ({ f, k: kind(f.type), required: !partial && !f.nullable }));
   const cannot = fields.filter((x) => !x.k && x.required).map((x) => `${x.f.name} (${x.f.type})`);
   if (cannot.length) throw new ToolError('form_fields', `${model.name} has required fields a form cannot fill: ${cannot.join(', ')}.`, `Write the form for ${ep.name} by hand, or make those fields optional.`);

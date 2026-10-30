@@ -1,7 +1,7 @@
 // The starter manifest: what a template is, what it asks, which allowlisted
 // steps it needs and the hash of every file. It is data only; nothing in it is
 // ever run. Unknown top-level fields are refused so a newer, stricter format
-// cannot be half-understood by an older devtool.
+// cannot be half-understood by an older codz.
 
 import { ToolError } from '../core/types.ts';
 import { parseStrictJson } from './strictJson.ts';
@@ -46,10 +46,10 @@ export interface Manifest {
   summary?: string;
   framework: Framework;
   mode: 'overlay' | 'full';
-  requires: { devtool?: string; flutter?: string; node?: string };
+  requires: { codz?: string; flutter?: string; node?: string };
   tested?: { flutter?: string[]; node?: string[]; date?: string };
   provides?: Record<string, string>;
-  /** What this starter gives beyond `devtool create`, for the catalog page and `starters show`. */
+  /** What this starter gives beyond `codz create`, for the catalog page and `starters show`. */
   extras?: string[];
   apiAdd: { supported: boolean; note?: string };
   answers: AnswerSpec[];
@@ -92,8 +92,8 @@ export function parseManifest(text: string): Manifest {
   const raw = parseStrictJson(text, 'manifest.json', { maxBytes: 4 * 1024 * 1024, maxString: 4096 });
   if (!isObj(raw)) return bad('it must be a JSON object');
   const o = raw as Record<string, unknown>;
-  for (const k of Object.keys(o)) if (!TOP_KEYS.has(k)) bad(`unknown field "${k.slice(0, 60)}" (a newer devtool may be needed)`);
-  if (o.schema !== SCHEMA) throw new ToolError('template_incompatible', `This template uses manifest schema ${String(o.schema)}; this devtool reads schema ${SCHEMA}.`, 'Update devtool, or pick an older version of the template.');
+  for (const k of Object.keys(o)) if (!TOP_KEYS.has(k)) bad(`unknown field "${k.slice(0, 60)}" (a newer codz may be needed)`);
+  if (o.schema !== SCHEMA) throw new ToolError('template_incompatible', `This template uses manifest schema ${String(o.schema)}; this codz reads schema ${SCHEMA}.`, 'Update codz, or pick an older version of the template.');
   const id = str(o.id, 'id', 64);
   if (!ID_RE.test(id)) bad('id must be lowercase letters, digits and dashes');
   const version = str(o.version, 'version', 32);
@@ -105,7 +105,7 @@ export function parseManifest(text: string): Manifest {
   if (mode === 'overlay' && framework !== 'flutter') bad('overlay mode is only for Flutter (on flutter create)');
 
   if (!isObj(o.requires)) bad('requires must be an object');
-  const requires = strMap(o.requires, 'requires', /^(devtool|flutter|node)$/);
+  const requires = strMap(o.requires, 'requires', /^(codz|flutter|node)$/);
   for (const [k, r] of Object.entries(requires)) if (!r.split(/\s+/).every((p) => RANGE_PART.test(p))) bad(`requires.${k} is not a version range`);
 
   let tested: Manifest['tested'];
@@ -149,7 +149,7 @@ export function parseManifest(text: string): Manifest {
 
   if (!Array.isArray(o.steps)) bad('steps must be a list');
   const steps = (o.steps as unknown[]).map((s) => {
-    if (typeof s !== 'string' || !(s in STEP_ALLOWLIST)) bad(`step "${String(s).slice(0, 40)}" is not on devtool's allowlist (${Object.keys(STEP_ALLOWLIST).join(', ')})`);
+    if (typeof s !== 'string' || !(s in STEP_ALLOWLIST)) bad(`step "${String(s).slice(0, 40)}" is not on codz's allowlist (${Object.keys(STEP_ALLOWLIST).join(', ')})`);
     if (!STEP_ALLOWLIST[s as StepId].frameworks.includes(framework)) bad(`step ${s} is not allowed for ${framework}`);
     return s as StepId;
   });

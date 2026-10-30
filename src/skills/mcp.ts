@@ -1,14 +1,14 @@
-// devtool mcp: a Model Context Protocol server on stdio, so AI agents and
-// editors can call devtool as tools.
+// codz mcp: a Model Context Protocol server on stdio, so AI agents and
+// editors can call codz as tools.
 //
 // Every command in the command table becomes a tool (api add → api_add) whose
-// input is its options plus the positional arguments. Tools run the devtool
+// input is its options plus the positional arguments. Tools run the codz
 // CLI itself with --json, in the project folder, so they behave exactly like
 // the command line. Commands that edit code never write: they return the diff
 // and a plan id, and the `apply` tool applies that plan exactly as shown.
 //
-// Resources: devtool://project (what devtool knows about the project) and
-// devtool://commands (every command and option, as markdown).
+// Resources: codz://project (what codz knows about the project) and
+// codz://commands (every command and option, as markdown).
 
 import { spawnSync } from 'node:child_process';
 import { createInterface } from 'node:readline';
@@ -16,7 +16,7 @@ import { fileURLToPath } from 'node:url';
 import { CHANGE_FLAGS, COMMAND_LIST, FLAGS, GLOBAL_FLAGS, renderMarkdown, type CommandSpec } from '../core/commands.ts';
 
 const PROTOCOLS = ['2025-06-18', '2025-03-26', '2024-11-05'];
-/** Commands that make no sense as tools: they need a terminal, or set up devtool itself. */
+/** Commands that make no sense as tools: they need a terminal, or set up codz itself. */
 const NOT_TOOLS = new Set(['completion', 'init', 'mcp', 'login', 'logout']);
 
 export interface McpTool {
@@ -49,7 +49,7 @@ export function mcpTools(): McpTool[] {
     const writes = spec.change && !(spec.cmd === 'doctor');
     tools.push({
       name: toolName(spec),
-      description: `${spec.summary}.${writes || spec.cmd === 'new' ? ' Returns the diff and a plan id; nothing is written until you call apply with that id.' : ''}${spec.cmd === 'new' ? ' Paid starters are never downloaded from here: the user downloads one once in a terminal (devtool new or starters show), then it can be planned.' : ''}${spec.cmd === 'doctor' ? ' With fix: true it returns a plan to apply instead of reporting.' : ''}${spec.notes?.length ? ` ${spec.notes.join(' ')}` : ''}`,
+      description: `${spec.summary}.${writes || spec.cmd === 'new' ? ' Returns the diff and a plan id; nothing is written until you call apply with that id.' : ''}${spec.cmd === 'new' ? ' Paid starters are never downloaded from here: the user downloads one once in a terminal (codz new or starters show), then it can be planned.' : ''}${spec.cmd === 'doctor' ? ' With fix: true it returns a plan to apply instead of reporting.' : ''}${spec.notes?.length ? ` ${spec.notes.join(' ')}` : ''}`,
       inputSchema: { type: 'object', properties, additionalProperties: false },
       spec,
     });
@@ -74,17 +74,17 @@ export function cliArgs(tool: McpTool, input: Record<string, unknown>): string[]
     else if (Array.isArray(v)) for (const x of v) out.push(`--${k}`, String(x));
     else out.push(`--${k}`, String(v));
   }
-  // devtool new only ever plans from an agent; a person applies (and a paid starter must already be downloaded).
+  // codz new only ever plans from an agent; a person applies (and a paid starter must already be downloaded).
   if (spec.cmd === 'new') out.push('--plan');
   if (spec.change && spec.cmd !== 'apply' && !(spec.cmd === 'doctor' && input.fix !== true) && !(spec.cmd === 'api' && spec.sub === 'sync' && input.check === true)) out.push('--plan');
   out.push('--json', '--no-color');
   return out;
 }
 
-const BIN = fileURLToPath(new URL('../../bin/devtool.js', import.meta.url));
+const BIN = fileURLToPath(new URL('../../bin/codz.js', import.meta.url));
 
 function runCli(args: string[], cwd: string): { code: number; stdout: string; stderr: string } {
-  const r = spawnSync(process.execPath, [BIN, ...args], { cwd, encoding: 'utf8', input: '', env: { ...process.env, NO_COLOR: '1', DEVTOOL_MCP: '1' }, maxBuffer: 64 * 1024 * 1024, timeout: 120_000 });
+  const r = spawnSync(process.execPath, [BIN, ...args], { cwd, encoding: 'utf8', input: '', env: { ...process.env, NO_COLOR: '1', CODZ_MCP: '1' }, maxBuffer: 64 * 1024 * 1024, timeout: 120_000 });
   return { code: r.status ?? 1, stdout: r.stdout ?? '', stderr: r.stderr ?? '' };
 }
 
@@ -106,8 +106,8 @@ export function handleMessage(msg: Request, cwd: string, version: string, tools 
       return reply({
         protocolVersion: PROTOCOLS.includes(asked) ? asked : PROTOCOLS[0],
         capabilities: { tools: { listChanged: false }, resources: { listChanged: false } },
-        serverInfo: { name: 'devtool', version },
-        instructions: 'devtool understands this Next.js or Flutter project and changes it deterministically. Start with explain. Tools that edit code return a diff and a planId; review it, then call apply with the planId. Use dry runs freely: nothing is written until apply.',
+        serverInfo: { name: 'codz', version },
+        instructions: 'codz understands this Next.js or Flutter project and changes it deterministically. Start with explain. Tools that edit code return a diff and a planId; review it, then call apply with the planId. Use dry runs freely: nothing is written until apply.',
       });
     }
     case 'ping':
@@ -132,21 +132,21 @@ export function handleMessage(msg: Request, cwd: string, version: string, tools 
         isError = json.ok === false;
         text = JSON.stringify(json, null, 2);
       } catch {
-        text = [text, r.stderr.trim()].filter(Boolean).join('\n') || `devtool exited with code ${r.code}`;
+        text = [text, r.stderr.trim()].filter(Boolean).join('\n') || `codz exited with code ${r.code}`;
       }
       return reply({ content: [{ type: 'text', text }], isError });
     }
     case 'resources/list':
       return reply({
         resources: [
-          { uri: 'devtool://project', name: 'Project map', description: 'Framework, conventions, endpoints, models, routes and locales devtool found', mimeType: 'application/json' },
-          { uri: 'devtool://commands', name: 'devtool commands', description: 'Every command and option', mimeType: 'text/markdown' },
+          { uri: 'codz://project', name: 'Project map', description: 'Framework, conventions, endpoints, models, routes and locales codz found', mimeType: 'application/json' },
+          { uri: 'codz://commands', name: 'codz commands', description: 'Every command and option', mimeType: 'text/markdown' },
         ],
       });
     case 'resources/read': {
       const uri = String(msg.params?.uri ?? '');
-      if (uri === 'devtool://commands') return reply({ contents: [{ uri, mimeType: 'text/markdown', text: renderMarkdown(version) }] });
-      if (uri === 'devtool://project') {
+      if (uri === 'codz://commands') return reply({ contents: [{ uri, mimeType: 'text/markdown', text: renderMarkdown(version) }] });
+      if (uri === 'codz://project') {
         const r = runCli(['explain', '--json', '--no-color'], cwd);
         return reply({ contents: [{ uri, mimeType: 'application/json', text: r.stdout.trim() || r.stderr.trim() }] });
       }
@@ -160,7 +160,7 @@ export function handleMessage(msg: Request, cwd: string, version: string, tools 
 /** Runs the server until stdin closes. Logs go to stderr; stdout carries only protocol messages. */
 export function serveMcp(cwd: string, version: string): Promise<number> {
   const tools = mcpTools();
-  process.stderr.write(`devtool mcp: serving ${tools.length} tools for ${cwd}\n`);
+  process.stderr.write(`codz mcp: serving ${tools.length} tools for ${cwd}\n`);
   const rl = createInterface({ input: process.stdin, crlfDelay: Infinity });
   rl.on('line', (line) => {
     if (!line.trim()) return;

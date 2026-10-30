@@ -1,6 +1,6 @@
-# devtool configuration. Commit this file.
-# Values below were detected by `devtool init` (or chosen in `devtool setup`).
-# Correct any that are wrong: devtool always uses these values instead of guessing again.
+# codz configuration. Commit this file.
+# Values below were detected by `codz init` (or chosen in `codz setup`).
+# Correct any that are wrong: codz always uses these values instead of guessing again.
 framework: flutter
 conventions:
   # package name from pubspec.yaml

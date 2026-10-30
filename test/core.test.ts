@@ -73,13 +73,13 @@ describe('change sets', () => {
     }
   });
 
-  it('refuses undo when a file changed after devtool wrote it', () => {
+  it('refuses undo when a file changed after codz wrote it', () => {
     const dir = copyFixture('nextjs-plain');
     try {
       const cs = buildChangeSet(dir, 'test', { files: new Map([['src/a.ts', 'a\n']]), summary: [], warnings: [], generated: [] });
       applyChangeSet(dir, cs);
       writeFileSync(join(dir, 'src/a.ts'), 'edited by hand\n');
-      assert.throws(() => undoLast(dir), /changed after devtool wrote them/);
+      assert.throws(() => undoLast(dir), /changed after codz wrote them/);
       undoLast(dir, { force: true });
       assert.ok(!existsSync(join(dir, 'src/a.ts')));
     } finally {

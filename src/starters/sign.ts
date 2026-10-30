@@ -8,9 +8,9 @@ import { ToolError } from '../core/types.ts';
 import { parseStrictJson } from './strictJson.ts';
 
 /**
- * Public keys this devtool release trusts for the official catalog, by key id.
- * Empty until the catalog is live; a registry set with DEVTOOL_REGISTRY brings
- * its own keys in DEVTOOL_REGISTRY_KEYS.
+ * Public keys this codz release trusts for the official catalog, by key id.
+ * Empty until the catalog is live; a registry set with CODZ_REGISTRY brings
+ * its own keys in CODZ_REGISTRY_KEYS.
  */
 export const OFFICIAL_KEYS: Record<string, string> = {};
 
@@ -18,7 +18,7 @@ const SPKI_PREFIX = Buffer.from('302a300506032b6570032100', 'hex');
 
 export function publicKeyFromRaw(rawBase64: string): KeyObject {
   const raw = Buffer.from(rawBase64, 'base64');
-  if (raw.length !== 32) throw new ToolError('signature_invalid', 'A trusted key is not a 32-byte Ed25519 public key.', 'Check DEVTOOL_REGISTRY_KEYS.');
+  if (raw.length !== 32) throw new ToolError('signature_invalid', 'A trusted key is not a 32-byte Ed25519 public key.', 'Check CODZ_REGISTRY_KEYS.');
   return createPublicKey({ key: Buffer.concat([SPKI_PREFIX, raw]), format: 'der', type: 'spki' });
 }
 
@@ -37,9 +37,9 @@ export interface SignatureFile {
 /** Throws signature_invalid unless at least one signature by a trusted key verifies over `data`. */
 export function verifySignature(data: Buffer, sigFile: Buffer, trusted: Record<string, string>, what: string): string {
   const fail = (why: string): never => {
-    throw new ToolError('signature_invalid', `The signature of ${what} could not be verified (${why}).`, 'Update devtool; if it persists, do not use the catalog and report it.');
+    throw new ToolError('signature_invalid', `The signature of ${what} could not be verified (${why}).`, 'Update codz; if it persists, do not use the catalog and report it.');
   };
-  if (!Object.keys(trusted).length) fail('this devtool trusts no catalog keys');
+  if (!Object.keys(trusted).length) fail('this codz trusts no catalog keys');
   let parsed: unknown;
   try {
     parsed = parseStrictJson(sigFile.toString('utf8'), `${what} signature`, { maxBytes: 16 * 1024 });

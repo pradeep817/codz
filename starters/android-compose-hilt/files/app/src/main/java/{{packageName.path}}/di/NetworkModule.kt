@@ -15,7 +15,7 @@ import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.kotlinx.serialization.asConverterFactory
 
-/** Creates Retrofit and every API interface. devtool api add adds a provider here for each new interface. */
+/** Creates Retrofit and every API interface. codz api add adds a provider here for each new interface. */
 @Module
 @InstallIn(SingletonComponent::class)
 object NetworkModule {

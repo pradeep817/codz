@@ -1,7 +1,7 @@
 // Publishing starters (internal): check a template folder against the
 // publishing gates, refresh its file list, pack it into a deterministic
 // archive, and build and sign the catalog index. Used by scripts/starters.ts
-// and by the tests' fake registry. Nothing here runs on a user's `devtool new`.
+// and by the tests' fake registry. Nothing here runs on a user's `codz new`.
 
 import { existsSync, lstatSync, mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
@@ -51,7 +51,7 @@ const SECRET_PATTERNS: [RegExp, string][] = [
 ];
 
 /** The static and determinism gates: everything that can be checked without an SDK. */
-export function checkTemplate(dir: string, devtoolVersion: string): CheckReport {
+export function checkTemplate(dir: string, codzVersion: string): CheckReport {
   const errors: string[] = [];
   const warnings: string[] = [];
   const t = fromFolder(dir); // manifest schema, paths, hashes, links
@@ -64,12 +64,12 @@ export function checkTemplate(dir: string, devtoolVersion: string): CheckReport 
     for (const k of new Set([...text.matchAll(/\{\{([a-zA-Z][a-zA-Z0-9]*(?:\.path)?)\}\}/g)].map((x) => x[1]))) if (!keys.has(k)) warnings.push(`${path}: {{${k}}} is not an answer, so it is left as written`);
   }
   if (!t.license.trim()) errors.push('LICENSE is empty');
-  if (!m.extras?.length) warnings.push('No "extras": the catalog page will not say what this starter adds beyond devtool create');
+  if (!m.extras?.length) warnings.push('No "extras": the catalog page will not say what this starter adds beyond codz create');
   if (!m.tested) warnings.push('No "tested" block: fill it from the CI matrix results');
   if (!Object.keys(m.expectedConventions ?? {}).length) errors.push('No expectedConventions: the init contract test has nothing to check');
   // Determinism: the same answers give the same files.
   const answers = resolveAnswers(m, {});
-  const plan = () => planNew(t, answers, '/tmp/devtool-check', devtoolVersion, null, { steps: true });
+  const plan = () => planNew(t, answers, '/tmp/codz-check', codzVersion, null, { steps: true });
   const a = plan();
   const b = plan();
   const digest = (p: typeof a) => sha256(Buffer.concat(p.files.flatMap((f) => [Buffer.from(`${f.path}\0${f.mode}\0`), f.data])));

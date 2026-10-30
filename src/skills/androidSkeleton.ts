@@ -1,5 +1,5 @@
 import { fileURLToPath } from 'node:url';
-// devtool's minimal Android project: what Android Studio's "Empty Activity"
+// codz's minimal Android project: what Android Studio's "Empty Activity"
 // template gives you (Kotlin, Jetpack Compose, a version catalog), plus
 // Navigation Compose with a Home screen so screens can be added right away.
 // Android has no command-line project creator, so create always uses this.
@@ -203,7 +203,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import ${pkg}.ui.screens.HomeScreen
 
-/** Every screen of the app. devtool screen add and route add register new screens here. */
+/** Every screen of the app. codz screen add and route add register new screens here. */
 @Composable
 fun AppNavHost(navController: NavHostController = rememberNavController()) {
     NavHost(navController = navController, startDestination = "home") {
@@ -251,11 +251,11 @@ fun ${theme}(darkTheme: Boolean = isSystemInDarkTheme(), content: @Composable ()
   return f;
 }
 
-/** gradlew, gradlew.bat and gradle-wrapper.jar shipped with devtool (assets/gradle-wrapper). */
+/** gradlew, gradlew.bat and gradle-wrapper.jar shipped with codz (assets/gradle-wrapper). */
 const BUNDLED_WRAPPER = fileURLToPath(new URL('../../assets/gradle-wrapper/', import.meta.url));
 
 /**
- * Adds gradlew, gradlew.bat and the wrapper jar: the copies shipped with devtool,
+ * Adds gradlew, gradlew.bat and the wrapper jar: the copies shipped with codz,
  * so Gradle does not need to be installed (the wrapper downloads the version in
  * gradle-wrapper.properties on first run). Falls back to a local Gradle, run in
  * an empty folder so it does not try to resolve the project's plugins. Returns
@@ -274,7 +274,7 @@ export function addGradleWrapper(dir: string): boolean {
     }
     return true;
   }
-  const tmp = mkdtempSync(join(tmpdir(), 'devtool-wrapper-'));
+  const tmp = mkdtempSync(join(tmpdir(), 'codz-wrapper-'));
   try {
     writeFileSync(join(tmp, 'settings.gradle.kts'), 'rootProject.name = "wrapper"\n');
     const r = spawnSync(process.platform === 'win32' ? 'gradle.bat' : 'gradle', ['wrapper', '--gradle-version', ANDROID_SKELETON_VERSIONS.gradle, '--distribution-type', 'bin', '-q', '--offline'], { cwd: tmp, encoding: 'utf8', timeout: 5 * 60_000, shell: process.platform === 'win32' });

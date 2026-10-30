@@ -19,7 +19,7 @@ class HomePage extends StatelessWidget {
               Text(user == null ? 'Welcome' : 'Hi ${user.name}', style: Theme.of(context).textTheme.headlineSmall),
               const SizedBox(height: 8),
               const Text(
-                'Add an endpoint with devtool api add, then a screen with devtool screen add.',
+                'Add an endpoint with codz api add, then a screen with codz screen add.',
                 textAlign: TextAlign.center,
               ),
             ],

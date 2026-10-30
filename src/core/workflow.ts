@@ -35,10 +35,10 @@ export function commitChange(root: string, cs: ChangeSet, message?: string): str
   const paths = cs.changes.map((c) => c.path);
   const add = spawnSync('git', ['add', '-A', '--', ...paths], { cwd: root, encoding: 'utf8' });
   if (add.status !== 0) throw new ToolError('commit_failed', `git add failed: ${add.stderr.trim()}`);
-  const msg = message?.trim() || `devtool ${cs.skill}: ${cs.summary[0] ?? cs.id}`.slice(0, 200);
-  const body = message?.trim() ? '' : `\n\n${cs.summary.slice(1, 15).map((s) => `- ${s.trim()}`).join('\n')}\n\ndevtool change ${cs.id}`;
+  const msg = message?.trim() || `codz ${cs.skill}: ${cs.summary[0] ?? cs.id}`.slice(0, 200);
+  const body = message?.trim() ? '' : `\n\n${cs.summary.slice(1, 15).map((s) => `- ${s.trim()}`).join('\n')}\n\ncodz change ${cs.id}`;
   const commit = spawnSync('git', ['commit', '-m', msg + body, '--', ...paths], { cwd: root, encoding: 'utf8' });
-  if (commit.status !== 0) throw new ToolError('commit_failed', `The change was applied, but git commit failed: ${(commit.stderr || commit.stdout).trim().split('\n')[0]}`, 'Commit it yourself, or undo it with devtool undo.');
+  if (commit.status !== 0) throw new ToolError('commit_failed', `The change was applied, but git commit failed: ${(commit.stderr || commit.stdout).trim().split('\n')[0]}`, 'Commit it yourself, or undo it with codz undo.');
   return spawnSync('git', ['rev-parse', '--short', 'HEAD'], { cwd: root, encoding: 'utf8' }).stdout.trim();
 }
 

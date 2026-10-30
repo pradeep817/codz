@@ -12,7 +12,7 @@ export const UPDATE = process.env.UPDATE_GOLDEN === '1';
 
 /** Copies a fixture into a fresh temp folder and returns its path. */
 export function copyFixture(name: string): string {
-  const dir = mkdtempSync(join(tmpdir(), `devtool-${name}-`));
+  const dir = mkdtempSync(join(tmpdir(), `codz-${name}-`));
   cpSync(join(FIXTURES, name), dir, { recursive: true });
   return dir;
 }

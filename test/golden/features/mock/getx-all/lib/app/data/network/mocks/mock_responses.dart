@@ -1,7 +1,7 @@
 // Mock responses, used when the app runs with --dart-define=USE_MOCKS=true.
-// Managed by `devtool mock add`; edit the JSON freely.
+// Managed by `codz mock add`; edit the JSON freely.
 const mockResponses = <String, String>{
-  // devtool:36a43d9970
+  // codz:36a43d9970
   'GET /v1/orders/{orderId}': r'''
 {
   "id": "id_1",
@@ -23,7 +23,7 @@ const mockResponses = <String, String>{
   }
 }
 ''',
-  // devtool:e84847ddb8
+  // codz:e84847ddb8
   'GET /v1/users': r'''
 [
   {
@@ -44,7 +44,7 @@ const mockResponses = <String, String>{
   }
 ]
 ''',
-  // devtool:bed438e150
+  // codz:bed438e150
   'POST /v1/users': r'''
 {
   "name": "Sample name 1",
@@ -55,7 +55,7 @@ const mockResponses = <String, String>{
   "avatar_url": "https://example.com/image.png"
 }
 ''',
-  // devtool:bed438e150
+  // codz:bed438e150
   'GET /v1/users/{userId}': r'''
 {
   "name": "Sample name 1",
@@ -66,7 +66,7 @@ const mockResponses = <String, String>{
   "avatar_url": "https://example.com/image.png"
 }
 ''',
-  // devtool:74234e98af
+  // codz:74234e98af
   'DELETE /v1/users/{userId}': r'''
 null
 ''',

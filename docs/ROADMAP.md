@@ -1,4 +1,4 @@
-# devtool — Roadmap & Implementation Plan
+# codz — Roadmap & Implementation Plan
 
 **Status:** living document for post-v0.1.0 work.  
 **Last updated:** October 2026.
@@ -43,12 +43,12 @@ Skills → `EndpointSpec` → adapters → change sets. Offline, diff-first, und
 
 ### Shipped import (`api import`)
 
-- **CLI:** `devtool api import <file> [--list] [--tag t] [--only n] [--path glob] [--method M] [--max n] [--base-url url] [--include-errors] [--skip-conflicts]`
+- **CLI:** `codz api import <file> [--list] [--tag t] [--only n] [--path glob] [--method M] [--max n] [--base-url url] [--include-errors] [--skip-conflicts]`
 - **Formats:** OpenAPI 3.x (JSON + YAML via `parseYamlDocument`), **Swagger 2.0**, Postman v2.x, **HAR** (`src/input/har.ts`)
 - **Pipeline:** `readApiFile` → `EndpointSpec` → `planEndpoint` (same as `api add`)
 - **Behavior:** Combined change set; existing endpoints skipped; per-endpoint failures collected in `skipped[]`
 
-### Shipped project doctor (`devtool doctor`)
+### Shipped project doctor (`codz doctor`)
 
 Read-only checks over the project map (`src/skills/doctor.ts`):
 
@@ -91,7 +91,7 @@ Exit 1 on errors; with `--strict`, warnings also exit 1.
 ### Top 10 implementation order
 
 1. ✅ `api list` + `api show` — discoverability from project map
-2. ✅ `devtool config` view/set/check — fewer misconfigurations
+2. ✅ `codz config` view/set/check — fewer misconfigurations
 3. ✅ Shell completions — daily QoL
 4. ✅ **Setup doctor** (`doctor --setup`) — environment checks (§3)
 5. ✅ `doctor --fix` — actionable project health (§4)
@@ -107,15 +107,15 @@ Exit 1 on errors; with `--strict`, warnings also exit 1.
 
 ### Goal
 
-Tell users whether devtool *can run* in this environment, separate from project-health `doctor`.
+Tell users whether codz *can run* in this environment, separate from project-health `doctor`.
 
 ### CLI
 
 ```
-devtool doctor --setup [--cwd <folder>] [--json] [--no-color]
+codz doctor --setup [--cwd <folder>] [--json] [--no-color]
 ```
 
-Read-only. Never writes files. Coexists with default `devtool doctor` (project checks).
+Read-only. Never writes files. Coexists with default `codz doctor` (project checks).
 
 ### Checks
 
@@ -125,22 +125,22 @@ Each returns `pass`, `warn`, or `fail`, with `id`, `message`, `hint`.
 |----|--------|--------|
 | `node_version` | Node >= 22.18 | fail if older |
 | `git_present` | git installed and project is a repo | warn if not |
-| `git_clean` | working tree clean (ignoring `devtool.config.yaml`) | warn if dirty |
-| `config_found` | `devtool.config.yaml` found walking up from cwd | fail if missing → `devtool init` |
+| `git_clean` | working tree clean (ignoring `codz.config.yaml`) | warn if dirty |
+| `config_found` | `codz.config.yaml` found walking up from cwd | fail if missing → `codz init` |
 | `config_valid` | parses, no tabs, known keys, valid values | fail on errors, warn on unknown keys |
 | `config_paths` | folders in config exist and inside project root | warn if missing, fail if outside root |
-| `gitignore` | `.devtool/` is ignored | warn if not |
+| `gitignore` | `.codz/` is ignored | warn if not |
 | `framework_supported` | Next.js or Flutter for `api add` | warn on generic adapter |
 | `unsupported_libs` | axios, http package, freezed, Pages Router detected | warn, name the library |
 | `formatter` | Prettier (Next.js) or Dart SDK (Flutter) | warn if missing |
 | `analyzer` | `typescript` in node_modules, or Dart SDK + `flutter pub get` | warn if missing |
-| `scan_cache` | cache present and not stale | warn → `devtool explain --rescan` |
-| `history_state` | `.devtool/` readable, no half-applied change | fail if inconsistent |
+| `scan_cache` | cache present and not stale | warn → `codz explain --rescan` |
+| `history_state` | `.codz/` readable, no half-applied change | fail if inconsistent |
 
 ### Output (human)
 
 ```
-devtool doctor --setup  (flutter@0.1.0)
+codz doctor --setup  (flutter@0.1.0)
   pass  node_version        v22.19.0
   pass  config_valid
   warn  formatter           Dart SDK not found. Code will be written but not formatted.
@@ -159,8 +159,8 @@ Summary: 9 pass, 2 warn, 1 fail
 ### Implementation
 
 - Shipped as `src/skills/setupDoctor.ts` (a `CHECKS` list of `{id, run(ctx)}`) and `src/core/validateConfig.ts`
-- `scan_cache` only checks that the cache is readable: it rebuilds itself when project files or devtool change, so it cannot go stale
-- `validateConfig(config)` in `src/core/config.ts` — reused by `devtool config check` (G3)
+- `scan_cache` only checks that the cache is readable: it rebuilds itself when project files or codz change, so it cannot go stale
+- `validateConfig(config)` in `src/core/config.ts` — reused by `codz config check` (G3)
 - Reuse existing config loader and detector; do not duplicate scan logic
 - Setup doctor `--fix` is out of scope for v1; hints only
 
@@ -186,9 +186,9 @@ Extends the **existing** project doctor (not setup doctor).
 | B4 | Fix unused models | Delete or link to `api remove` |
 | B5 | Fix untyped responses | Suggest `api update --sample` |
 | B6 | SARIF output | `doctor --format sarif` for CI/IDE |
-| B7 | Pre-commit hook | `devtool hook install` → `devtool check` |
+| B7 | Pre-commit hook | `codz hook install` → `codz check` |
 
-`devtool check` — CI alias: `doctor --strict` + fresh map rescan.
+`codz check` — CI alias: `doctor --strict` + fresh map rescan.
 
 ---
 
@@ -221,7 +221,7 @@ Extend existing `api import`; do **not** rebuild OpenAPI/Postman/Swagger support
 
 ### Conflict behavior (decided)
 
-**Shipped:** without `--skip-conflicts`, devtool lists every endpoint that cannot be added and stops before planning; with it, the rest are imported and the conflicts are reported.
+**Shipped:** without `--skip-conflicts`, codz lists every endpoint that cannot be added and stops before planning; with it, the rest are imported and the conflicts are reported.
 
 ### Architecture note
 
@@ -241,16 +241,16 @@ Extend existing `api import`; do **not** rebuild OpenAPI/Postman/Swagger support
 
 ---
 
-## 6. MCP server (`devtool mcp`) — ✅ shipped (stage F)
+## 6. MCP server (`codz mcp`) — ✅ shipped (stage F)
 
 ### Goal
 
-AI agents use devtool with the same safety as the CLI.
+AI agents use codz with the same safety as the CLI.
 
 ### CLI
 
 ```
-devtool mcp [--cwd <folder>] [--read-only]
+codz mcp [--cwd <folder>] [--read-only]
 ```
 
 Stdio JSON-RPC 2.0; logs on stderr only; no runtime dependencies.
@@ -259,14 +259,14 @@ Stdio JSON-RPC 2.0; logs on stderr only; no runtime dependencies.
 
 | Tool | Wraps | Notes |
 |------|-------|-------|
-| `devtool_explain` | `explain --json` | `rescan?` |
-| `devtool_doctor` | `doctor --json` | project health |
-| `devtool_doctor_setup` | `doctor --setup --json` | environment |
-| `devtool_api_plan` | `api add ... --plan --json` | never applies |
-| `devtool_import_plan` | `api import ... --plan --json` | filters |
-| `devtool_apply` | `apply <id> --json` | disabled in `--read-only` |
-| `devtool_undo` | `undo --json` | disabled in `--read-only` |
-| `devtool_history` | `history --json` | read-only |
+| `codz_explain` | `explain --json` | `rescan?` |
+| `codz_doctor` | `doctor --json` | project health |
+| `codz_doctor_setup` | `doctor --setup --json` | environment |
+| `codz_api_plan` | `api add ... --plan --json` | never applies |
+| `codz_import_plan` | `api import ... --plan --json` | filters |
+| `codz_apply` | `apply <id> --json` | disabled in `--read-only` |
+| `codz_undo` | `undo --json` | disabled in `--read-only` |
+| `codz_history` | `history --json` | read-only |
 
 Future: `api_list`, `api_show`, `module_plan`, etc.
 
@@ -275,20 +275,20 @@ Future: `api_list`, `api_show`, `module_plan`, etc.
 - Plan-then-apply enforced; no combined create+apply tool
 - `--yes` and `--allow-dirty` **not** exposed to MCP (CLI-only)
 - Full `changeSet` diffs in tool results
-- Mark `devtool_apply` / `devtool_undo` as destructive for client prompts
+- Mark `codz_apply` / `codz_undo` as destructive for client prompts
 - Paths validated inside project root
 
 ### Resources (phase 2)
 
-- `devtool://config`, `devtool://map`, `devtool://plans/<id>`
+- `codz://config`, `codz://map`, `codz://plans/<id>`
 
 ### Client setup
 
 ```json
 {
   "mcpServers": {
-    "devtool": {
-      "command": "devtool",
+    "codz": {
+      "command": "codz",
       "args": ["mcp", "--cwd", "/path/to/project"]
     }
   }
@@ -311,15 +311,15 @@ Agent can explain → plan endpoint → show diff → apply → undo via MCP onl
 
 | ID | Item | Example | Size |
 |----|------|---------|------|
-| A1 | `api list` | `devtool api list [--json]` | S |
+| A1 | `api list` | `codz api list [--json]` | S |
 | A2 | `api show <name>` | method, path, model, callers | S |
-| A3 | `config` view/set | `devtool config set modelsFolder src/types` | S |
-| A4 | Shell completions | `devtool completion zsh` | S |
+| A3 | `config` view/set | `codz config set modelsFolder src/types` | S |
+| A4 | Shell completions | `codz completion zsh` | S |
 | A5 | Plan management | `plans list`, `plans show <id>` | S |
 | A6 | Richer history | `history show <id>`, `undo --to <id>` | M |
 | A7 | Progress indicators | Import progress bar | S |
 | A8 | Interactive TUI-lite | Menus for init, import, paste preview | M |
-| A9 | `devtool check` | CI alias for doctor + rescan | S |
+| A9 | `codz check` | CI alias for doctor + rescan | S |
 | A10 | Context-aware help | Framework-specific `--help` examples | S |
 | A11 | Onboarding wizard | init → setup → first `api add` | M |
 | A12 | Side-by-side diff | `--diff side` | S |
@@ -382,7 +382,7 @@ Agent can explain → plan endpoint → show diff → apply → undo via MCP onl
 | F2 | Structured MCP schemas | S |
 | F3 | Plan-first agent docs | S |
 | F4 | VS Code extension | L |
-| F5 | Cursor rules generator | `devtool rules` | M |
+| F5 | Cursor rules generator | `codz rules` | M |
 
 ### G. Configuration
 
@@ -440,11 +440,11 @@ Agent can explain → plan endpoint → show diff → apply → undo via MCP onl
 
 | ID | Item |
 |----|------|
-| L1 | `npm install -g devtool` |
+| L1 | `npm install -g codz` |
 | L2 | Homebrew formula |
 | L3 | Docs site |
 | L4 | `CHANGELOG.md` + semver |
-| L5 | `devtool upgrade` hint |
+| L5 | `codz upgrade` hint |
 | L6 | Example template repos |
 
 ### Capability (from implementation plan)
@@ -477,7 +477,7 @@ Agent can explain → plan endpoint → show diff → apply → undo via MCP onl
 | IDs | Item |
 |-----|------|
 | B1–B5 | `doctor --fix` |
-| A9 | `devtool check` |
+| A9 | `codz check` |
 | §5 | HAR + import filters (`--list`, `--path`, `--max`) |
 | D1 | `screen add` |
 | A6, A7 | History + import progress |
@@ -516,13 +516,13 @@ Agent can explain → plan endpoint → show diff → apply → undo via MCP onl
 | C. More stacks | axios and TanStack Query hooks (Next.js); freezed models, Retrofit clients and Cubit screens (Flutter); mocks for axios instances and for Dio created inside a get_it registration | ✅ shipped |
 | D. Bigger features | `api sync` (with `--add`, `--remove`, `--check` and breaking-change report), `screen add --form` (Next.js, Flutter), `test add` (Vitest/Jest, flutter_test with a fake Dio adapter), custom templates (`templates init`, `{{default}}` wrapping, file headers) | ✅ shipped |
 | E. Engineering health | One command table driving help, per-command help, completion, the option parser, unknown-option errors and docs/COMMANDS.md; adapters split into scan / generate files; seeded parser fuzz tests (found and fixed 3 crashes); Windows in CI with LF line endings pinned | ✅ shipped |
-| F. Reach | `devtool mcp` (every command a tool from the command table, edits as plans, `apply` tool, project and commands resources); npm build (`dist/`, Node 20+, `prepublishOnly`); VS Code extension (palette commands, diff preview before apply, doctor in Problems) | ✅ shipped |
-| G. New projects and mobile | `devtool create` wizard (type → architecture → name → org → base URL → options; platform creator or an offline skeleton; setup, config, theme, install, git); React Native adapter (Expo and bare, React Navigation and Expo Router, fetch helper / axios / TanStack Query, screens, forms, mocks, Jest tests, theme); Android adapter (Kotlin, Retrofit + kotlinx/Moshi/Gson, Hilt / Koin / service locator, Compose screens with ViewModels and `UiState`, forms, routes, MockWebServer tests, theme, `api update/rename/remove`); Flutter `bloc` setup; CI job that builds created Android projects with Gradle | ✅ shipped |
-| H. Starter templates (client) | `devtool new` from a template folder or the catalog; `starters list/show/cache`; `login/logout/whoami` (device code, `0600` token file, `DEVTOOL_TOKEN`); strict manifest and JSON parsing; strict tar reader with limits; Ed25519-signed index with rollback and expiry checks; revocation list; per-file hashes; atomic create; undo; plans; MCP plan-only; publishing script (check, pack, sign, index); two internal starters; fake-registry tests. Two-key freshness (offline-signed index, online-signed `timestamp.json`, `scripts/starters.ts index --timestamp-key` and `timestamp`). The catalog, accounts, checkout (Razorpay), email and invoices live in the separate devtool store project. Still to do: the CI matrix for published starters | ✅ client shipped |
+| F. Reach | `codz mcp` (every command a tool from the command table, edits as plans, `apply` tool, project and commands resources); npm build (`dist/`, Node 20+, `prepublishOnly`); VS Code extension (palette commands, diff preview before apply, doctor in Problems) | ✅ shipped |
+| G. New projects and mobile | `codz create` wizard (type → architecture → name → org → base URL → options; platform creator or an offline skeleton; setup, config, theme, install, git); React Native adapter (Expo and bare, React Navigation and Expo Router, fetch helper / axios / TanStack Query, screens, forms, mocks, Jest tests, theme); Android adapter (Kotlin, Retrofit + kotlinx/Moshi/Gson, Hilt / Koin / service locator, Compose screens with ViewModels and `UiState`, forms, routes, MockWebServer tests, theme, `api update/rename/remove`); Flutter `bloc` setup; CI job that builds created Android projects with Gradle | ✅ shipped |
+| H. Starter templates (client) | `codz new` from a template folder or the catalog; `starters list/show/cache`; `login/logout/whoami` (device code, `0600` token file, `CODZ_TOKEN`); strict manifest and JSON parsing; strict tar reader with limits; Ed25519-signed index with rollback and expiry checks; revocation list; per-file hashes; atomic create; undo; plans; MCP plan-only; publishing script (check, pack, sign, index); two internal starters; fake-registry tests. Two-key freshness (offline-signed index, online-signed `timestamp.json`, `scripts/starters.ts index --timestamp-key` and `timestamp`). The catalog, accounts, checkout (Razorpay), email and invoices live in the separate codz store project. Still to do: the CI matrix for published starters | ✅ client shipped |
 
 Found by the first corpus run and fixed in stage B: a comment line inside `dependencies:` hid the rest of the list (`http` projects were treated as Dio); `GetIt.I.register…` was not recognised as a registration point, and an import was added even when no registration was; a missing `dio` dependency was not reported; feature-first projects sent new models into one feature's folder.
 
-Found by the fuzz tests in stage E and fixed: a Swagger `host` that is not a valid URL crashed `api import`; a YAML alias (`*`) with no name crashed the spec reader; config YAML errors were plain errors instead of devtool errors.
+Found by the fuzz tests in stage E and fixed: a Swagger `host` that is not a valid URL crashed `api import`; a YAML alias (`*`) with no name crashed the spec reader; config YAML errors were plain errors instead of codz errors.
 
 Still open after stage C (seen in bulletproof-react): object-style clients (`export const api = { get<T>(url) {...} }` around fetch) are not recognised as a request helper, and `export const fn = (...) =>` endpoint functions with an object parameter are not scanned. Hooks in feature-first projects go to `src/hooks` rather than next to each feature's API file.
 

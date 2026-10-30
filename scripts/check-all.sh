@@ -22,10 +22,10 @@
 set -uo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-DT=(node "$ROOT/bin/devtool.js")
+DT=(node "$ROOT/bin/codz.js")
 SPEC="$ROOT/examples/openapi.yaml"
 FLAGS=(--yes --allow-dirty --no-verify --no-color)
-WORK="$(mktemp -d "${TMPDIR:-/tmp}/devtool-check.XXXXXX")"
+WORK="$(mktemp -d "${TMPDIR:-/tmp}/codz-check.XXXXXX")"
 LOGS="$WORK/logs"
 mkdir -p "$LOGS"
 ONLY=""
@@ -74,7 +74,7 @@ check() {
 }
 
 copy() { rm -rf "$WORK/$2"; cp -R "$ROOT/fixtures/$1" "$WORK/$2"; cd "$WORK/$2"; }
-dt() { echo "\$ devtool $*"; "${DT[@]}" "$@" "${FLAGS[@]}"; }
+dt() { echo "\$ codz $*"; "${DT[@]}" "$@" "${FLAGS[@]}"; }
 skip() { echo "$1"; exit 77; }
 
 # ---------- Next.js ----------
@@ -163,7 +163,7 @@ flutter_arch() {
   dt feature add orders --spec "$SPEC"
   dt screen add order-tracking --api getOrderTracking --path /orders/:orderId/tracking
   dt auth add
-  # flutter create's counter test checks the template home page, which GetX setup replaces (devtool warns about it).
+  # flutter create's counter test checks the template home page, which GetX setup replaces (codz warns about it).
   if [ "$arch" = getx ] && grep -q 'Counter increments smoke test' test/widget_test.dart 2>/dev/null; then rm test/widget_test.dart; fi
   flutter pub get
   if grep -q build_runner pubspec.yaml; then dart run build_runner build --delete-conflicting-outputs; fi
@@ -209,7 +209,7 @@ ios_swiftui() {
   xcrun --sdk iphonesimulator swiftc -typecheck -target "$arch-apple-ios17.0-simulator" "$src"/*.swift
 }
 
-echo "devtool beta build check — work folder: $WORK"
+echo "codz beta build check — work folder: $WORK"
 check next next-fresh next_fresh
 check next next-helper next_helper
 check react react-vite react_fresh

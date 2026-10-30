@@ -66,7 +66,7 @@ export interface ProjectMap {
   models: ModelInfo[];
   locales: LocaleInfo;
   baseUrls: BaseUrlInfo[];
-  /** The HTTP client sets its own base URL (Dio BaseOptions, options.baseUrl), even when it is not a literal devtool can read. */
+  /** The HTTP client sets its own base URL (Dio BaseOptions, options.baseUrl), even when it is not a literal codz can read. */
   clientBaseUrl?: boolean;
   stats: { files: number; byExtension: Record<string, number> };
   notes: string[];

@@ -30,7 +30,7 @@ export interface TestOptions {
 
 function pick(map: ProjectMap, opts: TestOptions): EndpointInfo[] {
   if (opts.all) return map.endpoints;
-  if (!opts.endpoints.length) throw new ToolError('bad_args', 'Which endpoints? Usage: devtool test add <endpoint>... or --all');
+  if (!opts.endpoints.length) throw new ToolError('bad_args', 'Which endpoints? Usage: codz test add <endpoint>... or --all');
   return opts.endpoints.map((n) => {
     const ep = map.endpoints.find((e) => e.name === n) ?? map.endpoints.find((e) => e.name.toLowerCase() === n.toLowerCase());
     if (!ep) throw new ToolError('no_endpoint', `No endpoint called ${n} was found.`, `Endpoints: ${map.endpoints.map((e) => e.name).join(', ')}`);
@@ -41,11 +41,11 @@ function pick(map: ProjectMap, opts: TestOptions): EndpointInfo[] {
 export async function planTestAdd(root: string, adapter: Adapter, opts: TestOptions): Promise<ChangeSet> {
   const { map } = await loadMap(root, adapter, loadConfig(root).conventions);
   const eps = pick(map, opts);
-  if (!eps.length) throw new ToolError('no_endpoints', 'This project has no endpoints to test yet.', 'Add one with: devtool api add');
+  if (!eps.length) throw new ToolError('no_endpoints', 'This project has no endpoints to test yet.', 'Add one with: codz api add');
   if (adapter.id === 'nextjs' || adapter.id === 'react-native' || adapter.id === 'react') return nextTests(root, map, eps);
   if (adapter.id === 'flutter') return flutterTests(root, map, eps);
   if (adapter.id === 'android') return (await import('./androidTests.ts')).androidTests(root, map, eps);
-  throw new ToolError('not_supported', `test add writes tests for Next.js, React, React Native, Flutter and Android; ${adapter.id === 'ios' ? 'iOS (XCTest) is not supported yet' : `this project uses the ${adapter.id} adapter`}.`, adapter.id === 'ios' ? 'Test the APIClient methods with XCTest and a URLProtocol stub for now; devtool will write these later.' : undefined);
+  throw new ToolError('not_supported', `test add writes tests for Next.js, React, React Native, Flutter and Android; ${adapter.id === 'ios' ? 'iOS (XCTest) is not supported yet' : `this project uses the ${adapter.id} adapter`}.`, adapter.id === 'ios' ? 'Test the APIClient methods with XCTest and a URLProtocol stub for now; codz will write these later.' : undefined);
 }
 
 /** Argument values for a call: path parameters get 1 or 'abc', the body gets example data. */

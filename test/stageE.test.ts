@@ -31,7 +31,7 @@ const CLI_SOURCE = readFileSync(join(REPO, 'src/cli.ts'), 'utf8');
 describe('stage E: one command table', () => {
   it('every command the CLI handles is in the table, and every flag it reads is defined', () => {
     const handled = new Set([...CLI_SOURCE.matchAll(/case '([a-z]+)':/g), ...CLI_SOURCE.matchAll(/cmd === '([a-z]+)'/g)].map((m) => m[1]).filter((c) => c !== 'help'));
-    for (const c of handled) assert.ok(findCommand(c), `devtool ${c} is handled but not in COMMAND_LIST`);
+    for (const c of handled) assert.ok(findCommand(c), `codz ${c} is handled but not in COMMAND_LIST`);
     const read = new Set([...CLI_SOURCE.matchAll(/flags\.([a-z]+)\b|flags\['([a-z-]+)'\]|multi\.([a-z]+)\b|multi\['([a-z-]+)'\]/g)].map((m) => m[1] ?? m[2] ?? m[3] ?? m[4]));
     for (const f of read) assert.ok(FLAGS[f], `--${f} is read by the CLI but not in FLAGS`);
   });
@@ -46,19 +46,19 @@ describe('stage E: one command table', () => {
   });
 
   it('help lists every command; each command has its own help', async () => {
-    const help = renderHelp(VERSION, 'devtool.config.yaml');
-    for (const c of COMMAND_LIST) assert.ok(help.includes(`devtool ${c.cmd}${c.sub ? ` ${c.sub}` : ''}`), `${c.cmd} ${c.sub ?? ''} missing from help`);
+    const help = renderHelp(VERSION, 'codz.config.yaml');
+    for (const c of COMMAND_LIST) assert.ok(help.includes(`codz ${c.cmd}${c.sub ? ` ${c.sub}` : ''}`), `${c.cmd} ${c.sub ?? ''} missing from help`);
     const r = await cli(['api', 'sync', '--help']);
     assert.equal(r.code, 0);
-    assert.match(r.out, /^devtool api sync <file>/);
+    assert.match(r.out, /^codz api sync <file>/);
     assert.match(r.out, /--check +Report drift/);
-    assert.match((await cli(['help', 'test', 'add'])).out, /^devtool test add/);
+    assert.match((await cli(['help', 'test', 'add'])).out, /^codz test add/);
   });
 
   it('a mistyped option is an error with a suggestion, not silently ignored', async () => {
     const r = await cli(['api', 'add', '--url', 'https://x.dev/a', '--dryrun']);
     assert.equal(r.code, 1);
-    assert.match(r.err, /devtool api add has no option --dryrun/);
+    assert.match(r.err, /codz api add has no option --dryrun/);
     assert.match(r.err, /Did you mean --dry-run\?/);
     assert.match((await cli(['doctor', '--form'])).err, /has no option --form/);
   });

@@ -31,7 +31,7 @@ export async function apiShow(root: string, adapter: Adapter, name: string): Pro
   const ep = map.endpoints.find((e) => e.name === name) ?? map.endpoints.find((e) => e.name.toLowerCase() === name.toLowerCase());
   if (!ep) {
     const close = map.endpoints.filter((e) => e.name.toLowerCase().includes(name.toLowerCase())).map((e) => e.name);
-    throw new ToolError('no_endpoint', `No endpoint called ${name} was found.`, close.length ? `Did you mean: ${close.join(', ')}?` : 'List them with: devtool api list');
+    throw new ToolError('no_endpoint', `No endpoint called ${name} was found.`, close.length ? `Did you mean: ${close.join(', ')}?` : 'List them with: codz api list');
   }
   // Models the response mentions, and the models those refer to.
   const models: ModelInfo[] = [];

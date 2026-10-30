@@ -24,13 +24,13 @@ function safePath(root: string, relPath: string): string {
   if (abs !== r && !abs.startsWith(r + '/') && !abs.startsWith(r + '\\')) {
     throw new ToolError('outside_root', `Refusing to touch ${relPath}: it is outside the project root.`);
   }
-  if (relPath.split(/[\\/]/).includes(TOOL_DIR)) throw new ToolError('outside_root', `Refusing to edit devtool's own folder (${relPath}).`);
+  if (relPath.split(/[\\/]/).includes(TOOL_DIR)) throw new ToolError('outside_root', `Refusing to edit codz's own folder (${relPath}).`);
   // Lexical checks are not enough: a symbolic link inside the project (for example lib -> ~/.ssh) would carry the
   // write outside it. Resolve the deepest folder that exists and check that it is still inside the real root.
   const realRoot = realpathSync(r);
   let probe = abs;
   while (!existsSync(probe) && dirname(probe) !== probe) probe = dirname(probe);
-  if (existsSync(abs) && lstatSync(abs).isSymbolicLink()) throw new ToolError('outside_root', `Refusing to touch ${relPath}: it is a symbolic link.`, 'Replace the link with a real file, or run devtool on the folder it points to.');
+  if (existsSync(abs) && lstatSync(abs).isSymbolicLink()) throw new ToolError('outside_root', `Refusing to touch ${relPath}: it is a symbolic link.`, 'Replace the link with a real file, or run codz on the folder it points to.');
   const realProbe = realpathSync(probe);
   if (realProbe !== realRoot && !realProbe.startsWith(realRoot + sep)) {
     throw new ToolError('outside_root', `Refusing to touch ${relPath}: a symbolic link takes it outside the project root.`);
@@ -119,7 +119,7 @@ export function loadPlan(root: string, id: string): ChangeSet {
 interface HistoryFile {
   path: string;
   created: boolean;
-  /** devtool deleted this file; undo writes it back. */
+  /** codz deleted this file; undo writes it back. */
   deleted?: boolean;
   afterHash: string;
 }
@@ -131,7 +131,7 @@ export interface HistoryEntry {
   files: HistoryFile[];
   generated: GeneratedRecord[];
   undone: boolean;
-  /** Extra details a command keeps with its change (devtool new: template id, version, archive hash). */
+  /** Extra details a command keeps with its change (codz new: template id, version, archive hash). */
   meta?: Record<string, unknown>;
 }
 
@@ -147,7 +147,7 @@ function writeHistory(root: string, entries: HistoryEntry[]): void {
   writeFileSync(historyPath(root), JSON.stringify(entries, null, 2));
 }
 
-/** Records a change made outside applyChangeSet (devtool new writes a whole project). */
+/** Records a change made outside applyChangeSet (codz new writes a whole project). */
 export function appendHistory(root: string, entry: HistoryEntry): void {
   writeHistory(root, [...readHistory(root), entry]);
 }
@@ -203,7 +203,7 @@ function errorCounts(output: string, files: string[]): Map<string, number> {
 const LOCK_STALE_MS = 10 * 60 * 1000;
 
 /**
- * Runs fn holding .devtool/lock, so two devtool runs on one project (a person and
+ * Runs fn holding .codz/lock, so two codz runs on one project (a person and
  * an AI agent, two terminals) cannot apply or undo at the same time and mix their
  * files and backups. A lock left by a process that is gone, or an old one, is taken over.
  */
@@ -219,7 +219,7 @@ export function withProjectLock<T>(root: string, fn: () => T): T {
       break;
     } catch (e) {
       if ((e as NodeJS.ErrnoException).code !== 'EEXIST' || attempt > 0) {
-        if ((e as NodeJS.ErrnoException).code === 'EEXIST') throw new ToolError('busy', 'Another devtool change is being applied or undone in this project.', 'Wait for it to finish and try again.');
+        if ((e as NodeJS.ErrnoException).code === 'EEXIST') throw new ToolError('busy', 'Another codz change is being applied or undone in this project.', 'Wait for it to finish and try again.');
         throw e;
       }
       let held: { pid?: number; started?: string } = {};
@@ -238,7 +238,7 @@ export function withProjectLock<T>(root: string, fn: () => T): T {
         }
       })();
       const old = !held.started || Date.now() - Date.parse(held.started) > LOCK_STALE_MS;
-      if (alive && !old) throw new ToolError('busy', `Another devtool run (process ${held.pid}) is applying or undoing a change in this project.`, 'Wait for it to finish and try again.');
+      if (alive && !old) throw new ToolError('busy', `Another codz run (process ${held.pid}) is applying or undoing a change in this project.`, 'Wait for it to finish and try again.');
       rmSync(file, { force: true });
     }
   }
@@ -257,16 +257,16 @@ export function applyChangeSet(root: string, cs: ChangeSet, opts: ApplyOptions =
 function applyLocked(root: string, cs: ChangeSet, opts: ApplyOptions): ApplyResult {
 
   if (!opts.allowDirty && isGitRepo(root)) {
-    const dirty = dirtyFiles(root).filter((f) => f !== 'devtool.config.yaml');
+    const dirty = dirtyFiles(root).filter((f) => f !== 'codz.config.yaml');
     if (dirty.length) {
-      throw new ToolError('dirty_git', `The working tree has uncommitted changes (${dirty.slice(0, 5).join(', ')}${dirty.length > 5 ? ', ...' : ''}).`, 'Commit or stash them first, or pass --allow-dirty. Undo still works either way, from devtool backups.');
+      throw new ToolError('dirty_git', `The working tree has uncommitted changes (${dirty.slice(0, 5).join(', ')}${dirty.length > 5 ? ', ...' : ''}).`, 'Commit or stash them first, or pass --allow-dirty. Undo still works either way, from codz backups.');
     }
   }
 
   // A generator must not write a whole new file over one it should only edit.
   const replaced = rewriteProblems(cs);
   if (replaced.length && !opts.allowRewrite) {
-    throw new ToolError('unsafe_rewrite', `This change would replace most of ${replaced.join(', ')} instead of editing ${replaced.length === 1 ? 'it' : 'them'}, so nothing was applied.`, 'This is a devtool bug: please report it with the command you ran. Check the preview with --dry-run.');
+    throw new ToolError('unsafe_rewrite', `This change would replace most of ${replaced.join(', ')} instead of editing ${replaced.length === 1 ? 'it' : 'them'}, so nothing was applied.`, 'This is a codz bug: please report it with the command you ran. Check the preview with --dry-run.');
   }
 
   // Every target must be exactly as it was when the change set was planned.
@@ -306,7 +306,7 @@ function applyLocked(root: string, cs: ChangeSet, opts: ApplyOptions): ApplyResu
       if (c.after === null) continue;
       const abs = safePath(root, c.path);
       mkdirSync(dirname(abs), { recursive: true });
-      const tmp = `${abs}.devtool-tmp`;
+      const tmp = `${abs}.codz-tmp`;
       writeFileSync(tmp, c.after);
       temps.push({ tmp, abs });
     }
@@ -403,11 +403,11 @@ function undoLastLocked(root: string, opts: { force?: boolean }): UndoResult {
   if (!entry) throw new ToolError('nothing_to_undo', 'There is nothing to undo.');
   const changed = entry.files.filter((f) => {
     const current = readText(safePath(root, f.path));
-    if (f.deleted) return current !== null; // something new was written where devtool deleted a file
+    if (f.deleted) return current !== null; // something new was written where codz deleted a file
     return current === null || hash(current) !== f.afterHash;
   });
   if (changed.length && !opts.force) {
-    throw new ToolError('changed_since_apply', `These files changed after devtool wrote them: ${changed.map((f) => f.path).join(', ')}. Undo would lose those edits.`, 'Pass --force to undo anyway.');
+    throw new ToolError('changed_since_apply', `These files changed after codz wrote them: ${changed.map((f) => f.path).join(', ')}. Undo would lose those edits.`, 'Pass --force to undo anyway.');
   }
   restore(root, entry.id, entry.files);
   entry.undone = true;
@@ -420,7 +420,7 @@ function undoLastLocked(root: string, opts: { force?: boolean }): UndoResult {
 export function undoTo(root: string, id: string, opts: { force?: boolean } = {}): UndoResult[] {
   const history = readHistory(root);
   const target = history.find((e) => e.id === id || e.id.startsWith(id));
-  if (!target) throw new ToolError('no_change', `No applied change with id "${id}".`, 'List them with: devtool history');
+  if (!target) throw new ToolError('no_change', `No applied change with id "${id}".`, 'List them with: codz history');
   if (target.undone) throw new ToolError('already_undone', `${target.id} is already undone.`);
   const done: UndoResult[] = [];
   for (;;) {
@@ -435,10 +435,10 @@ export interface HistoryDetail {
   files: { path: string; action: 'created' | 'changed' | 'deleted'; state: 'as applied' | 'edited since' | 'missing'; diff?: string }[];
 }
 
-/** One applied change: its files, whether each still matches what devtool wrote, and the diff it made. */
+/** One applied change: its files, whether each still matches what codz wrote, and the diff it made. */
 export function historyShow(root: string, id: string): HistoryDetail {
   const entry = readHistory(root).find((e) => e.id === id || e.id.startsWith(id));
-  if (!entry) throw new ToolError('no_change', `No applied change with id "${id}".`, 'List them with: devtool history');
+  if (!entry) throw new ToolError('no_change', `No applied change with id "${id}".`, 'List them with: codz history');
   const backupDir = join(root, TOOL_DIR, 'backups', entry.id);
   const files = entry.files.map((f) => {
     const current = readText(safePath(root, f.path));

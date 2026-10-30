@@ -1,5 +1,5 @@
 // Every common command on every sample project, applied for real: none may
-// crash ("This is a devtool bug"), none may replace an existing file it should
+// crash ("This is a codz bug"), none may replace an existing file it should
 // only edit (unsafe_rewrite), every refusal must say what to do next, and undo
 // must take the whole session back.
 
@@ -37,7 +37,7 @@ function snapshot(root: string): Map<string, string> {
   const out = new Map<string, string>();
   const walk = (dir: string) => {
     for (const name of readdirSync(dir).sort()) {
-      if (name === '.devtool' || name === 'devtool.config.yaml') continue;
+      if (name === '.codz' || name === 'codz.config.yaml') continue;
       const abs = join(dir, name);
       if (statSync(abs).isDirectory()) walk(abs);
       else out.set(relative(root, abs), readFileSync(abs, 'utf8'));
@@ -68,13 +68,13 @@ describe('every command on every sample project', () => {
     it(fixture, async () => {
       const dir = copyFixture(fixture);
       try {
-        // init writes the config and adds .devtool/ to .gitignore; it is not a change to undo.
+        // init writes the config and adds .codz/ to .gitignore; it is not a change to undo.
         await run(dir, ['init', '--yes']);
         const before = snapshot(dir);
         for (const args of SESSION.slice(1)) {
           const { code, out } = await run(dir, args);
-          const what = `devtool ${args.slice(0, 3).join(' ')} on ${fixture}`;
-          assert.doesNotMatch(out, /This is a devtool bug/, `${what} crashed:\n${out.slice(-1500)}`);
+          const what = `codz ${args.slice(0, 3).join(' ')} on ${fixture}`;
+          assert.doesNotMatch(out, /This is a codz bug/, `${what} crashed:\n${out.slice(-1500)}`);
           assert.doesNotMatch(out, /instead of editing (it|them)/, `${what} would replace an existing file:\n${out.slice(-800)}`);
           if (code !== 0 && /^✗ /m.test(out)) {
             // A refusal names the problem and the next step (the indented line under it).

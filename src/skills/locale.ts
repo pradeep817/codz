@@ -31,7 +31,7 @@ export interface LocaleSet {
 
 const COUNTRY: Record<string, string> = { en: 'US', hi: 'IN', es: 'ES', fr: 'FR', de: 'DE', it: 'IT', pt: 'BR', ar: 'SA', zh: 'CN', ja: 'JP', ko: 'KR', ru: 'RU', bn: 'IN', ta: 'IN', te: 'IN', mr: 'IN', gu: 'IN', kn: 'IN', ml: 'IN', pa: 'IN', ur: 'PK', tr: 'TR', nl: 'NL', id: 'ID', th: 'TH', vi: 'VN' };
 
-/** GetX keys are language_COUNTRY (en_US); devtool talks in language codes (en). */
+/** GetX keys are language_COUNTRY (en_US); codz talks in language codes (en). */
 const getxKey = (lang: string) => (/[_-]/.test(lang) ? lang.replace('-', '_') : COUNTRY[lang] ? `${lang}_${COUNTRY[lang]}` : lang);
 const fromGetxKey = (k: string) => k.split(/[_-]/)[0];
 
@@ -186,10 +186,10 @@ export async function planLocaleAdd(root: string, adapter: Adapter, lang: string
         files.set(`messages/${l}.json`, '{}\n');
         summary.push(`Create messages/${l}.json`);
       }
-      warnings.push('Load these files with your i18n library (for example next-intl); devtool keeps them in sync from now on.');
+      warnings.push('Load these files with your i18n library (for example next-intl); codz keeps them in sync from now on.');
       return buildChangeSet(root, 'locale add', { files, summary, warnings, generated: [] });
     }
-    throw new ToolError('no_locales', 'No locale files were found.', 'For Flutter, set up flutter_localizations with ARB files (lib/l10n/app_en.arb) first; devtool then keeps them in sync.');
+    throw new ToolError('no_locales', 'No locale files were found.', 'For Flutter, set up flutter_localizations with ARB files (lib/l10n/app_en.arb) first; codz then keeps them in sync.');
   }
 
   if (set.files.has(lang)) throw new ToolError('locale_exists', `The language ${lang} already exists (${set.files.get(lang)}).`);
@@ -231,7 +231,7 @@ export async function planLocaleAdd(root: string, adapter: Adapter, lang: string
     summary.push(`Update ${set.translationsFile}: add '${getxKey(lang)}' with ${count} keys copied from ${from}`);
     void src;
   }
-  if (count) warnings.push(`The ${count} ${lang} texts are copies of ${from}; translate them (devtool doctor lists the untranslated ones).`);
+  if (count) warnings.push(`The ${count} ${lang} texts are copies of ${from}; translate them (codz doctor lists the untranslated ones).`);
   return buildChangeSet(root, 'locale add', { files, summary, warnings, generated: [] });
 }
 
@@ -250,7 +250,7 @@ export async function planLocaleKey(root: string, adapter: Adapter, key: string,
       const file = [...files.keys()].find((f) => f.endsWith('app_translations.dart'))!;
       set = { kind: 'getx', defaultLang: 'en', files: new Map([['en', file]]), keys: new Map([['en', new Map()]]), translationsFile: file };
     } else {
-      throw new ToolError('no_locales', 'No locale files were found.', 'Create a language first with: devtool locale add en');
+      throw new ToolError('no_locales', 'No locale files were found.', 'Create a language first with: codz locale add en');
     }
   }
   let finalKey = key;

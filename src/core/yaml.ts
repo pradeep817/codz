@@ -1,5 +1,5 @@
 import { ToolError } from './types.ts';
-// A deliberately small YAML subset for devtool.config.yaml: nested maps,
+// A deliberately small YAML subset for codz.config.yaml: nested maps,
 // lists of scalars, quoted or plain scalars, and comments. Values are read
 // back as strings; callers convert them.
 
@@ -70,7 +70,7 @@ export function parse(source: string): { [key: string]: YamlValue } {
   source.split(/\r?\n/).forEach((raw, i) => {
     const noComment = stripComment(raw).replace(/\s+$/, '');
     if (noComment.trim() === '') return;
-    if (/\t/.test(noComment.match(/^\s*/)![0])) throw new ToolError('bad_config', `devtool.config.yaml line ${i + 1}: use spaces, not tabs`);
+    if (/\t/.test(noComment.match(/^\s*/)![0])) throw new ToolError('bad_config', `codz.config.yaml line ${i + 1}: use spaces, not tabs`);
     lines.push({ indent: noComment.length - noComment.trimStart().length, text: noComment.trim(), no: i + 1 });
   });
   let pos = 0;
@@ -80,7 +80,7 @@ export function parse(source: string): { [key: string]: YamlValue } {
     while (pos < lines.length && lines[pos].indent === indent && !lines[pos].text.startsWith('- ')) {
       const line = lines[pos];
       const m = line.text.match(/^([^:]+?):(?:\s+(.*))?$/);
-      if (!m) throw new ToolError('bad_config', `devtool.config.yaml line ${line.no}: expected "key: value"`);
+      if (!m) throw new ToolError('bad_config', `codz.config.yaml line ${line.no}: expected "key: value"`);
       const key = unquote(m[1]);
       const rest = m[2];
       pos++;
@@ -105,7 +105,7 @@ export function parse(source: string): { [key: string]: YamlValue } {
       }
     }
     if (pos < lines.length && lines[pos].indent > indent) {
-      throw new ToolError('bad_config', `devtool.config.yaml line ${lines[pos].no}: unexpected indentation`);
+      throw new ToolError('bad_config', `codz.config.yaml line ${lines[pos].no}: unexpected indentation`);
     }
     return out;
   }
@@ -121,6 +121,6 @@ export function parse(source: string): { [key: string]: YamlValue } {
 
   if (lines.length === 0) return {};
   const result = parseMap(lines[0].indent);
-  if (pos < lines.length) throw new ToolError('bad_config', `devtool.config.yaml line ${lines[pos].no}: could not parse`);
+  if (pos < lines.length) throw new ToolError('bad_config', `codz.config.yaml line ${lines[pos].no}: could not parse`);
   return result;
 }

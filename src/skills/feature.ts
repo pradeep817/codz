@@ -1,8 +1,8 @@
 // feature add <name>: a whole feature in one previewed change.
 //
-//   devtool feature add orders --spec api.yaml          endpoints from the spec whose path or tag is "orders"
-//   devtool feature add orders --spec api.yaml --tag Orders
-//   devtool feature add orders --api getOrders --api getOrder --api createOrder   (endpoints already in the project)
+//   codz feature add orders --spec api.yaml          endpoints from the spec whose path or tag is "orders"
+//   codz feature add orders --spec api.yaml --tag Orders
+//   codz feature add orders --api getOrders --api getOrder --api createOrder   (endpoints already in the project)
 //
 // It runs the existing generators in order, in a private copy of the project
 // (src/core/workspace.ts), so each step builds on the last:
@@ -115,7 +115,7 @@ export function planScreens(feature: string, cands: Candidate[], forms: boolean)
 }
 
 export async function planFeatureAdd(root: string, adapter: Adapter, opts: FeatureOptions): Promise<FeatureReport> {
-  if (!adapter.planEndpoint) throw new ToolError('not_supported', 'feature add works in Next.js, React Native, Flutter and Android projects, and this folder is not one of them.', 'For iOS, use a Flutter or React Native project (they build for iOS and Android). Run devtool init to see what devtool detects here.');
+  if (!adapter.planEndpoint) throw new ToolError('not_supported', 'feature add works in Next.js, React Native, Flutter and Android projects, and this folder is not one of them.', 'For iOS, use a Flutter or React Native project (they build for iOS and Android). Run codz init to see what codz detects here.');
   if (!/^[A-Za-z][A-Za-z0-9 _-]{0,40}$/.test(opts.name)) throw new ToolError('bad_name', `"${opts.name}" is not a feature name.`, 'Use letters, digits, - or _, for example orders or user-profile.');
   if (!opts.spec && !opts.apis?.length) throw new ToolError('bad_args', 'Where do the endpoints come from?', `Pass --spec <openapi.yaml> (endpoints whose path or tag is "${opts.name}"), or --api <endpoint> for endpoints already in the project.`);
   const forms = opts.forms !== false;
@@ -132,7 +132,7 @@ export async function planFeatureAdd(root: string, adapter: Adapter, opts: Featu
     if (text === null) throw new ToolError('no_file', `Cannot read ${opts.spec}.`);
     const { ops, doc } = featureOperations(text, opts);
     if (!ops.length) {
-      throw new ToolError('no_endpoints', `No operations in ${opts.spec} belong to "${opts.name}" (${doc.operations.length} in the file).`, 'Name the feature after a path segment (orders for /orders/{id}), or pass --tag or --path. See the operations with: devtool api import <file> --list');
+      throw new ToolError('no_endpoints', `No operations in ${opts.spec} belong to "${opts.name}" (${doc.operations.length} in the file).`, 'Name the feature after a path segment (orders for /orders/{id}), or pass --tag or --path. See the operations with: codz api import <file> --list');
     }
     const first = ops.find((o) => o.spec.origin);
     if (first) specBase = `${first.spec.origin}${first.spec.serverPrefix ?? ''}`;
@@ -212,7 +212,7 @@ export async function planFeatureAdd(root: string, adapter: Adapter, opts: Featu
         const detail = made.find((s) => s.kind === 'detail');
         if (detail && /a row opens/.test(linked)) for (let i = warnings.length - 1; i >= 0; i--) if (new RegExp(`open ${detail.name}Page with Navigator\\.push`).test(warnings[i])) warnings.splice(i, 1);
       }
-      else if (made.length > 1) warnings.push('The list screen was not linked to the other screens (its layout is not the one devtool writes); add the navigation by hand.');
+      else if (made.length > 1) warnings.push('The list screen was not linked to the other screens (its layout is not the one codz writes); add the navigation by hand.');
     }
     // SwiftUI: titles and NavigationLinks need a NavigationStack above the list.
     const listScreen = made.find((s) => s.kind === 'list');

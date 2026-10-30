@@ -94,7 +94,7 @@ async function scan(root: string, configConventions: Conventions): Promise<Proje
   if (conv.router === 'expo-router' && conv.routerDir) map.routes = expoRoutes(conv.routerDir, files);
   else if (conv.router === 'react-navigation') for (const f of files.filter((x) => /\.Screen\b/.test(text(x)))) map.routes.push(...navigationRoutes(f, text(f)));
   map.routes.sort((a, b) => a.path.localeCompare(b.path));
-  if (conv.router === 'none') map.notes.push('No navigation library found; screen add and route add need React Navigation or Expo Router (devtool setup adds React Navigation).');
+  if (conv.router === 'none') map.notes.push('No navigation library found; screen add and route add need React Navigation or Expo Router (codz setup adds React Navigation).');
   return map;
 }
 

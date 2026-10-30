@@ -7,7 +7,7 @@
 //              a request field changed type
 //   info       operations, response fields and optional request fields added
 //
-// Inside a devtool project each change is matched to the project's endpoint
+// Inside a codz project each change is matched to the project's endpoint
 // and the lines that use it (the endpoint's callers, and the field in those
 // files and the model). Output: text, Markdown (for a pull request comment),
 // JSON, or SARIF (GitHub code scanning). Exit 1 at --fail-on (default breaking).
@@ -251,7 +251,7 @@ export function renderDiffMarkdown(r: DiffReport): string {
   section('breaking', 'Breaking');
   section('warning', 'Check');
   section('info', 'Added');
-  if (r.inProject && r.counts.breaking) out.push('Update the app with `devtool api sync <new spec>`, then fix the lines listed above.');
+  if (r.inProject && r.counts.breaking) out.push('Update the app with `codz api sync <new spec>`, then fix the lines listed above.');
   return `${out.join('\n').trim()}\n`;
 }
 
@@ -267,7 +267,7 @@ export function renderDiffSarif(r: DiffReport, root: string | null): string {
     {
       $schema: 'https://json.schemastore.org/sarif-2.1.0.json',
       version: '2.1.0',
-      runs: [{ tool: { driver: { name: 'devtool api diff', informationUri: 'https://github.com/', rules: kinds.map((k) => ({ id: `api/${k}`, shortDescription: { text: k.replace(/-/g, ' ') } })) } }, results }],
+      runs: [{ tool: { driver: { name: 'codz api diff', informationUri: 'https://github.com/', rules: kinds.map((k) => ({ id: `api/${k}`, shortDescription: { text: k.replace(/-/g, ' ') } })) } }, results }],
     },
     null,
     2,

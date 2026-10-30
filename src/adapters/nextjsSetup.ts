@@ -95,7 +95,7 @@ export function planNextSetup(ctx: AdapterContext, choice: SetupChoice): SetupPl
     const client = `${apiFolder}/client.ts`;
     const index = `${apiFolder}/index.ts`;
     for (const p of [client, index]) {
-      if (read(p) !== null) throw new ToolError('file_exists', `${p} already exists, so setup stopped without changing anything.`, 'Remove or rename it, or run devtool init again to use it as it is.');
+      if (read(p) !== null) throw new ToolError('file_exists', `${p} already exists, so setup stopped without changing anything.`, 'Remove or rename it, or run codz init again to use it as it is.');
     }
     files.set(client, clientFile(q, semi, baseUrl));
     summary.push(`Create ${client}: apiFetch<T>() and ApiError, reading the base URL from ${ENV}`);
@@ -105,7 +105,7 @@ export function planNextSetup(ctx: AdapterContext, choice: SetupChoice): SetupPl
     conventions.httpHelperFile = client;
   }
 
-  // .env.example only: .env.local is the developer's own file and may hold secrets, so devtool never writes it.
+  // .env.example only: .env.local is the developer's own file and may hold secrets, so codz never writes it.
   {
     const envFile = '.env.example';
     const before = read(envFile);
@@ -115,7 +115,7 @@ export function planNextSetup(ctx: AdapterContext, choice: SetupChoice): SetupPl
       summary.push(`${before === null ? 'Create' : 'Update'} ${envFile}: ${ENV}=${baseUrl}`);
     }
     const local = read('.env.local');
-    if (local === null || !new RegExp(`^${ENV}=`, 'm').test(local)) summary.push(`Copy ${ENV} from .env.example into .env.local (devtool does not write .env.local)${choice.architecture === 'fetch-helper' ? `; until then lib/api/client.ts falls back to ${baseUrl}` : ': the API functions read it'}`);
+    if (local === null || !new RegExp(`^${ENV}=`, 'm').test(local)) summary.push(`Copy ${ENV} from .env.example into .env.local (codz does not write .env.local)${choice.architecture === 'fetch-helper' ? `; until then lib/api/client.ts falls back to ${baseUrl}` : ': the API functions read it'}`);
   }
   summary.push(`Save conventions: API files in ${apiFolder}, interfaces in ${conventions.modelsFolder}`);
   return { files, summary, warnings, generated: [], conventions, dependenciesChanged: false };

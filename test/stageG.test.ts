@@ -287,7 +287,7 @@ describe('endpoints from a spec go relative to the client base URL', () => {
     }
   });
 
-  it('Flutter: a baseUrl devtool cannot read (a constant) still means a relative path', async () => {
+  it('Flutter: a baseUrl codz cannot read (a constant) still means a relative path', async () => {
     const dir = copyFixture('flutter-riverpod');
     try {
       dioWith(dir, 'baseUrl: AppConfig.apiUrl');
@@ -331,7 +331,7 @@ describe('feature add sets up a fresh project first', () => {
       assert.ok(r.changeSet.summary.some((l) => /^Set up first: Riverpod, base URL https:\/\/api\.example\.com\/v1/.test(l)));
       assert.deepEqual(r.screens.map((s) => s.kind), ['list', 'create', 'detail', 'edit']);
       const paths = r.changeSet.changes.map((c) => c.path);
-      assert.ok(paths.includes('devtool.config.yaml') && paths.includes('pubspec.yaml'));
+      assert.ok(paths.includes('codz.config.yaml') && paths.includes('pubspec.yaml'));
       // Navigator: the row pushes the detail page by its class.
       const list = r.changeSet.changes.find((c) => /products_page\.dart$/.test(c.path))!.after!;
       assert.match(list, /Navigator\.push\(context, MaterialPageRoute\(builder: \(_\) => ProductDetailPage\(productId: '\$\{items\[index\]\.id\}'\)\)\)/);

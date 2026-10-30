@@ -33,7 +33,7 @@ export function checkRelPath(p: string, where: string): string {
     if (RESERVED.test(s)) unsafe(`a name reserved on Windows (${s})`);
     if (/[. ]$/.test(s)) unsafe('a name ending in a dot or a space');
     if (s === '.git') unsafe('a .git folder');
-    if (s === '.devtool') unsafe("devtool's own folder");
+    if (s === '.codz') unsafe("codz's own folder");
   }
   return p;
 }

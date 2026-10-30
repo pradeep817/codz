@@ -20,6 +20,6 @@ export interface TeamDetail {
   members: Member[]
   /** ISO 8601 date string. */
   created_at: string
-  // devtool: type unknown from the samples; set it by hand.
+  // codz: type unknown from the samples; set it by hand.
   archived_at?: unknown
 }

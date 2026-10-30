@@ -1,4 +1,4 @@
-// devtool new and the starter catalog: strict parsing, hostile archives,
+// codz new and the starter catalog: strict parsing, hostile archives,
 // signatures, the engine, the local flow (new → init → api add → undo), and
 // the online flow against a fake registry (index, rollback, expiry,
 // revocation, login, entitlement, cache).
@@ -30,7 +30,7 @@ async function cli(args: string[], cwd?: string): Promise<{ code: number; out: s
   let err = '';
   const ow = process.stdout.write.bind(process.stdout);
   const ew = process.stderr.write.bind(process.stderr);
-  // Only text is devtool's; the test runner talks to its parent with binary writes, which must pass through.
+  // Only text is codz's; the test runner talks to its parent with binary writes, which must pass through.
   process.stdout.write = ((s: string | Uint8Array, ...rest: unknown[]) => (typeof s === 'string' ? ((out += s), true) : (ow as (...a: unknown[]) => boolean)(s, ...rest))) as typeof process.stdout.write;
   process.stderr.write = ((s: string | Uint8Array, ...rest: unknown[]) => (typeof s === 'string' ? ((err += s), true) : (ew as (...a: unknown[]) => boolean)(s, ...rest))) as typeof process.stderr.write;
   try {
@@ -42,7 +42,7 @@ async function cli(args: string[], cwd?: string): Promise<{ code: number; out: s
   }
 }
 
-const tmp = (p: string) => mkdtempSync(join(tmpdir(), `devtool-${p}-`));
+const tmp = (p: string) => mkdtempSync(join(tmpdir(), `codz-${p}-`));
 const rejects = (fn: () => unknown, code: string) => assert.throws(fn, (e: { code?: string; message?: string }) => e.code === code || assert.fail(`expected ${code}, got ${e.code}: ${e.message}`));
 
 /** One raw ustar header + data, for archives the writer would never produce. */
@@ -92,7 +92,7 @@ describe('starters: strict parsing', () => {
   });
 
   it('paths: traversal, absolute, drive letters, reserved names, .git, case and file/folder collisions', () => {
-    for (const p of ['../x', 'a/../../x', '/etc/passwd', 'C:/x', 'a\\b', 'con.txt', 'a/aux', 'x.', '.git/config', '.devtool/history.json', 'a//b', './a']) rejects(() => checkRelPath(p, 't'), 'archive_unsafe');
+    for (const p of ['../x', 'a/../../x', '/etc/passwd', 'C:/x', 'a\\b', 'con.txt', 'a/aux', 'x.', '.git/config', '.codz/history.json', 'a//b', './a']) rejects(() => checkRelPath(p, 't'), 'archive_unsafe');
     assert.equal(checkRelPath('lib/main.dart', 't'), 'lib/main.dart');
     rejects(() => checkCollisions(['a/B.txt', 'a/b.txt'], 't'), 'archive_unsafe');
     rejects(() => checkCollisions(['caf\u00e9', 'cafe\u0301'], 't'), 'archive_unsafe');
@@ -239,19 +239,19 @@ describe('starters: engine', () => {
 
 // ---------------------------------------------------------------------------
 
-describe('starters: devtool new from a folder', () => {
+describe('starters: codz new from a folder', () => {
   it('new → init (conventions match the manifest) → api add → undo twice removes the project', async () => {
     const parent = tmp('new');
     try {
       const r = await cli(['new', 'shop-web', '--template', NEXT, '--set', 'appTitle=Shop Web', '--no-steps', '--yes'], parent);
       assert.equal(r.code, 0, r.err);
       const dir = join(parent, 'shop-web');
-      assert.ok(!readdirSync(parent).some((n) => n.includes('devtool-new')), 'no temporary folder left');
+      assert.ok(!readdirSync(parent).some((n) => n.includes('codz-new')), 'no temporary folder left');
       assert.match(readFileSync(join(dir, 'app/layout.tsx'), 'utf8'), /title: 'Shop Web'/);
       assert.match(readFileSync(join(dir, 'package.json'), 'utf8'), /"next": "\^15/);
       assert.equal((await cli(['init', '--yes'], dir)).code, 0);
       const expected = JSON.parse(readFileSync(join(NEXT, 'manifest.json'), 'utf8')).expectedConventions as Record<string, string>;
-      const cfg = readFileSync(join(dir, 'devtool.config.yaml'), 'utf8');
+      const cfg = readFileSync(join(dir, 'codz.config.yaml'), 'utf8');
       for (const [k, v] of Object.entries(expected)) assert.match(cfg, new RegExp(`^  ${k}: '?${v.replace(/[/@.]/g, '\\$&')}'?$`, 'm'), `init contract: ${k}`);
       const add = await cli(['api', 'add', '--url', 'https://api.example.com/products', '--sample', join(INPUTS, 'products.json'), '--yes', '--allow-dirty', '--no-verify'], dir);
       assert.equal(add.code, 0, add.err);
@@ -288,7 +288,7 @@ describe('starters: devtool new from a folder', () => {
     const parent = tmp('new');
     const home = tmp('home');
     const tpl = tmp('tpl');
-    process.env.DEVTOOL_HOME = home;
+    process.env.CODZ_HOME = home;
     try {
       cpSync(NEXT, tpl, { recursive: true });
       const plan = JSON.parse((await cli(['new', 'p1', '--template', tpl, '--no-steps', '--json'], parent)).out);
@@ -302,7 +302,7 @@ describe('starters: devtool new from a folder', () => {
       refreshFileList(tpl);
       assert.equal(JSON.parse((await cli(['apply', plan2.planId, '--json'], parent)).out).error.code, 'changed_since_plan');
     } finally {
-      delete process.env.DEVTOOL_HOME;
+      delete process.env.CODZ_HOME;
       for (const d of [parent, home, tpl]) rmSync(d, { recursive: true, force: true });
     }
   });
@@ -335,13 +335,13 @@ esac
       assert.match(readFileSync(join(dir, 'lib/core/network/dio_provider.dart'), 'utf8'), /defaultValue: 'https:\/\/api\.shop\.dev'/);
       assert.match(readFileSync(join(dir, 'test/widget_test.dart'), 'utf8'), /import 'package:shop_app\/main\.dart';/);
       assert.equal((await cli(['init', '--yes'], dir)).code, 0);
-      const cfg = readFileSync(join(dir, 'devtool.config.yaml'), 'utf8');
+      const cfg = readFileSync(join(dir, 'codz.config.yaml'), 'utf8');
       const expected = JSON.parse(readFileSync(join(FLUTTER, 'manifest.json'), 'utf8')).expectedConventions as Record<string, string>;
       for (const [k, v] of Object.entries(expected)) assert.match(cfg, new RegExp(`^  ${k}: '?${v.replace(/[/.]/g, '\\$&')}'?$`, 'm'), `init contract: ${k}`);
       const add = await cli(['api', 'add', '--url', 'https://api.shop.dev/products', '--sample', join(INPUTS, 'products.json'), '--yes', '--allow-dirty', '--no-verify', '--no-format'], dir);
       assert.equal(add.code, 0, add.err);
       assert.ok(existsSync(join(dir, 'lib/data/models/product.dart')));
-      // pubspec.lock and .dart_tool from pub get, and devtool.config.yaml from init, do not block undo.
+      // pubspec.lock and .dart_tool from pub get, and codz.config.yaml from init, do not block undo.
       assert.match((await cli(['undo'], dir)).out, /Undid api add/);
       assert.match((await cli(['undo'], dir)).out, /Undid new/);
     } finally {
@@ -441,16 +441,16 @@ describe('starters: the catalog (fake registry)', () => {
     });
     await new Promise<void>((r) => server.listen(0, '127.0.0.1', () => r()));
     base = `http://127.0.0.1:${(server.address() as { port: number }).port}`;
-    process.env.DEVTOOL_REGISTRY = base;
-    process.env.DEVTOOL_REGISTRY_KEYS = keys.publicRaw;
-    process.env.DEVTOOL_HOME = home;
+    process.env.CODZ_REGISTRY = base;
+    process.env.CODZ_REGISTRY_KEYS = keys.publicRaw;
+    process.env.CODZ_HOME = home;
   });
 
   after(() => {
     server?.close();
-    delete process.env.DEVTOOL_REGISTRY;
-    delete process.env.DEVTOOL_REGISTRY_KEYS;
-    delete process.env.DEVTOOL_HOME;
+    delete process.env.CODZ_REGISTRY;
+    delete process.env.CODZ_REGISTRY_KEYS;
+    delete process.env.CODZ_HOME;
     for (const d of [reg, home]) rmSync(d, { recursive: true, force: true });
   });
 
@@ -462,8 +462,8 @@ describe('starters: the catalog (fake registry)', () => {
     assert.match(r.err, /Contacting the starter catalog at 127\.0\.0\.1/);
     assert.match(r.err, /not the official one/);
     const show = await cli(['starters', 'show', 'nextjs-app-router-fetch']);
-    assert.match(show.out, /Beyond devtool create:\n {2}- Error and not-found pages/);
-    assert.match(show.out, /devtool new <name> --template nextjs-app-router-fetch@1\.0\.0/);
+    assert.match(show.out, /Beyond codz create:\n {2}- Error and not-found pages/);
+    assert.match(show.out, /codz new <name> --template nextjs-app-router-fetch@1\.0\.0/);
     assert.equal(JSON.parse((await cli(['starters', 'show', 'nope', '--json'])).out).error.code, 'template_not_found');
   });
 
@@ -474,7 +474,7 @@ describe('starters: the catalog (fake registry)', () => {
       assert.equal(r.code, 0, r.err);
       assert.match(r.out, /verified, archive [0-9a-f]{12}/);
       assert.ok(existsSync(join(home, 'starters/cache/nextjs-app-router-fetch/1.0.0/archive.tar.gz')));
-      const hist = JSON.parse(readFileSync(join(parent, 'web/.devtool/history.json'), 'utf8'));
+      const hist = JSON.parse(readFileSync(join(parent, 'web/.codz/history.json'), 'utf8'));
       assert.equal(hist[0].meta.starter.archiveSha256.length, 64);
       const off = await cli(['new', 'web2', '--template', 'nextjs-app-router-fetch', '--cached', '--no-steps', '--yes'], parent);
       assert.equal(off.code, 0, off.err);
@@ -514,7 +514,7 @@ describe('starters: the catalog (fake registry)', () => {
       const r = await cli(['new', 'pro', '--template', 'nextjs-pro', '--no-steps', '--yes'], parent);
       assert.equal(r.code, 0, r.err);
       assert.equal(JSON.parse((await cli(['new', 'team', '--template', 'nextjs-team', '--yes', '--json'], parent)).out).error.code, 'no_entitlement');
-      const leaks = [r.out, r.err, login.out, who.out, readFileSync(join(parent, 'pro/.devtool/history.json'), 'utf8'), readFileSync(join(home, 'starters/runs.json'), 'utf8')].join('\n');
+      const leaks = [r.out, r.err, login.out, who.out, readFileSync(join(parent, 'pro/.codz/history.json'), 'utf8'), readFileSync(join(home, 'starters/runs.json'), 'utf8')].join('\n');
       assert.doesNotMatch(leaks, /secret|sig=ok/);
       const out = await cli(['logout']);
       assert.match(out.out, /Logged out/);
@@ -561,7 +561,7 @@ describe('starters: the catalog (fake registry)', () => {
 
   it('from an agent (MCP): a paid starter that is not downloaded needs the user; login is not a tool; new only plans', async () => {
     const parent = tmp('mcp');
-    process.env.DEVTOOL_MCP = '1';
+    process.env.CODZ_MCP = '1';
     try {
       const r = JSON.parse((await cli(['new', 'team', '--template', 'nextjs-team', '--json'], parent)).out);
       assert.equal(r.error.code, 'needs_approval');
@@ -571,7 +571,7 @@ describe('starters: the catalog (fake registry)', () => {
       const tool = tools.find((t) => t.name === 'new')!;
       assert.ok(cliArgs(tool, { args: ['web'], template: 'nextjs-app-router-fetch' }).includes('--plan'));
     } finally {
-      delete process.env.DEVTOOL_MCP;
+      delete process.env.CODZ_MCP;
       rmSync(parent, { recursive: true, force: true });
     }
   });

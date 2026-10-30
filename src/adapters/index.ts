@@ -19,7 +19,7 @@ export const ADAPTERS: Record<FrameworkId, Adapter> = {
   generic: genericAdapter,
 };
 
-/** Picks the adapter: the framework in devtool.config.yaml wins, then detection. */
+/** Picks the adapter: the framework in codz.config.yaml wins, then detection. */
 export function adapterFor(root: string): { adapter: Adapter; label: string } {
   const cfg = loadConfig(root);
   if (cfg.framework && ADAPTERS[cfg.framework]) return { adapter: ADAPTERS[cfg.framework], label: cfg.framework };
