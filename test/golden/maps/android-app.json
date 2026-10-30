@@ -1,0 +1,94 @@
+{
+  "schema": 1,
+  "framework": "android",
+  "adapter": "android@0.1.0",
+  "conventions": {
+    "module": "app",
+    "versionCatalog": "gradle/libs.versions.toml",
+    "namespace": "dev.fieldops.app",
+    "srcDir": "app/src/main/java",
+    "http": "retrofit",
+    "serialization": "moshi",
+    "di": "hilt",
+    "ui": "compose",
+    "apiFolder": "app/src/main/java/dev/fieldops/app/data/api",
+    "modelsFolder": "app/src/main/java/dev/fieldops/app/data/model",
+    "diFile": "app/src/main/java/dev/fieldops/app/di/NetworkModule.kt",
+    "baseUrl": "https://api.fieldops.dev/v1/",
+    "screensFolder": "app/src/main/java/dev/fieldops/app/ui/jobs",
+    "navFile": "app/src/main/java/dev/fieldops/app/ui/FieldOpsNavHost.kt",
+    "indent": "4"
+  },
+  "routes": [
+    {
+      "name": "jobs",
+      "path": "/jobs",
+      "params": [],
+      "file": "app/src/main/java/dev/fieldops/app/ui/FieldOpsNavHost.kt"
+    }
+  ],
+  "endpoints": [
+    {
+      "name": "getJobs",
+      "method": "GET",
+      "path": "/jobs",
+      "response": "List<Job>",
+      "file": "app/src/main/java/dev/fieldops/app/data/api/JobApi.kt",
+      "calledFrom": [
+        "app/src/main/java/dev/fieldops/app/ui/jobs/JobsViewModel.kt"
+      ]
+    },
+    {
+      "name": "getJob",
+      "method": "GET",
+      "path": "/jobs/{id}",
+      "response": "Job",
+      "file": "app/src/main/java/dev/fieldops/app/data/api/JobApi.kt",
+      "calledFrom": []
+    }
+  ],
+  "models": [
+    {
+      "name": "Job",
+      "file": "app/src/main/java/dev/fieldops/app/data/model/Job.kt",
+      "fields": [
+        {
+          "name": "id",
+          "type": "Int",
+          "nullable": false
+        },
+        {
+          "name": "title",
+          "type": "String",
+          "nullable": false
+        },
+        {
+          "name": "created_at",
+          "type": "String",
+          "nullable": false
+        },
+        {
+          "name": "notes",
+          "type": "String",
+          "nullable": true
+        }
+      ]
+    }
+  ],
+  "locales": {
+    "languages": [],
+    "files": [],
+    "keyCount": 0
+  },
+  "baseUrls": [],
+  "stats": {
+    "files": 13,
+    "byExtension": {
+      ".kt": 8,
+      ".kts": 3,
+      ".toml": 1,
+      ".xml": 1
+    }
+  },
+  "notes": []
+}

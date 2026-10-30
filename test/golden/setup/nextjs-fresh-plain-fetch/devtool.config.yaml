@@ -1,0 +1,47 @@
+# devtool configuration. Commit this file.
+# Values below were detected by `devtool init` (or chosen in `devtool setup`).
+# Correct any that are wrong: devtool always uses these values instead of guessing again.
+framework: nextjs
+conventions:
+  # App Router folder
+  appDir: app
+  # path alias prefix from tsconfig, for example @/
+  importAlias: '@/'
+  # folder the alias points to ("." for the project root)
+  aliasBase: .
+  # HTTP client: fetch or axios
+  http: fetch
+  # shared request helper to call, or "fetch" to call fetch directly
+  httpHelper: fetch
+  # file that exports the request helper
+  httpHelperFile: ''
+  # where API functions live
+  apiFolder: lib/api
+  # file naming in the API folder: kebab, camel, pascal or snake
+  apiFileNaming: kebab
+  # word after the resource in API file names (for example "service"), or empty
+  apiFileSuffix: ''
+  # resource form in API file names: plural (users.ts) or singular (user.ts)
+  apiFileResource: plural
+  # environment variable that holds the API base URL
+  baseUrlEnv: NEXT_PUBLIC_API_URL
+  # where TypeScript interfaces for API data live
+  modelsFolder: types
+  # per-file (one interface per file) or single (all in modelsFile)
+  modelsLayout: per-file
+  # the single models file, when modelsLayout is single
+  modelsFile: ''
+  # file naming in the models folder
+  modelFileNaming: kebab
+  # how API files import models: alias or relative
+  importStyle: alias
+  # string quote: single or double
+  quote: double
+  # true or false
+  semicolons: 'true'
+  # indentation: 2, 4 or tab
+  indent: 2
+  # internationalization library, if any
+  i18n: ''
+  # styling library, if any
+  styling: ''

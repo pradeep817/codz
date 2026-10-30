@@ -1,0 +1,4 @@
+• Create types/product.ts: interface Product
+• Update types/index.ts: export the new models
+• Create lib/api/products.ts: getProducts() for GET /products
+• Update lib/api/index.ts: export ./products

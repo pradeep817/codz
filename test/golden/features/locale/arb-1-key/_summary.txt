@@ -1,0 +1,4 @@
+• Add welcomeUser in lib/l10n/app_en.arb
+• Add welcomeUser in lib/l10n/app_hi.arb
+! ARB keys must be Dart identifiers, so "welcome-user" is saved as "welcomeUser".
+! welcomeUser uses the en text for hi; translate it there, or pass --value hi="...".

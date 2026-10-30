@@ -1,0 +1,224 @@
+{
+  "schema": 1,
+  "id": "nextjs-saas-pro",
+  "version": "1.0.0",
+  "title": "Next.js SaaS dashboard with sign-in",
+  "summary": "A Next.js App Router dashboard with sign-in through your API: server actions, the token in an HttpOnly cookie, protected pages, a sidebar layout, a profile page, and loading and error states.",
+  "framework": "nextjs",
+  "mode": "full",
+  "requires": {
+    "devtool": ">=0.1.0",
+    "node": ">=18.18"
+  },
+  "provides": {
+    "router": "app-router",
+    "http": "fetch",
+    "auth": "cookie-session"
+  },
+  "extras": [
+    "Sign-in with server actions and an HttpOnly session cookie",
+    "Middleware that protects private pages",
+    "Sidebar dashboard layout that works on phones",
+    "Profile settings with save and error states",
+    "apiFetch() that sends the signed-in user's token",
+    "Loading, error and not-found pages"
+  ],
+  "apiAdd": {
+    "supported": true
+  },
+  "answers": [
+    {
+      "key": "appName",
+      "prompt": "Package name",
+      "type": "npm-name",
+      "default": "my-app"
+    },
+    {
+      "key": "appTitle",
+      "prompt": "App title",
+      "type": "string",
+      "default": "My App",
+      "maxLength": 60
+    },
+    {
+      "key": "apiBaseUrl",
+      "prompt": "API base URL",
+      "type": "string",
+      "default": "https://api.example.com",
+      "maxLength": 200
+    }
+  ],
+  "dependencies": {
+    "next": "^15.1.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "typescript": "^5"
+  },
+  "steps": [
+    "npm_install"
+  ],
+  "expectedConventions": {
+    "http": "fetch",
+    "httpHelper": "apiFetch",
+    "httpHelperFile": "lib/api/client.ts",
+    "apiFolder": "lib/api",
+    "baseUrlEnv": "API_URL",
+    "importAlias": "@/"
+  },
+  "files": [
+    {
+      "path": ".env.example",
+      "sha256": "dbef6eb7bdd77f0530cfd0efd075370fb318e67b75cfc99306cac7b18956b357",
+      "size": 122
+    },
+    {
+      "path": ".gitignore",
+      "sha256": "7a8f84e6c2be35a67c09465a0b40450eb4ba206d8582949941bde66b5ac329bb",
+      "size": 76
+    },
+    {
+      "path": "README.md",
+      "sha256": "11b34f1773f2c587c9cbaff1cf0905ac946a1ec51d6e80bcaf05e59ffe173b98",
+      "size": 1202
+    },
+    {
+      "path": "app/(app)/dashboard/loading.tsx",
+      "sha256": "938efbafd3f0c43796f718239186a75bf8183490dbcfb77c4824480a7b6da89d",
+      "size": 98
+    },
+    {
+      "path": "app/(app)/dashboard/page.tsx",
+      "sha256": "78b4510b2ebda0a7e56dfd455c9405867a18b7e66720f042392f430ee49691f7",
+      "size": 740
+    },
+    {
+      "path": "app/(app)/error.tsx",
+      "sha256": "e2efa0f2a5bae9ecdf7cef1489409e22ee662467beca0c4e7e27c4738b2c5288",
+      "size": 385
+    },
+    {
+      "path": "app/(app)/layout.tsx",
+      "sha256": "bdb607840235296cb6f783bc38bead29d365380e3caea5cb23fa067a6e0df4d9",
+      "size": 641
+    },
+    {
+      "path": "app/(app)/settings/page.tsx",
+      "sha256": "a2884682ff31bfd44e1a4517ce0bb25b79661014bef99870eea6ef60d9b462f1",
+      "size": 452
+    },
+    {
+      "path": "app/(auth)/layout.tsx",
+      "sha256": "9ac09fc0465186b4cf9d1310058d6ae9db01a32963507d1714ca0e299d97559a",
+      "size": 263
+    },
+    {
+      "path": "app/(auth)/login/page.tsx",
+      "sha256": "e57d7d7f8b76b8958028980b74e1c6bea8bbdad0e2d03a7ecadbaa93ed1b730e",
+      "size": 394
+    },
+    {
+      "path": "app/error.tsx",
+      "sha256": "6f0941af29299ca9d5ee603a85e0ea0b0324a54923149d91f9a49d5057893b47",
+      "size": 480
+    },
+    {
+      "path": "app/globals.css",
+      "sha256": "e2e69457d8e18c6910e888619f310c0929f8aeac16b2475d265e6eeea9260166",
+      "size": 2972
+    },
+    {
+      "path": "app/layout.tsx",
+      "sha256": "8eb5f8dfd8051120cbece6a95678552f67be5ff9ff0f4f69ce31629d375c6244",
+      "size": 377
+    },
+    {
+      "path": "app/not-found.tsx",
+      "sha256": "068cff82ac1326ba8758e5d911d98b9ea8c15ce11f25cf8def08e2c1f8a336a2",
+      "size": 395
+    },
+    {
+      "path": "app/page.tsx",
+      "sha256": "084ea4905f7bc2dc323226d6f7038865fab5530e64e02c21b0b97f109bffe511",
+      "size": 106
+    },
+    {
+      "path": "components/LoginForm.tsx",
+      "sha256": "ce1008046cee84765e4367b58915bbef9afdae7a73e112acd9ad68cb6e1aeb71",
+      "size": 883
+    },
+    {
+      "path": "components/ProfileForm.tsx",
+      "sha256": "bc4e8903098c2abdcd69b320dc21213685997d3236a41da32666bf9b1a66d8c9",
+      "size": 887
+    },
+    {
+      "path": "components/Sidebar.tsx",
+      "sha256": "f29f840633c4cb38347cd4d77911e4b71208568b804186d665f217e2135f17e9",
+      "size": 724
+    },
+    {
+      "path": "lib/api/auth.ts",
+      "sha256": "ad8228a859741a0d8e47d5e64976afbcb73a50af7647487816417e3c7b1a130f",
+      "size": 686
+    },
+    {
+      "path": "lib/api/client.ts",
+      "sha256": "8d6610a8d348293e7a8b8b020361e808ff59aecf2819c89ab53ee178dd9d5a86",
+      "size": 2179
+    },
+    {
+      "path": "lib/api/index.ts",
+      "sha256": "6072cbf9a039ca67602a1ebd77dcd740bfa1056d7cabcfc727a43e4dcf16e0e3",
+      "size": 50
+    },
+    {
+      "path": "lib/auth/actions.ts",
+      "sha256": "11596768caf573060331e8d901b57645ec518a27e9125edc3792aa31bab1d921",
+      "size": 1703
+    },
+    {
+      "path": "lib/auth/cookie.ts",
+      "sha256": "7b635d123903221ec42f43fd0d859fd8c9c8954664a5e007d2d7658d9472babb",
+      "size": 130
+    },
+    {
+      "path": "lib/auth/session.ts",
+      "sha256": "130adc9e9f90efb701d5093e25a50a473d15d4583fb7369b47a956b2f6b10881",
+      "size": 1220
+    },
+    {
+      "path": "middleware.ts",
+      "sha256": "dbb8ca84a745cec1c8617c36cb88d0dae2a3a50b49116a15c209909d57b1cc90",
+      "size": 539
+    },
+    {
+      "path": "next.config.mjs",
+      "sha256": "73f18ea67787ab9d40bedbf6600bc6f822dfc31347374a54677d67a36567b20b",
+      "size": 118
+    },
+    {
+      "path": "package.json",
+      "sha256": "64819c9c85047f05e6eab82ac8520f9f49a81b28e21790add6735d0a732d899b",
+      "size": 223
+    },
+    {
+      "path": "tsconfig.json",
+      "sha256": "104fbd18432406714408395ec11b2fbb3c716da1fce21e5abd7d74e80720838f",
+      "size": 563
+    },
+    {
+      "path": "types/user.ts",
+      "sha256": "4c6ed90d0aa3c2a98409d7ebf3156e578ba000a7683fef43e73162fc225c3ff7",
+      "size": 73
+    }
+  ],
+  "license": {
+    "kind": "commercial-single-developer",
+    "file": "LICENSE"
+  }
+}

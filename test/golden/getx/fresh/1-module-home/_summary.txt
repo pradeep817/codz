@@ -1,0 +1,7 @@
+• Create lib/app/modules/home/bindings/home_binding.dart: HomeBinding
+• Create lib/app/modules/home/controllers/home_controller.dart: HomeController
+• Create lib/app/modules/home/views/home_view.dart: HomeView
+• Create lib/app/routes/app_pages.dart: AppPages with the /home page, the first screen
+• Create lib/app/routes/app_routes.dart: Routes.home and its path
+• Update lib/main.dart: GetMaterialApp uses initialRoute and getPages
+! Removed "home: const MyHomePage(title: 'Flutter Demo Home Page')" from GetMaterialApp: the app now starts at AppPages.initial. The old home widget is still in main.dart if you want to reuse it. The counter test from flutter create (test/widget_test.dart) checks that page and will fail now; update it or delete it.

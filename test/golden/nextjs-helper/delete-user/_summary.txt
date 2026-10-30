@@ -1,0 +1,1 @@
+• Update lib/api/users.ts: deleteUser() for DELETE /users/{id}

@@ -1,0 +1,8 @@
+• Create types/order-item.ts: interface OrderItem
+• Create types/address.ts: interface Address
+• Create types/order.ts: interface Order
+• Create types/create-user-order-request.ts: interface CreateUserOrderRequest
+• Update types/index.ts: export the new models
+• Update lib/api/users.ts: createUserOrder() for POST /users/{userId}/orders
+! Removed from the input and never written anywhere: header "Authorization", query parameter "api_key". Use your project's auth mechanism for these.
+! The response is wrapped in {"data": ...}; the generated code returns the inner "data" value. Use --no-unwrap to keep the wrapper.

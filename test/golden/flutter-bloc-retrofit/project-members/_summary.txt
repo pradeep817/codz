@@ -1,0 +1,5 @@
+• Create lib/models/member.dart: class Member
+• Create lib/data/api/project_api.dart: ProjectApi.getProjectMembers() for GET /v1/projects/{projectId}/members
+• Update lib/di.dart: register ProjectApi with get_it
+! Run `dart run build_runner build` to generate the .freezed.dart and .g.dart files for the new models.
+! Run `dart run build_runner build` to regenerate project_api.g.dart after this change.

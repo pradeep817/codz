@@ -1,0 +1,5 @@
+• Add --color-primary: #6750a4 in the @theme block of app/globals.css
+• Use it as a class: bg-primary
+• Add --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif in the @theme block of app/globals.css
+• Use it as a class: font-sans
+! Load Inter too (next/font/google or a <link>), or the browser uses the fallback font.

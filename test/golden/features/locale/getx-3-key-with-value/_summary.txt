@@ -1,0 +1,2 @@
+• Add 'cart.empty' in lib/app/translations/app_translations.dart (en_US, hi_IN)
+• Use it in a widget: Text('cart.empty'.tr)

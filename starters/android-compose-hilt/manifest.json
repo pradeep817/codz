@@ -1,0 +1,219 @@
+{
+  "schema": 1,
+  "id": "android-compose-hilt",
+  "version": "1.0.0",
+  "title": "Android with Compose, Hilt and Retrofit",
+  "summary": "Kotlin and Jetpack Compose with Material 3, Navigation Compose, Hilt and Retrofit with kotlinx.serialization, plus safeApiCall() with readable errors and ready-made loading and error views.",
+  "framework": "android",
+  "mode": "full",
+  "requires": {
+    "devtool": ">=0.1.0"
+  },
+  "provides": {
+    "ui": "compose",
+    "di": "hilt",
+    "http": "retrofit",
+    "serialization": "kotlinx"
+  },
+  "extras": [
+    "safeApiCall() with ApiResult and user-facing messages",
+    "UiState, LoadingView and ErrorView for every screen",
+    "Material 3 themes with optional dynamic color",
+    "HTTP logging in debug builds only, with timeouts",
+    "A JUnit test and the Gradle wrapper"
+  ],
+  "apiAdd": {
+    "supported": true
+  },
+  "answers": [
+    {
+      "key": "appName",
+      "prompt": "Folder name",
+      "type": "npm-name",
+      "default": "my-app"
+    },
+    {
+      "key": "appTitle",
+      "prompt": "App title",
+      "type": "string",
+      "default": "My App",
+      "maxLength": 60
+    },
+    {
+      "key": "packageName",
+      "prompt": "Package (application id)",
+      "type": "reverse-domain",
+      "default": "com.example.myapp"
+    },
+    {
+      "key": "apiBaseUrl",
+      "prompt": "API base URL (without a trailing /)",
+      "type": "string",
+      "default": "https://api.example.com",
+      "maxLength": 200
+    }
+  ],
+  "dependencies": {},
+  "steps": [],
+  "expectedConventions": {
+    "module": "app",
+    "versionCatalog": "gradle/libs.versions.toml",
+    "srcDir": "app/src/main/java",
+    "http": "retrofit",
+    "serialization": "kotlinx",
+    "di": "hilt",
+    "ui": "compose"
+  },
+  "files": [
+    {
+      "path": ".gitignore",
+      "sha256": "e5362027cfdb4730e3af7523b80329711016c58afb4cc91dc1bd6e8a9330dbe3",
+      "size": 166
+    },
+    {
+      "path": "README.md",
+      "sha256": "a03a5579cbb3e074709eadabf9e6895123ba32340720f6a6e4974c10a26985f8",
+      "size": 650
+    },
+    {
+      "path": "app/.gitignore",
+      "sha256": "5b46eb48d96e8571e8c93e4ef4f6ffbe6807b6d7350664a36a064e1167a32718",
+      "size": 7
+    },
+    {
+      "path": "app/build.gradle.kts",
+      "sha256": "3d55c9e25ae3709112eda45b7a336658c796ba68dabd7290782bcebe5401195f",
+      "size": 1874
+    },
+    {
+      "path": "app/proguard-rules.pro",
+      "sha256": "63f4808f9fbbef1693ed82ad2bc63bbc09ce7e58ce18124cabf4f6ff74997266",
+      "size": 43
+    },
+    {
+      "path": "app/src/main/AndroidManifest.xml",
+      "sha256": "3b46a038acf272e6ce02395a24b46167c644f8e81615e3a71cb6e4ebc30894ef",
+      "size": 773
+    },
+    {
+      "path": "app/src/main/java/{{packageName.path}}/App.kt",
+      "sha256": "260754e70c8628a74e7ac0ce2f3a116c4edf96567ba93ca5984426e554a195d0",
+      "size": 141
+    },
+    {
+      "path": "app/src/main/java/{{packageName.path}}/MainActivity.kt",
+      "sha256": "2c81a39fbca7646522990cf4e6f53583f4721d563f861627e8ca785d01470271",
+      "size": 608
+    },
+    {
+      "path": "app/src/main/java/{{packageName.path}}/data/model/.gitkeep",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0
+    },
+    {
+      "path": "app/src/main/java/{{packageName.path}}/data/remote/ApiConfig.kt",
+      "sha256": "7e8cd46ba41ec2fd7b1af48e122feb08b7ff448c6b34f142be94cdeca6f1a2b8",
+      "size": 166
+    },
+    {
+      "path": "app/src/main/java/{{packageName.path}}/data/remote/ApiResult.kt",
+      "sha256": "3bef7d0d9c8ca0609431478a4fd8f5f81fb32216c3b2e03a3765099b11d0d98a",
+      "size": 1521
+    },
+    {
+      "path": "app/src/main/java/{{packageName.path}}/di/NetworkModule.kt",
+      "sha256": "384ec3111e5ba4e737f04ab37a3b7aa3f3d89bd6ed94359f61bd6e7547cf4c36",
+      "size": 1607
+    },
+    {
+      "path": "app/src/main/java/{{packageName.path}}/ui/UiState.kt",
+      "sha256": "c123acb983d77fc067998034294977160888572b91c85a4293a86e78f17d6f5f",
+      "size": 311
+    },
+    {
+      "path": "app/src/main/java/{{packageName.path}}/ui/components/StateViews.kt",
+      "sha256": "73181b9fd2a8c829cfbe39396c760a9e61e0d4237f1ec44314888381ab207128",
+      "size": 1465
+    },
+    {
+      "path": "app/src/main/java/{{packageName.path}}/ui/navigation/AppNavHost.kt",
+      "sha256": "242e696022047888d7aa0f3633ab87ab45968f6a9bd038fdd843c97c19f203df",
+      "size": 644
+    },
+    {
+      "path": "app/src/main/java/{{packageName.path}}/ui/screens/HomeScreen.kt",
+      "sha256": "fac871955c4bbebd1964d2d795a79128c58f966449629e63b7c1addd7bdd4921",
+      "size": 1395
+    },
+    {
+      "path": "app/src/main/java/{{packageName.path}}/ui/theme/Color.kt",
+      "sha256": "7e83be4de521610b400e7db6d0f01b2ea46c16d2f92b92a615157b4f2df58634",
+      "size": 178
+    },
+    {
+      "path": "app/src/main/java/{{packageName.path}}/ui/theme/Theme.kt",
+      "sha256": "2dec4581b53769fc05d0f28740582c261d625baa85e6095ad0e49af75bce455f",
+      "size": 1198
+    },
+    {
+      "path": "app/src/main/res/values/strings.xml",
+      "sha256": "a143632dfbebf8eef77a765bb5adc89851d4e8178961befecebdc7639d9090d4",
+      "size": 75
+    },
+    {
+      "path": "app/src/main/res/values/themes.xml",
+      "sha256": "1d2b5bb54386798aa4c7c4a0d89746f11b7a50c335de32b2a7fd642482732967",
+      "size": 241
+    },
+    {
+      "path": "app/src/test/java/{{packageName.path}}/data/remote/ApiResultTest.kt",
+      "sha256": "8725169d03da8474688e55241d0f57df110fe63d59f32d038f7a003032258f3b",
+      "size": 568
+    },
+    {
+      "path": "build.gradle.kts",
+      "sha256": "779ba68c936d51309c7fca5b31f7e20dc3817eefb6bac0582431fbef3d386792",
+      "size": 387
+    },
+    {
+      "path": "gradle/libs.versions.toml",
+      "sha256": "e26995af3c53b09859297426dfc78404520cfc8a3a7be96a2cbb91babed1f4f2",
+      "size": 2918
+    },
+    {
+      "path": "gradle/wrapper/gradle-wrapper.jar",
+      "sha256": "7d3a4ac4de1c32b59bc6a4eb8ecb8e612ccd0cf1ae1e99f66902da64df296172",
+      "size": 43764
+    },
+    {
+      "path": "gradle/wrapper/gradle-wrapper.properties",
+      "sha256": "d7010368a34c1c06df2bae1a85d8b24c39b2499c74ac892fc7e66d005dbd7b8a",
+      "size": 253
+    },
+    {
+      "path": "gradle.properties",
+      "sha256": "678c35a27eeda302d6a960484179d118d08fb1edf05c1b40745bc7aed6e88f03",
+      "size": 136
+    },
+    {
+      "path": "gradlew",
+      "sha256": "b187b4c52e749f5760afdd6fadc31b2a98ad35fb249bf0dff03b72650f320409",
+      "size": 8733,
+      "mode": "755"
+    },
+    {
+      "path": "gradlew.bat",
+      "sha256": "1d297e00bd21de3ace22b4d7f2de1f9dfa858883d66bbf7c1ccbecccec8f4f3b",
+      "size": 2937
+    },
+    {
+      "path": "settings.gradle.kts",
+      "sha256": "82b747e5d67a93d2ba22e2c64f214f96efc2c9285ea7ab65c0209cd683eb8488",
+      "size": 535
+    }
+  ],
+  "license": {
+    "kind": "commercial-single-developer",
+    "file": "LICENSE"
+  }
+}

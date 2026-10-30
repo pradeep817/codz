@@ -1,0 +1,8 @@
+• Import 3 operations from "Shop" (Postman): 3 added, 0 already present, 0 skipped
+•   GET    /v1/products  →  listProducts()  in lib/api/products.ts
+•   GET    /v1/products/{id}  →  getProduct()  in lib/api/products.ts
+•   POST   /v1/products/{productId}/reviews  →  createReview()  in lib/api/products.ts
+! listProducts: The URL host https://api.yourapp.com does not match any configured base URL (NEXT_PUBLIC_API_URL=https://api.example.com). The call goes through apiFetch, which uses its own base URL; check that this endpoint lives on the same server.
+! getProduct: The URL host https://api.yourapp.com does not match any configured base URL (NEXT_PUBLIC_API_URL=https://api.example.com). The call goes through apiFetch, which uses its own base URL; check that this endpoint lives on the same server.
+! createReview: The collection has no saved example response, so the response type is unknown. Save an example in Postman, or run devtool api update createReview --sample <file> later.
+! createReview: The URL host https://api.yourapp.com does not match any configured base URL (NEXT_PUBLIC_API_URL=https://api.example.com). The call goes through apiFetch, which uses its own base URL; check that this endpoint lives on the same server.

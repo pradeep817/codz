@@ -1,0 +1,135 @@
+{
+  "schema": 1,
+  "id": "flutter-riverpod-dio",
+  "version": "1.0.0",
+  "title": "Flutter with Riverpod, Dio and go_router",
+  "summary": "A Flutter app with Riverpod for state and DI, Dio for HTTP, go_router for navigation, light and dark themes and readable API error messages.",
+  "framework": "flutter",
+  "mode": "overlay",
+  "requires": {
+    "devtool": ">=0.1.0",
+    "flutter": ">=3.24"
+  },
+  "provides": {
+    "state": "riverpod",
+    "router": "go_router",
+    "http": "dio",
+    "serialization": "manual"
+  },
+  "extras": [
+    "go_router with a not-found page",
+    "Light and dark Material 3 themes",
+    "API base URL per build with --dart-define",
+    "User-facing messages for network errors",
+    "A widget test that runs"
+  ],
+  "apiAdd": {
+    "supported": true
+  },
+  "answers": [
+    {
+      "key": "appName",
+      "prompt": "Package name",
+      "type": "identifier",
+      "default": "my_app"
+    },
+    {
+      "key": "org",
+      "prompt": "Organization id",
+      "type": "reverse-domain",
+      "default": "com.example"
+    },
+    {
+      "key": "appTitle",
+      "prompt": "App title",
+      "type": "string",
+      "default": "My App",
+      "maxLength": 60
+    },
+    {
+      "key": "apiBaseUrl",
+      "prompt": "API base URL",
+      "type": "string",
+      "default": "https://api.example.com",
+      "maxLength": 200
+    }
+  ],
+  "dependencies": {
+    "dio": "^5.7.0",
+    "flutter_riverpod": "^2.6.1",
+    "go_router": "^14.6.2"
+  },
+  "steps": [
+    "flutter_create",
+    "flutter_pub_get",
+    "dart_format"
+  ],
+  "expectedConventions": {
+    "http": "dio",
+    "di": "riverpod",
+    "stateManagement": "riverpod",
+    "modelsFolder": "lib/data/models",
+    "networkFile": "lib/core/network/dio_provider.dart"
+  },
+  "files": [
+    {
+      "path": "README.md",
+      "sha256": "ab4381273524acc1ac1094c68a2b4bf76ecdff87559dcce364405a3a57ed3b84",
+      "size": 560
+    },
+    {
+      "path": "analysis_options.yaml",
+      "sha256": "2f3dffdd6304dff30fcd80b7cc3b3fd1879bc6e6f72ce206f8a7f161d2dabe73",
+      "size": 151
+    },
+    {
+      "path": "lib/app/router.dart",
+      "sha256": "398b60e9dcffbaa8c035f229150aeb6ee607648dba31dcc0c519ef78ad87b596",
+      "size": 611
+    },
+    {
+      "path": "lib/app/theme.dart",
+      "sha256": "60d435b9578f8a7ce9a924bc66741fb6b294f4d89e3ebe147c71b588068c2a43",
+      "size": 510
+    },
+    {
+      "path": "lib/core/network/api_error.dart",
+      "sha256": "a037f85b09010090037466dabbe0a119766de27826600f411efd4e92bfe7cabe",
+      "size": 954
+    },
+    {
+      "path": "lib/core/network/dio_provider.dart",
+      "sha256": "3f399dc8b73f4924ed8f617f35652e78351afdf37405f298fe0ed2a64253da45",
+      "size": 880
+    },
+    {
+      "path": "lib/data/models/.gitkeep",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0
+    },
+    {
+      "path": "lib/data/repositories/.gitkeep",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0
+    },
+    {
+      "path": "lib/features/home/home_page.dart",
+      "sha256": "137bec96a6b0c2a88e860134428154360cfe3f64f9bc6807b6e8ead9eecccf5f",
+      "size": 542
+    },
+    {
+      "path": "lib/main.dart",
+      "sha256": "25dd124e8b390def82cbbe7b269b89e61fc411c731879a4a17cef95f2a53b52c",
+      "size": 521
+    },
+    {
+      "path": "test/widget_test.dart",
+      "sha256": "681e548b0002407481dadc856e241cead3a66d6e711a9f2dd7cf897da5a81270",
+      "size": 389
+    }
+  ],
+  "license": {
+    "kind": "commercial-single-developer",
+    "file": "LICENSE"
+  }
+}

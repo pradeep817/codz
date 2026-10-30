@@ -1,0 +1,7 @@
+{
+  "home": { "title": "Welcome" },
+  "profile": { "title": "Profile" },
+  "cart": {
+    "empty": "Your cart is empty"
+  }
+}

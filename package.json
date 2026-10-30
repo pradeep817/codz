@@ -1,0 +1,45 @@
+{
+  "name": "devtool",
+  "version": "0.1.0",
+  "description": "Project-aware dev CLI: understands a project once, then makes deterministic, reviewable changes to it.",
+  "type": "module",
+  "bin": {
+    "devtool": "bin/devtool.js"
+  },
+  "files": [
+    "bin",
+    "dist",
+    "README.md",
+    "LICENSE",
+    "docs/COMMANDS.md",
+    "examples",
+    "assets",
+    "BETA.md"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "test": "node --test \"test/**/*.test.ts\"",
+    "test:update-golden": "UPDATE_GOLDEN=1 node --test \"test/**/*.test.ts\"",
+    "typecheck": "tsc --noEmit",
+    "docs": "node scripts/gen-docs.ts",
+    "build": "rm -rf dist && tsc -p tsconfig.build.json",
+    "prepublishOnly": "npm run build && npm test",
+    "beta:pack": "bash scripts/beta-pack.sh",
+    "check:all": "bash scripts/check-all.sh"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "typescript": "^5.8.0"
+  },
+  "license": "MIT",
+  "keywords": [
+    "cli",
+    "nextjs",
+    "flutter",
+    "codegen",
+    "openapi",
+    "mcp"
+  ]
+}

@@ -1,0 +1,4 @@
+• Add theme.extend.colors.primary = '#6750a4' in tailwind.config.ts
+• Use it as a class: bg-primary text-primary
+• Add theme.extend.borderRadius.DEFAULT = '12px' in tailwind.config.ts
+• Use it as a class: rounded

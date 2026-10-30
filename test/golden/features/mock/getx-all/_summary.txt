@@ -1,0 +1,8 @@
+• Add a mock for getOrder (GET /v1/orders/{orderId})
+• Add a mock for listUsers (GET /v1/users)
+• Add a mock for createUser (POST /v1/users)
+• Add a mock for getUser (GET /v1/users/{userId})
+• Add a mock for deleteUser (DELETE /v1/users/{userId})
+• Create lib/app/data/network/mocks/mock_interceptor.dart: MockInterceptor, on only with --dart-define=USE_MOCKS=true
+• Update lib/app/data/network/api_client.dart: add MockInterceptor when USE_MOCKS is set
+• Run with mocks: flutter run --dart-define=USE_MOCKS=true

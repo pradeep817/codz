@@ -1,0 +1,8 @@
+• Add 2 missing keys to messages/hi.json (hi) with the en text: home.subtitle, cart.empty
+• components/hardcoded.tsx: https://api.example.com/v1/items → `${process.env.NEXT_PUBLIC_API_URL}/v1/items`
+• Delete types/team.ts: Team was its only declaration and nothing uses it
+• Update types/index.ts: drop the export of team.ts
+! The added locale keys hold the default-language text; translate them (doctor lists them as untranslated).
+! Still needs you (1):
+    components/hardcoded.tsx:5  Hardcoded URL https://elsewhere.io/api/x looks like an API address.
+      → It is not under NEXT_PUBLIC_API_URL (https://api.example.com); move it to an env variable by hand.

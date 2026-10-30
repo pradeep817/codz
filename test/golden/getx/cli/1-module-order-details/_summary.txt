@@ -1,0 +1,5 @@
+• Create lib/app/modules/order_details/bindings/order_details_binding.dart: OrderDetailsBinding
+• Create lib/app/modules/order_details/controllers/order_details_controller.dart: OrderDetailsController
+• Create lib/app/modules/order_details/views/order_details_view.dart: OrderDetailsView
+• Update lib/app/routes/app_routes.dart: Routes.ORDER_DETAILS = '/order-details'
+• Update lib/app/routes/app_pages.dart: GetPage for OrderDetailsView, now the first screen

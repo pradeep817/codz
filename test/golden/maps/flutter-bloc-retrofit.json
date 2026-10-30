@@ -1,0 +1,107 @@
+{
+  "schema": 1,
+  "framework": "flutter",
+  "adapter": "flutter@0.1.0",
+  "conventions": {
+    "packageName": "task_board",
+    "http": "dio",
+    "serialization": "freezed",
+    "stateManagement": "bloc",
+    "freezedClass": "abstract",
+    "apiStyle": "retrofit",
+    "router": "go_router",
+    "modelsFolder": "lib/models",
+    "modelFileSuffix": "",
+    "modelClassSuffix": "",
+    "jsonAnnotation": "",
+    "repoFolder": "lib/data/api",
+    "repoKind": "repository",
+    "dioField": "_dio",
+    "di": "get_it",
+    "diFile": "lib/di.dart",
+    "diInstance": "getIt",
+    "baseUrl": "https://api.taskboard.dev/v1",
+    "importStyle": "package",
+    "indent": "2",
+    "networkFile": "lib/di.dart",
+    "modulesFolder": "",
+    "routesFile": ""
+  },
+  "routes": [
+    {
+      "name": "tasks",
+      "path": "/",
+      "params": [],
+      "file": "lib/router.dart"
+    }
+  ],
+  "endpoints": [
+    {
+      "name": "getTasks",
+      "method": "GET",
+      "path": "/tasks",
+      "response": "List<Task>",
+      "file": "lib/data/api/task_api.dart",
+      "calledFrom": [
+        "lib/features/tasks/tasks_cubit.dart"
+      ]
+    },
+    {
+      "name": "getTask",
+      "method": "GET",
+      "path": "/tasks/{id}",
+      "response": "Task",
+      "file": "lib/data/api/task_api.dart",
+      "calledFrom": []
+    }
+  ],
+  "models": [
+    {
+      "name": "Task",
+      "file": "lib/models/task.dart",
+      "fields": [
+        {
+          "name": "id",
+          "type": "int",
+          "nullable": false
+        },
+        {
+          "name": "title",
+          "type": "String",
+          "nullable": false
+        },
+        {
+          "name": "due_at",
+          "type": "DateTime",
+          "nullable": true
+        },
+        {
+          "name": "done",
+          "type": "bool",
+          "nullable": false
+        }
+      ]
+    }
+  ],
+  "locales": {
+    "languages": [],
+    "files": [],
+    "keyCount": 0
+  },
+  "baseUrls": [
+    {
+      "name": "Dio baseUrl",
+      "value": "https://api.taskboard.dev/v1",
+      "file": "lib/di.dart"
+    }
+  ],
+  "stats": {
+    "files": 8,
+    "byExtension": {
+      ".dart": 7,
+      ".yaml": 1
+    }
+  },
+  "notes": [],
+  "clientBaseUrl": true
+}

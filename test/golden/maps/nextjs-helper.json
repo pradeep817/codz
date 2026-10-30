@@ -1,0 +1,122 @@
+{
+  "schema": 1,
+  "framework": "nextjs",
+  "adapter": "nextjs@0.1.0",
+  "conventions": {
+    "appDir": "app",
+    "importAlias": "@/",
+    "aliasBase": ".",
+    "http": "fetch",
+    "httpHelper": "apiFetch",
+    "httpHelperFile": "lib/api/client.ts",
+    "apiFolder": "lib/api",
+    "apiFileNaming": "kebab",
+    "apiFileSuffix": "",
+    "apiFileResource": "plural",
+    "baseUrlEnv": "NEXT_PUBLIC_API_URL",
+    "modelsFolder": "types",
+    "modelsLayout": "per-file",
+    "modelsFile": "",
+    "modelFileNaming": "kebab",
+    "importStyle": "alias",
+    "quote": "single",
+    "semicolons": "true",
+    "indent": "2",
+    "i18n": "next-intl",
+    "styling": "tailwind"
+  },
+  "routes": [
+    {
+      "name": "home",
+      "path": "/",
+      "params": [],
+      "file": "app/page.tsx"
+    },
+    {
+      "name": "products",
+      "path": "/products/{id}",
+      "params": [
+        "id"
+      ],
+      "file": "app/(shop)/products/[id]/page.tsx"
+    },
+    {
+      "name": "profile",
+      "path": "/profile",
+      "params": [],
+      "file": "app/profile/page.tsx"
+    }
+  ],
+  "endpoints": [
+    {
+      "name": "getUser",
+      "method": "GET",
+      "path": "/users/{id}",
+      "response": "User",
+      "file": "lib/api/users.ts",
+      "calledFrom": [
+        "app/profile/page.tsx"
+      ]
+    },
+    {
+      "name": "updateUser",
+      "method": "PATCH",
+      "path": "/users/{id}",
+      "response": "User",
+      "file": "lib/api/users.ts",
+      "calledFrom": []
+    }
+  ],
+  "models": [
+    {
+      "name": "User",
+      "file": "types/user.ts",
+      "fields": [
+        {
+          "name": "id",
+          "type": "number",
+          "nullable": false
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "nullable": false
+        },
+        {
+          "name": "email",
+          "type": "string",
+          "nullable": true
+        }
+      ]
+    }
+  ],
+  "locales": {
+    "default": "en",
+    "languages": [
+      "en",
+      "hi"
+    ],
+    "files": [
+      "messages/en.json",
+      "messages/hi.json"
+    ],
+    "keyCount": 2
+  },
+  "baseUrls": [
+    {
+      "name": "NEXT_PUBLIC_API_URL",
+      "value": "https://api.example.com",
+      "file": ".env.example"
+    }
+  ],
+  "stats": {
+    "files": 16,
+    "byExtension": {
+      ".ts": 6,
+      ".tsx": 5,
+      ".json": 4,
+      ".example": 1
+    }
+  },
+  "notes": []
+}

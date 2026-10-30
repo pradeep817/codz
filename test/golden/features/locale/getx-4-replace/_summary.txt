@@ -1,0 +1,3 @@
+• Update 'home.title' in lib/app/translations/app_translations.dart (en_US, hi_IN)
+• Use it in a widget: Text('home.title'.tr)
+! home.title uses the en text for hi; translate it there, or pass --value hi="...".

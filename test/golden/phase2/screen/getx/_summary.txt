@@ -1,0 +1,9 @@
+• Create lib/app/modules/catalog/bindings/catalog_binding.dart: CatalogBinding
+• Create lib/app/modules/catalog/controllers/catalog_controller.dart: CatalogController
+• Create lib/app/modules/catalog/views/catalog_view.dart: CatalogView
+• Create lib/app/routes/app_pages.dart: AppPages with the /catalog page, the first screen
+• Create lib/app/routes/app_routes.dart: Routes.catalog and its path
+• Update lib/main.dart: GetMaterialApp uses initialRoute and getPages
+• Update lib/app/modules/catalog/controllers/catalog_controller.dart: loadProducts(), products, isProductsLoading and productsError; loads in onInit
+• Show products in lib/app/modules/catalog/views/catalog_view.dart: loading, error with retry, and the data
+! Removed "home: const MyHomePage(title: 'Flutter Demo Home Page')" from GetMaterialApp: the app now starts at AppPages.initial. The old home widget is still in main.dart if you want to reuse it. The counter test from flutter create (test/widget_test.dart) checks that page and will fail now; update it or delete it.

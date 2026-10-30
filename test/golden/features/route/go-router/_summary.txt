@@ -1,0 +1,3 @@
+• Create lib/features/order_details/order_details_page.dart: OrderDetailsPage
+• Update lib/router.dart: GoRoute '/orders/:orderId' → OrderDetailsPage
+• Open it with: context.go('/orders/${orderId}')  or  context.goNamed('orderDetails', pathParameters: {'orderId': orderId})

@@ -1,0 +1,14 @@
+{
+  "@@locale": "en",
+  "homeTitle": "Home",
+  "@homeTitle": {"description": "Home page title"},
+  "profileTitle": "Profile",
+  "welcomeUser": "Welcome {name}",
+  "@welcomeUser": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  }
+}

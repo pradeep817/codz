@@ -1,0 +1,223 @@
+{
+  "schema": 1,
+  "id": "react-native-auth-pro",
+  "version": "1.0.0",
+  "title": "React Native (Expo) app with sign-in and tabs",
+  "summary": "Expo with sign-in through your API: the token in secure storage, axios that sends it and signs out on 401, React Query with sensible retries, a login screen, bottom tabs and a profile screen.",
+  "framework": "react-native",
+  "mode": "full",
+  "requires": {
+    "devtool": ">=0.1.0",
+    "node": ">=18.18"
+  },
+  "provides": {
+    "flavor": "expo",
+    "router": "react-navigation",
+    "http": "axios",
+    "data": "react-query",
+    "auth": "secure-store"
+  },
+  "extras": [
+    "Login screen with validation and error messages",
+    "Token in the Keychain or Keystore with expo-secure-store",
+    "Signs out on any 401, restores the session at launch",
+    "React Query with retries only where they help",
+    "Bottom tabs and a profile screen with sign out",
+    "Reusable Button and TextField components"
+  ],
+  "apiAdd": {
+    "supported": true
+  },
+  "answers": [
+    {
+      "key": "appName",
+      "prompt": "Package name",
+      "type": "npm-name",
+      "default": "my-app"
+    },
+    {
+      "key": "appTitle",
+      "prompt": "App title",
+      "type": "string",
+      "default": "My App",
+      "maxLength": 60
+    },
+    {
+      "key": "bundleId",
+      "prompt": "App id (iOS bundle id and Android package)",
+      "type": "reverse-domain",
+      "default": "com.example.myapp"
+    },
+    {
+      "key": "apiBaseUrl",
+      "prompt": "API base URL",
+      "type": "string",
+      "default": "https://api.example.com",
+      "maxLength": 200
+    }
+  ],
+  "dependencies": {
+    "@tanstack/react-query": "^5.59.0",
+    "axios": "^1.7.7",
+    "expo": "~52.0.0",
+    "expo-secure-store": "~14.0.0",
+    "react-native": "0.76.5"
+  },
+  "steps": [
+    "npm_install"
+  ],
+  "expectedConventions": {
+    "http": "axios",
+    "apiFolder": "src/api",
+    "axiosInstance": "api",
+    "axiosInstanceFile": "src/api/client.ts",
+    "dataFetching": "react-query",
+    "hooksFolder": "src/hooks",
+    "modelsFolder": "src/types",
+    "flavor": "expo",
+    "router": "react-navigation",
+    "navigatorFile": "src/navigation/RootNavigator.tsx",
+    "screensFolder": "src/screens"
+  },
+  "files": [
+    {
+      "path": ".env.example",
+      "sha256": "4cfbfe887ea5c45a5cfe840609ff678ac3e15c5759a7af1f013b432b9fbf71cb",
+      "size": 115
+    },
+    {
+      "path": ".gitignore",
+      "sha256": "fcb4547d5681a4d59d03a76dbb373f33cef833d8b9187ad3b59465ca300d2720",
+      "size": 138
+    },
+    {
+      "path": "App.tsx",
+      "sha256": "c56d1909decb24d6e7fe3c420be671bdb81c1d3ace569d5a5642533b7d523b8b",
+      "size": 890
+    },
+    {
+      "path": "README.md",
+      "sha256": "c054a81ef47ed018c05cefa3fdd16bd4de06eb38215b82995746086d04747be7",
+      "size": 789
+    },
+    {
+      "path": "__tests__/errors.test.ts",
+      "sha256": "4fd8d4083c1764bcac56c90bdef0a7b33a9281b742147c8bc97b4d730625fe1b",
+      "size": 888
+    },
+    {
+      "path": "app.json",
+      "sha256": "926c230a39bfb5956d1ded2d9232d0026dd7e7242463380fe917ae1c02ed9371",
+      "size": 335
+    },
+    {
+      "path": "index.ts",
+      "sha256": "9feb78c747e7c526cb3ab8f57210053654d966ba71aa24328088c3ebcc5ff76f",
+      "size": 101
+    },
+    {
+      "path": "package.json",
+      "sha256": "44cae1f69ea17496853f702d1ff9ba22a14e9be8c55da9ef6194f55f272efc16",
+      "size": 958
+    },
+    {
+      "path": "src/api/auth.ts",
+      "sha256": "07bd06ec2761e05fca6eebcef50a10722c9222cd21fbdabf77c174023b35705a",
+      "size": 546
+    },
+    {
+      "path": "src/api/client.ts",
+      "sha256": "5f34aed6f34261e3d4ed2a259341bf1a3cc87933e108d18d9fe21cb87a5ab887",
+      "size": 1751
+    },
+    {
+      "path": "src/api/queryClient.ts",
+      "sha256": "6b2dcec85299e53475dd871ea3bf9fb26f8331a29ccc1d32ae43d09ffce8a6d9",
+      "size": 507
+    },
+    {
+      "path": "src/auth/AuthContext.tsx",
+      "sha256": "7d993e100fc9701898c824a445e176caeefbaae30f15bb1d0735ecfc8d211c9b",
+      "size": 2184
+    },
+    {
+      "path": "src/auth/tokenStore.ts",
+      "sha256": "998b592b0adf0066692be7297e0e57849f10dbc5c67aae04f2fdd338063879f1",
+      "size": 610
+    },
+    {
+      "path": "src/components/Button.tsx",
+      "sha256": "b0c6401cd26f07434766c510afffe77cefff33fd67e283f659f0ff8bf4d772a8",
+      "size": 1215
+    },
+    {
+      "path": "src/components/ErrorView.tsx",
+      "sha256": "cfe91ae3bb09005b0e7cddaf70c4593a79f6238aa8a3a3990b0ab33cbb605cd8",
+      "size": 1019
+    },
+    {
+      "path": "src/components/LoadingView.tsx",
+      "sha256": "ee003f9005a17714cf91dd8ea992315d08b4e40b744f256524a5eaa132eae0d2",
+      "size": 414
+    },
+    {
+      "path": "src/components/TextField.tsx",
+      "sha256": "c2e8ee4859848d93e8d16ddc6c2407cee458a10cd3be5c8885e4a1e7b0d9087b",
+      "size": 840
+    },
+    {
+      "path": "src/config/env.ts",
+      "sha256": "da4c8e80cedc27b36d88a9f226ce46ae256e08d0ff96abe4e1b556b013d2557e",
+      "size": 153
+    },
+    {
+      "path": "src/hooks/use-me.ts",
+      "sha256": "3b1a9c1c1596912b6ece54d0db34552f551aef750b9f0049bacd8e1aa532ed34",
+      "size": 250
+    },
+    {
+      "path": "src/navigation/RootNavigator.tsx",
+      "sha256": "3e95cc2bd9c72c7d8df52538a3548fcbbaa2b6b70995770159824eda8dc0381a",
+      "size": 1607
+    },
+    {
+      "path": "src/screens/HomeScreen.tsx",
+      "sha256": "9c4433144af822a34163368fb577d25b3121402c9840cd481acb73fdabc9d5da",
+      "size": 884
+    },
+    {
+      "path": "src/screens/LoginScreen.tsx",
+      "sha256": "a377f361f39c3814bb1059c3086e9988669f4f4ea9fee184ef329c254b54052d",
+      "size": 2195
+    },
+    {
+      "path": "src/screens/ProfileScreen.tsx",
+      "sha256": "67d39f397c07cb70457406217dc33167fc73b64e50709835b594cb0f11eca720",
+      "size": 1120
+    },
+    {
+      "path": "src/theme/colors.ts",
+      "sha256": "58074c5cd138c9db8f7c1972c9a7b3325c755203894a4187d13d490119ec1256",
+      "size": 379
+    },
+    {
+      "path": "src/theme/useTheme.ts",
+      "sha256": "2a5d0839b9b88cb1f26e1ab1f19e0a158551fd485b15f9b6db66ecc0af4b2c3d",
+      "size": 762
+    },
+    {
+      "path": "src/types/user.ts",
+      "sha256": "4c6ed90d0aa3c2a98409d7ebf3156e578ba000a7683fef43e73162fc225c3ff7",
+      "size": 73
+    },
+    {
+      "path": "tsconfig.json",
+      "sha256": "62cfa165a869ec49b3027afd38c4d283a1099bc00e347c0dbac600b8edced198",
+      "size": 132
+    }
+  ],
+  "license": {
+    "kind": "commercial-single-developer",
+    "file": "LICENSE"
+  }
+}

@@ -1,0 +1,30 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		A1B2C3D4E5F60718293A4B5C /* ShopApp */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = ShopApp;
+			sourceTree = "<group>";
+		};
+/* End PBXFileSystemSynchronizedRootGroup section */
+
+/* Begin PBXNativeTarget section */
+		B1C2D3E4F5061728394A5B6C /* ShopApp */ = {
+			isa = PBXNativeTarget;
+			fileSystemSynchronizedGroups = (
+				A1B2C3D4E5F60718293A4B5C /* ShopApp */,
+			);
+			name = ShopApp;
+			productName = ShopApp;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+	};
+	rootObject = C1D2E3F4A5B6C7D8E9F0A1B2 /* Project object */;
+}

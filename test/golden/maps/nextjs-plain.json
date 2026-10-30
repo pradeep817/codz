@@ -1,0 +1,110 @@
+{
+  "schema": 1,
+  "framework": "nextjs",
+  "adapter": "nextjs@0.1.0",
+  "conventions": {
+    "appDir": "src/app",
+    "importAlias": "",
+    "aliasBase": ".",
+    "http": "fetch",
+    "httpHelper": "fetch",
+    "httpHelperFile": "",
+    "apiFolder": "src/services",
+    "apiFileNaming": "kebab",
+    "apiFileSuffix": "service",
+    "apiFileResource": "singular",
+    "baseUrlEnv": "API_BASE_URL",
+    "modelsFolder": "src/models",
+    "modelsLayout": "single",
+    "modelsFile": "src/models/index.ts",
+    "modelFileNaming": "kebab",
+    "importStyle": "relative",
+    "quote": "double",
+    "semicolons": "false",
+    "indent": "2",
+    "i18n": "",
+    "styling": ""
+  },
+  "routes": [
+    {
+      "name": "home",
+      "path": "/",
+      "params": [],
+      "file": "src/app/page.tsx"
+    },
+    {
+      "name": "dashboard",
+      "path": "/dashboard",
+      "params": [],
+      "file": "src/app/dashboard/page.tsx"
+    }
+  ],
+  "endpoints": [
+    {
+      "name": "fetchUser",
+      "method": "GET",
+      "path": "/users/{id}",
+      "response": "User",
+      "file": "src/services/user-service.ts",
+      "calledFrom": [
+        "src/app/dashboard/page.tsx"
+      ]
+    }
+  ],
+  "models": [
+    {
+      "name": "User",
+      "file": "src/models/index.ts",
+      "fields": [
+        {
+          "name": "id",
+          "type": "string",
+          "nullable": false
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "nullable": false
+        }
+      ]
+    },
+    {
+      "name": "Team",
+      "file": "src/models/index.ts",
+      "fields": [
+        {
+          "name": "id",
+          "type": "string",
+          "nullable": false
+        },
+        {
+          "name": "title",
+          "type": "string",
+          "nullable": false
+        }
+      ]
+    }
+  ],
+  "locales": {
+    "languages": [],
+    "files": [],
+    "keyCount": 0
+  },
+  "baseUrls": [
+    {
+      "name": "API_BASE_URL",
+      "value": "https://api.acme.dev/v1",
+      "file": ".env.example"
+    }
+  ],
+  "stats": {
+    "files": 7,
+    "byExtension": {
+      ".json": 2,
+      ".ts": 2,
+      ".tsx": 2,
+      ".example": 1
+    }
+  },
+  "notes": []
+}

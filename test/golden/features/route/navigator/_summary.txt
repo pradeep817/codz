@@ -1,0 +1,3 @@
+• Create lib/screens/settings_page.dart: SettingsPage
+• Update lib/main.dart: route '/settings' → SettingsPage
+• Open it with: Navigator.pushNamed(context, '/settings')

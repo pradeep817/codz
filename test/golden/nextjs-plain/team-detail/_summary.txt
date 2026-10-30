@@ -1,0 +1,4 @@
+• Update src/models/index.ts: interface Member
+• Update src/models/index.ts: interface TeamDetail
+• Create src/services/team-service.ts: getTeam() for GET /v1/teams/{id}
+! Response: root.archived_at is null in every sample, so its type is unknown. Pass a sample where it has a value.

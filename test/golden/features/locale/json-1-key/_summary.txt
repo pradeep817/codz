@@ -1,0 +1,2 @@
+• Add cart.empty in messages/en.json
+• Add cart.empty in messages/hi.json

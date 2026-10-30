@@ -1,0 +1,2 @@
+• Update lib/app/modules/home/controllers/home_controller.dart: loadProducts(), products, isProductsLoading and productsError; loads in onInit
+• In HomeView: Obx(() => controller.isProductsLoading.value ? const CircularProgressIndicator() : Text(controller.productsError.value ?? '${controller.products.length}'))

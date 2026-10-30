@@ -1,0 +1,5 @@
+• Create app/globals.css: --color-primary: #6750a4 in :root
+• Use it in CSS: var(--color-primary)
+• Update app/layout.tsx: import the global styles
+• Add --radius: 8px in :root
+• Use it in CSS: var(--radius)

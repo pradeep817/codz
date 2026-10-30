@@ -1,0 +1,5 @@
+• Add a mock for getUser (GET /users/{id})
+• Update lib/api/client.ts: answer from mocks when NEXT_PUBLIC_USE_MOCKS=true
+• Update .env.example: NEXT_PUBLIC_USE_MOCKS=false
+• Turn mocks on with NEXT_PUBLIC_USE_MOCKS=true in .env.local, then restart the dev server.
+! Replaced values that look like secrets or personal data in the getUser mock (name) with examples. Pass --keep-values to keep them.

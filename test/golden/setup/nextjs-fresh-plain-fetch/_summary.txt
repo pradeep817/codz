@@ -1,0 +1,3 @@
+• Create .env.example: NEXT_PUBLIC_API_URL=https://api.yourapp.com
+• Copy NEXT_PUBLIC_API_URL from .env.example into .env.local (devtool does not write .env.local): the API functions read it
+• Save conventions: API files in lib/api, interfaces in types

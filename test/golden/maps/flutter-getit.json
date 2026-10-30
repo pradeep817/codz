@@ -1,0 +1,85 @@
+{
+  "schema": 1,
+  "framework": "flutter",
+  "adapter": "flutter@0.1.0",
+  "conventions": {
+    "packageName": "field_ops",
+    "http": "dio",
+    "serialization": "json_serializable",
+    "stateManagement": "none",
+    "router": "navigator",
+    "modelsFolder": "lib/models",
+    "modelFileSuffix": "",
+    "modelClassSuffix": "",
+    "jsonAnnotation": "@JsonSerializable()",
+    "repoFolder": "lib/services",
+    "repoKind": "service",
+    "dioField": "dio",
+    "di": "get_it",
+    "diFile": "lib/di.dart",
+    "diInstance": "getIt",
+    "baseUrl": "https://ops.example.com/api/v2",
+    "importStyle": "package",
+    "indent": "2",
+    "networkFile": "lib/di.dart",
+    "modulesFolder": "",
+    "routesFile": ""
+  },
+  "routes": [],
+  "endpoints": [
+    {
+      "name": "getJobs",
+      "method": "GET",
+      "path": "/jobs",
+      "response": "List<Job>",
+      "file": "lib/services/job_service.dart",
+      "calledFrom": [
+        "lib/screens/jobs_screen.dart"
+      ]
+    }
+  ],
+  "models": [
+    {
+      "name": "Job",
+      "file": "lib/models/job.dart",
+      "fields": [
+        {
+          "name": "id",
+          "type": "int",
+          "nullable": false
+        },
+        {
+          "name": "title",
+          "type": "String",
+          "nullable": false
+        },
+        {
+          "name": "due_at",
+          "type": "DateTime",
+          "nullable": true
+        }
+      ]
+    }
+  ],
+  "locales": {
+    "languages": [],
+    "files": [],
+    "keyCount": 0
+  },
+  "baseUrls": [
+    {
+      "name": "Dio baseUrl",
+      "value": "https://ops.example.com/api/v2",
+      "file": "lib/di.dart"
+    }
+  ],
+  "stats": {
+    "files": 6,
+    "byExtension": {
+      ".dart": 5,
+      ".yaml": 1
+    }
+  },
+  "notes": [],
+  "clientBaseUrl": true
+}

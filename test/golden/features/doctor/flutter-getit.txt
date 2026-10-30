@@ -1,0 +1,5 @@
+API calls
+  ! lib/screens/jobs_screen.dart:11  getJobs() runs in a FutureBuilder whose builder never checks snapshot.hasError, so a failed request shows as empty data.
+    → Handle snapshot.hasError in the builder (show an error message and a retry).
+
+0 errors, 1 warning, 0 notes

@@ -1,0 +1,7 @@
+• Create lib/models/checklist_item.dart: class ChecklistItem
+• Create lib/models/visit.dart: class Visit
+• Create lib/models/create_site_visit_request.dart: class CreateSiteVisitRequest
+• Create lib/services/site_service.dart: SiteService.createSiteVisit() for POST /api/v2/sites/{siteId}/visits
+• Update lib/di.dart: register SiteService with get_it
+! Removed from the input and never written anywhere: header "X-Api-Key". Use your project's auth mechanism for these.
+! Run `dart run build_runner build` to generate the .g.dart files for the new models.

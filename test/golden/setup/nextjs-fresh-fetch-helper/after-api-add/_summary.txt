@@ -1,0 +1,4 @@
+• Create types/user.ts: interface User
+• Create lib/api/users.ts: getUser() for GET /users/{id}
+• Update lib/api/index.ts: export ./users
+! Removed from the input and never written anywhere: header "Authorization". Use your project's auth mechanism for these.

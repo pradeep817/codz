@@ -1,0 +1,4 @@
+• Create lib/app/translations/app_translations.dart: AppTranslations with en_US
+• Update lib/main.dart: GetMaterialApp uses AppTranslations
+• Add 'home.title' in lib/app/translations/app_translations.dart (en_US)
+• Use it in a widget: Text('home.title'.tr)

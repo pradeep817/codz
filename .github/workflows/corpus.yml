@@ -1,0 +1,25 @@
+name: Corpus
+
+# Runs devtool (read-only and --dry-run) against real public Next.js and
+# Flutter projects listed in scripts/corpus.txt. Weekly and on demand, since it
+# clones from the network; a crash or timeout in any project fails the run.
+
+on:
+  schedule:
+    - cron: '17 5 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  corpus:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Run devtool against every project in scripts/corpus.txt
+        run: bash ./scripts/corpus.sh

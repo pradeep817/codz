@@ -1,0 +1,4 @@
+.dart_tool/
+build/
+# devtool cache, backups and history
+.devtool/

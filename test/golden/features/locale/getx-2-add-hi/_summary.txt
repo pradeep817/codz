@@ -1,0 +1,2 @@
+• Update lib/app/translations/app_translations.dart: add 'hi_IN' with 1 keys copied from en
+! The 1 hi texts are copies of en; translate them (devtool doctor lists the untranslated ones).

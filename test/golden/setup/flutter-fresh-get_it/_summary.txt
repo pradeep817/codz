@@ -1,0 +1,5 @@
+• Create lib/core/network/api_client.dart: createDio() with base URL https://api.yourapp.com
+• Create lib/core/di/injection.dart: setupDependencies() that registers Dio; new repositories are added here
+• Update lib/main.dart: call setupDependencies() before runApp
+• Update pubspec.yaml: add dio, get_it
+• Save conventions: models in lib/data/models, repositories in lib/data/repositories, registration with get_it

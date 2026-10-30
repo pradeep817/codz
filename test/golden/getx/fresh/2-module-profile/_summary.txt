@@ -1,0 +1,5 @@
+• Create lib/app/modules/profile/bindings/profile_binding.dart: ProfileBinding
+• Create lib/app/modules/profile/controllers/profile_controller.dart: ProfileController
+• Create lib/app/modules/profile/views/profile_view.dart: ProfileView
+• Update lib/app/routes/app_routes.dart: Routes.profile = '/profile'
+• Update lib/app/routes/app_pages.dart: GetPage for ProfileView

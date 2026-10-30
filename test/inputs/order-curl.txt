@@ -1,0 +1,6 @@
+curl -X POST 'https://api.example.com/users/42/orders?expand=items&api_key=abc' \
+  -H 'Authorization: Bearer eyJhbGc' \
+  -H 'Content-Type: application/json' \
+  --data-raw '{"product_id": 7, "qty": 2}'
+response:
+{"data": {"id": 9001, "total_price": 20, "created_at": "2026-10-21T10:00:00Z", "items": [{"sku": "A1", "qty": 2}], "address": {"line1": "x", "city": "y"}}, "meta": {"v": 1}}

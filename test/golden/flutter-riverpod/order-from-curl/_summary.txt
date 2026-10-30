@@ -1,0 +1,7 @@
+• Create lib/data/models/order_item_model.dart: class OrderItemModel
+• Create lib/data/models/address_model.dart: class AddressModel
+• Create lib/data/models/order_model.dart: class OrderModel
+• Create lib/data/models/create_user_order_request_model.dart: class CreateUserOrderRequestModel
+• Update lib/data/repositories/user_repository.dart: UserRepository.createUserOrder() for POST /users/{userId}/orders
+! Removed from the input and never written anywhere: header "Authorization", query parameter "api_key". Use your project's auth mechanism for these.
+! The response is wrapped in {"data": ...}; the generated code returns the inner "data" value. Use --no-unwrap to keep the wrapper.

@@ -1,0 +1,2 @@
+• Create app/settings/page.tsx: SettingsPage at /settings
+• Link to it with: <Link href="/settings">

@@ -1,0 +1,4 @@
+• Create lib/data/models/user_model.dart: class UserModel
+• Create lib/data/repositories/user_repository.dart: UserRepository.getUser() for GET /users/{id}
+• Update lib/core/di/injection.dart: register UserRepository with get_it
+! Removed from the input and never written anywhere: header "Authorization". Use your project's auth mechanism for these.

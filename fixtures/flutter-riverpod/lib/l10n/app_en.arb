@@ -1,0 +1,6 @@
+{
+  "@@locale": "en",
+  "homeTitle": "Home",
+  "@homeTitle": {"description": "Home page title"},
+  "profileTitle": "Profile"
+}

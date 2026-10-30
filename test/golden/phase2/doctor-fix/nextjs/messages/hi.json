@@ -1,0 +1,7 @@
+{
+  "home": { "title": "Swagat hai", "subtitle": "Hi" },
+  "profile": { "title": "Profile" },
+  "cart": {
+    "empty": "Empty"
+  }
+}

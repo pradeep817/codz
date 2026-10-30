@@ -1,0 +1,4 @@
+• Create lib/core/theme/app_colors.dart: AppColors
+• Add AppColors.primary = #0F766E in lib/core/theme/app_colors.dart
+• Create lib/core/theme/app_theme.dart: AppTheme.light / AppTheme.dark seeded from AppColors.primary
+• Update lib/main.dart: theme: AppTheme.light, darkTheme: AppTheme.dark

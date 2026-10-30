@@ -1,0 +1,1 @@
+• Update AppColors.primary = #0F766E in lib/core/theme/app_colors.dart

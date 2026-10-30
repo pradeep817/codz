@@ -1,0 +1,184 @@
+{
+  "schema": 1,
+  "id": "flutter-bloc-auth-pro",
+  "version": "1.0.0",
+  "title": "Flutter app with sign-in, bloc and token refresh",
+  "summary": "A Flutter app with sign-in through your API: flutter_bloc, Dio that sends the token and refreshes it on a 401, secure token storage, go_router that guards signed-in pages, bottom navigation and a settings page.",
+  "framework": "flutter",
+  "mode": "overlay",
+  "requires": {
+    "devtool": ">=0.1.0",
+    "flutter": ">=3.24"
+  },
+  "provides": {
+    "state": "bloc",
+    "router": "go_router",
+    "http": "dio",
+    "di": "get_it",
+    "serialization": "manual",
+    "auth": "secure-storage"
+  },
+  "extras": [
+    "Login page with validation and readable errors",
+    "Token refresh on 401 with a queued Dio interceptor",
+    "Tokens in the Keychain or Keystore",
+    "go_router redirects between sign-in and the app",
+    "Bottom navigation and a settings page",
+    "Light, dark or system theme, remembered",
+    "A widget test for the login flow"
+  ],
+  "apiAdd": {
+    "supported": true
+  },
+  "answers": [
+    {
+      "key": "appName",
+      "prompt": "Package name",
+      "type": "identifier",
+      "default": "my_app"
+    },
+    {
+      "key": "org",
+      "prompt": "Organization id",
+      "type": "reverse-domain",
+      "default": "com.example"
+    },
+    {
+      "key": "appTitle",
+      "prompt": "App title",
+      "type": "string",
+      "default": "My App",
+      "maxLength": 60
+    },
+    {
+      "key": "apiBaseUrl",
+      "prompt": "API base URL",
+      "type": "string",
+      "default": "https://api.example.com",
+      "maxLength": 200
+    }
+  ],
+  "dependencies": {
+    "dio": "^5.7.0",
+    "flutter_bloc": "^8.1.6",
+    "flutter_secure_storage": "^9.2.2",
+    "get_it": "^8.0.2",
+    "go_router": "^14.6.2",
+    "shared_preferences": "^2.3.3"
+  },
+  "steps": [
+    "flutter_create",
+    "flutter_pub_get",
+    "dart_format"
+  ],
+  "expectedConventions": {
+    "http": "dio",
+    "stateManagement": "bloc",
+    "di": "get_it",
+    "modelsFolder": "lib/data/models",
+    "repoFolder": "lib/data/repositories",
+    "networkFile": "lib/core/network/api_client.dart",
+    "diFile": "lib/core/di/injection.dart"
+  },
+  "files": [
+    {
+      "path": "README.md",
+      "sha256": "8d0ab1510b19384422eb97b5ff21cc65a7aa656aa3315de35be4de5caea3369e",
+      "size": 800
+    },
+    {
+      "path": "analysis_options.yaml",
+      "sha256": "2f3dffdd6304dff30fcd80b7cc3b3fd1879bc6e6f72ce206f8a7f161d2dabe73",
+      "size": 151
+    },
+    {
+      "path": "lib/app/router.dart",
+      "sha256": "5a6a395dd74655f2aa0c27e038b091a95cc5b3f1a9b27e36f383bf2a773d989f",
+      "size": 1887
+    },
+    {
+      "path": "lib/app/shell.dart",
+      "sha256": "404df1652be270406d26c2b1112fd595879c41981bd85e3bea182a22f82abf1f",
+      "size": 981
+    },
+    {
+      "path": "lib/app/theme.dart",
+      "sha256": "9676bfcbdc28c3adf615f7c1861cd70059ac6ba208ef51700397722ce5714bcb",
+      "size": 768
+    },
+    {
+      "path": "lib/core/di/injection.dart",
+      "sha256": "2fc118352c51f8b6a1a3ec2d66691165dec7d50e66dd21b2e476c19159453187",
+      "size": 1098
+    },
+    {
+      "path": "lib/core/network/api_client.dart",
+      "sha256": "7fee56d03f7a0ac744cc07c20626bc06c11621a1b44661b1e73601b8f1e25d93",
+      "size": 1297
+    },
+    {
+      "path": "lib/core/network/api_error.dart",
+      "sha256": "8bae795959a617650ea454cec77309814fe06e4409065e04161ba4763c072d7c",
+      "size": 1110
+    },
+    {
+      "path": "lib/core/network/auth_interceptor.dart",
+      "sha256": "035dc95d7e35d99aa70abc92db26d6d836b4d226c40532591c2c17899a130042",
+      "size": 1988
+    },
+    {
+      "path": "lib/core/storage/token_storage.dart",
+      "sha256": "8873468b3f46254f95bbf5240bfe35e7e0ca3a0550c11e2636bb0658ad707278",
+      "size": 1240
+    },
+    {
+      "path": "lib/data/models/user_model.dart",
+      "sha256": "ae5bdb18224ba49ead5ccf3326beebec267adefb30a3092e170a42e426fae4da",
+      "size": 448
+    },
+    {
+      "path": "lib/data/repositories/auth_repository.dart",
+      "sha256": "770675de660ae1417124ac859f69b5c5e483052ee68e74b5a067d0aaf528975f",
+      "size": 1214
+    },
+    {
+      "path": "lib/features/auth/auth_bloc.dart",
+      "sha256": "696861a18d5c2cbfaa342e39280bc8acf0d8e881928787d83e1f35626a7d96cd",
+      "size": 3151
+    },
+    {
+      "path": "lib/features/auth/login_page.dart",
+      "sha256": "21d68138573064ecd782c7fd5419f0cecd6d83dfbd64ad582f88d6e3e99fc717",
+      "size": 3108
+    },
+    {
+      "path": "lib/features/home/home_page.dart",
+      "sha256": "c4431460e5cc9c2a9f8e8a61471342b5705c5d4b6e742b524f5cace88e90d3a3",
+      "size": 998
+    },
+    {
+      "path": "lib/features/settings/settings_page.dart",
+      "sha256": "744a9ed99295a1530a1dd016859f664d168578362b3c94da834ada8d5af82dab",
+      "size": 1776
+    },
+    {
+      "path": "lib/features/settings/theme_cubit.dart",
+      "sha256": "6544f6ce84e6ad4ac0035964ba96e8967fbbdd338cb8778fbebc60a11324d906",
+      "size": 535
+    },
+    {
+      "path": "lib/main.dart",
+      "sha256": "84da9ba4a4e058b8420ef057a913fb11cba84046c77fbe1be8c3985e4c56c3c4",
+      "size": 1349
+    },
+    {
+      "path": "test/widget_test.dart",
+      "sha256": "2710192a14475cf9487826b96217274c0b31aca4b84e6f8b0c37c461f2c888cd",
+      "size": 1536
+    }
+  ],
+  "license": {
+    "kind": "commercial-single-developer",
+    "file": "LICENSE"
+  }
+}

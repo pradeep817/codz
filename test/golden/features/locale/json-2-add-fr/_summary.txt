@@ -1,0 +1,2 @@
+• Create messages/fr.json: 3 keys copied from en
+! The 3 fr texts are copies of en; translate them (devtool doctor lists the untranslated ones).

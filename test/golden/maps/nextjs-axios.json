@@ -1,0 +1,105 @@
+{
+  "schema": 1,
+  "framework": "nextjs",
+  "adapter": "nextjs@0.1.0",
+  "conventions": {
+    "appDir": "src/app",
+    "importAlias": "@/",
+    "aliasBase": "src",
+    "http": "axios",
+    "axiosInstance": "api",
+    "axiosInstanceFile": "src/lib/api/client.ts",
+    "dataFetching": "react-query",
+    "hooksFolder": "src/hooks",
+    "httpHelper": "fetch",
+    "httpHelperFile": "",
+    "apiFolder": "src/lib/api",
+    "apiFileNaming": "kebab",
+    "apiFileSuffix": "",
+    "apiFileResource": "plural",
+    "baseUrlEnv": "",
+    "modelsFolder": "src/types",
+    "modelsLayout": "per-file",
+    "modelsFile": "",
+    "modelFileNaming": "kebab",
+    "importStyle": "alias",
+    "quote": "single",
+    "semicolons": "true",
+    "indent": "2",
+    "i18n": "",
+    "styling": ""
+  },
+  "routes": [
+    {
+      "name": "users",
+      "path": "/users",
+      "params": [],
+      "file": "src/app/users/page.tsx"
+    }
+  ],
+  "endpoints": [
+    {
+      "name": "getContact",
+      "method": "GET",
+      "path": "/contacts/{id}",
+      "response": "Contact",
+      "file": "src/lib/api/contacts.ts",
+      "calledFrom": [
+        "src/hooks/use-contact.ts"
+      ]
+    },
+    {
+      "name": "deleteContact",
+      "method": "DELETE",
+      "path": "/contacts/{id}",
+      "response": "void",
+      "file": "src/lib/api/contacts.ts",
+      "calledFrom": []
+    }
+  ],
+  "models": [
+    {
+      "name": "Contact",
+      "file": "src/types/contact.ts",
+      "fields": [
+        {
+          "name": "id",
+          "type": "number",
+          "nullable": false
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "nullable": false
+        },
+        {
+          "name": "email",
+          "type": "string",
+          "nullable": false
+        }
+      ]
+    }
+  ],
+  "locales": {
+    "languages": [],
+    "files": [],
+    "keyCount": 0
+  },
+  "baseUrls": [
+    {
+      "name": "NEXT_PUBLIC_API_URL",
+      "value": "https://api.crm.dev/v1",
+      "file": ".env.example"
+    }
+  ],
+  "stats": {
+    "files": 9,
+    "byExtension": {
+      ".ts": 4,
+      ".json": 2,
+      ".tsx": 2,
+      ".example": 1
+    }
+  },
+  "notes": []
+}

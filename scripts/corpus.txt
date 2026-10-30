@@ -1,0 +1,13 @@
+# Public projects the corpus run checks devtool against.
+# One per line: owner/repo, optionally #subfolder for a project inside a monorepo.
+# Next.js
+vercel/commerce
+shadcn-ui/taxonomy
+steven-tey/precedent
+vercel/nextjs-subscription-payments
+alan2207/bulletproof-react#apps/nextjs-app
+# Flutter
+gskinnerTeam/flutter-wonderous-app
+simplezhli/flutter_deer
+flutter/samples#compass_app/app
+felangel/bloc#examples/flutter_todos

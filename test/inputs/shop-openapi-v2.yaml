@@ -1,0 +1,123 @@
+openapi: 3.0.3
+info:
+  title: Shop API
+  version: 2.0.0
+servers:
+  - url: https://api.yourapp.com/v1
+tags:
+  - name: users
+  - name: orders
+paths:
+  /users:
+    get:
+      operationId: listUsers
+      tags: [users]
+      parameters:
+        - name: page
+          in: query
+          schema: { type: integer }
+        - name: limit
+          in: query
+          schema: { type: integer }
+      responses:
+        '200':
+          description: A page of users
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/User'
+    post:
+      operationId: createUser
+      tags: [users]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewUser'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+  /users/{userId}:
+    parameters:
+      - name: userId
+        in: path
+        required: true
+        schema: { type: integer, format: int64 }
+    get:
+      operationId: getUser
+      tags: [users]
+      responses:
+        '200':
+          description: One user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+  /orders/{orderId}:
+    get:
+      operationId: getOrder
+      tags: [orders]
+      parameters:
+        - name: orderId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: One order
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+components:
+  schemas:
+    NewUser:
+      type: object
+      required: [name, email, phone]
+      properties:
+        name: { type: string }
+        email: { type: string, format: email }
+        phone: { type: string }
+    User:
+      allOf:
+        - $ref: '#/components/schemas/NewUser'
+        - type: object
+          required: [id, created_at]
+          properties:
+            id: { type: string }
+            created_at: { type: string, format: date-time }
+            role:
+              type: string
+              enum: [admin, member]
+            nickname:
+              type: string
+              nullable: true
+    Order:
+      type: object
+      required: [id, status, items, total]
+      properties:
+        id: { type: string }
+        status: { type: string, enum: [pending, paid, shipped] }
+        total: { type: number, nullable: true }
+        items:
+          type: array
+          items:
+            type: object
+            required: [sku, qty]
+            properties:
+              sku: { type: string }
+              qty: { type: integer }
+        shipping_address:
+          $ref: '#/components/schemas/Address'
+    Address:
+      type: object
+      properties:
+        line1: { type: string }
+        city: { type: string }

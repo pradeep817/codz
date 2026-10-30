@@ -1,0 +1,108 @@
+{
+  "schema": 1,
+  "framework": "flutter",
+  "adapter": "flutter@0.1.0",
+  "conventions": {
+    "packageName": "shop_app",
+    "http": "dio",
+    "serialization": "manual",
+    "stateManagement": "riverpod",
+    "router": "go_router",
+    "modelsFolder": "lib/data/models",
+    "modelFileSuffix": "_model",
+    "modelClassSuffix": "Model",
+    "jsonAnnotation": "",
+    "repoFolder": "lib/data/repositories",
+    "repoKind": "repository",
+    "dioField": "_dio",
+    "di": "riverpod",
+    "dioProvider": "dioProvider",
+    "dioProviderFile": "lib/core/network/dio_provider.dart",
+    "baseUrl": "https://api.example.com",
+    "importStyle": "relative",
+    "indent": "2",
+    "networkFile": "lib/core/network/dio_provider.dart",
+    "modulesFolder": "",
+    "routesFile": ""
+  },
+  "routes": [
+    {
+      "name": "home",
+      "path": "/",
+      "params": [],
+      "file": "lib/router.dart"
+    },
+    {
+      "name": "profile",
+      "path": "/profile/{id}",
+      "params": [
+        "id"
+      ],
+      "file": "lib/router.dart"
+    }
+  ],
+  "endpoints": [
+    {
+      "name": "getUser",
+      "method": "GET",
+      "path": "/users/{id}",
+      "response": "UserModel",
+      "file": "lib/data/repositories/user_repository.dart",
+      "calledFrom": [
+        "lib/features/profile/profile_page.dart"
+      ]
+    }
+  ],
+  "models": [
+    {
+      "name": "UserModel",
+      "file": "lib/data/models/user_model.dart",
+      "fields": [
+        {
+          "name": "id",
+          "type": "int",
+          "nullable": false
+        },
+        {
+          "name": "name",
+          "type": "String",
+          "nullable": false
+        },
+        {
+          "name": "email",
+          "type": "String",
+          "nullable": true
+        }
+      ]
+    }
+  ],
+  "locales": {
+    "default": "en",
+    "languages": [
+      "en",
+      "hi"
+    ],
+    "files": [
+      "lib/l10n/app_en.arb",
+      "lib/l10n/app_hi.arb"
+    ],
+    "keyCount": 2
+  },
+  "baseUrls": [
+    {
+      "name": "Dio baseUrl",
+      "value": "https://api.example.com",
+      "file": "lib/core/network/dio_provider.dart"
+    }
+  ],
+  "stats": {
+    "files": 10,
+    "byExtension": {
+      ".dart": 7,
+      ".arb": 2,
+      ".yaml": 1
+    }
+  },
+  "notes": [],
+  "clientBaseUrl": true
+}

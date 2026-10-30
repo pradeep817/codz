@@ -1,0 +1,141 @@
+{
+  "schema": 1,
+  "id": "nextjs-app-router-fetch",
+  "version": "1.0.0",
+  "title": "Next.js App Router with a typed fetch helper",
+  "summary": "Next.js with the App Router, strict TypeScript, apiFetch<T>() with ApiError, error and not-found pages, and light/dark CSS variables.",
+  "framework": "nextjs",
+  "mode": "full",
+  "requires": {
+    "devtool": ">=0.1.0",
+    "node": ">=18.18"
+  },
+  "provides": {
+    "router": "app-router",
+    "http": "fetch"
+  },
+  "extras": [
+    "Error and not-found pages",
+    "Light and dark CSS variables",
+    "A typecheck script",
+    ".env.example for the API address"
+  ],
+  "apiAdd": {
+    "supported": true
+  },
+  "answers": [
+    {
+      "key": "appName",
+      "prompt": "Package name",
+      "type": "npm-name",
+      "default": "my-app"
+    },
+    {
+      "key": "appTitle",
+      "prompt": "App title",
+      "type": "string",
+      "default": "My App",
+      "maxLength": 60
+    },
+    {
+      "key": "apiBaseUrl",
+      "prompt": "API base URL",
+      "type": "string",
+      "default": "https://api.example.com",
+      "maxLength": 200
+    }
+  ],
+  "dependencies": {
+    "next": "^15.1.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "typescript": "^5"
+  },
+  "steps": [
+    "npm_install"
+  ],
+  "expectedConventions": {
+    "http": "fetch",
+    "httpHelper": "apiFetch",
+    "httpHelperFile": "lib/api/client.ts",
+    "apiFolder": "lib/api",
+    "baseUrlEnv": "NEXT_PUBLIC_API_URL",
+    "importAlias": "@/"
+  },
+  "files": [
+    {
+      "path": ".env.example",
+      "sha256": "82cb5a2bdb7f118db44f7bc7185f7c15ddd74aeb7df77d8cca4ffaa628abb1e0",
+      "size": 118
+    },
+    {
+      "path": ".gitignore",
+      "sha256": "7a8f84e6c2be35a67c09465a0b40450eb4ba206d8582949941bde66b5ac329bb",
+      "size": 76
+    },
+    {
+      "path": "README.md",
+      "sha256": "33f822e20c562c989dfd2e2ecfb20383932c4706b12b1265ab03b8a551ae0936",
+      "size": 500
+    },
+    {
+      "path": "app/error.tsx",
+      "sha256": "a0e8f3417feccbaf20bd626517f7aea9561c75685bdbef582750420ddc5f311c",
+      "size": 321
+    },
+    {
+      "path": "app/globals.css",
+      "sha256": "dc177adf9508b88447d642382a9e3587445c083e639a246ccca1280aedc1ab90",
+      "size": 505
+    },
+    {
+      "path": "app/layout.tsx",
+      "sha256": "8fc18f8da56e9a8b64ae7fcf6d7afc9c3e4bef0db6b7c2b0a1ad6086207326fd",
+      "size": 332
+    },
+    {
+      "path": "app/not-found.tsx",
+      "sha256": "a75177d840c37b3d0cbd22aa8d97d56a170ea54eb9544461336730eba4971fc8",
+      "size": 207
+    },
+    {
+      "path": "app/page.tsx",
+      "sha256": "2506ce79038b718f72242d6ca5939f78612124a80e7569853834ce68b7073711",
+      "size": 202
+    },
+    {
+      "path": "lib/api/client.ts",
+      "sha256": "e8748b5d4207e8ae8e0bc95d4ce81b5c5786d1d15d5f25963a0874256425c05d",
+      "size": 731
+    },
+    {
+      "path": "lib/api/index.ts",
+      "sha256": "a3fa4373171a3684e69fe2220ca3ab5caecce14d3bb929a1c1191cbb4e264c8c",
+      "size": 26
+    },
+    {
+      "path": "next.config.mjs",
+      "sha256": "73f18ea67787ab9d40bedbf6600bc6f822dfc31347374a54677d67a36567b20b",
+      "size": 118
+    },
+    {
+      "path": "package.json",
+      "sha256": "64819c9c85047f05e6eab82ac8520f9f49a81b28e21790add6735d0a732d899b",
+      "size": 223
+    },
+    {
+      "path": "tsconfig.json",
+      "sha256": "104fbd18432406714408395ec11b2fbb3c716da1fce21e5abd7d74e80720838f",
+      "size": 563
+    }
+  ],
+  "license": {
+    "kind": "commercial-single-developer",
+    "file": "LICENSE"
+  }
+}

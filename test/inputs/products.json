@@ -1,0 +1,1 @@
+[{"id": 1, "name": "Lamp", "price": 25, "in_stock": true, "tags": ["home"], "discount": null}, {"id": 2, "name": "Desk", "price": 120.5, "in_stock": false, "tags": [], "discount": 10}]

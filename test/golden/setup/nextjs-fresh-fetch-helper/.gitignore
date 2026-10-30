@@ -1,0 +1,5 @@
+/node_modules
+/.next/
+.env*
+# devtool cache, backups and history
+.devtool/

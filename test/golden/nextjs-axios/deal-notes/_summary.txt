@@ -1,0 +1,3 @@
+• Create src/types/note.ts: interface Note
+• Create src/lib/api/deals.ts: getDealNotes() for GET /v1/deals/{dealId}/notes
+• Create src/hooks/use-deals.ts: useDealNotes() (TanStack Query query)

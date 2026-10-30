@@ -1,0 +1,4 @@
+• Create src/types/updated-contact.ts: interface UpdatedContact
+• Create src/types/update-contact-request.ts: interface UpdateContactRequest
+• Update src/lib/api/contacts.ts: updateContact() for PATCH /v1/contacts/{id}
+• Update src/hooks/use-contact.ts: useUpdateContact() (TanStack Query mutation)

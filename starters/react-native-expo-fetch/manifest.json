@@ -1,0 +1,183 @@
+{
+  "schema": 1,
+  "id": "react-native-expo-fetch",
+  "version": "1.0.0",
+  "title": "React Native (Expo) with a typed fetch helper",
+  "summary": "Expo with React Navigation, apiFetch<T>() with timeouts and readable errors, a useApi() hook for loading, error and pull to refresh, and themes that follow the phone.",
+  "framework": "react-native",
+  "mode": "full",
+  "requires": {
+    "devtool": ">=0.1.0",
+    "node": ">=18.18"
+  },
+  "provides": {
+    "flavor": "expo",
+    "router": "react-navigation",
+    "http": "fetch"
+  },
+  "extras": [
+    "useApi() hook with loading, error and refresh state",
+    "Loading and error views with a retry button",
+    "Light and dark themes that follow the phone",
+    "Request timeouts and user-facing error messages",
+    "A Jest test and a typecheck script"
+  ],
+  "apiAdd": {
+    "supported": true
+  },
+  "answers": [
+    {
+      "key": "appName",
+      "prompt": "Package name",
+      "type": "npm-name",
+      "default": "my-app"
+    },
+    {
+      "key": "appTitle",
+      "prompt": "App title",
+      "type": "string",
+      "default": "My App",
+      "maxLength": 60
+    },
+    {
+      "key": "bundleId",
+      "prompt": "App id (iOS bundle id and Android package)",
+      "type": "reverse-domain",
+      "default": "com.example.myapp"
+    },
+    {
+      "key": "apiBaseUrl",
+      "prompt": "API base URL",
+      "type": "string",
+      "default": "https://api.example.com",
+      "maxLength": 200
+    }
+  ],
+  "dependencies": {
+    "@react-navigation/native": "^7.0.0",
+    "@react-navigation/native-stack": "^7.0.0",
+    "expo": "~52.0.0",
+    "react": "18.3.1",
+    "react-native": "0.76.5"
+  },
+  "steps": [
+    "npm_install"
+  ],
+  "expectedConventions": {
+    "http": "fetch",
+    "httpHelper": "apiFetch",
+    "httpHelperFile": "src/api/client.ts",
+    "apiFolder": "src/api",
+    "importAlias": "@/",
+    "flavor": "expo",
+    "router": "react-navigation",
+    "navigatorFile": "src/navigation/RootNavigator.tsx",
+    "screensFolder": "src/screens"
+  },
+  "files": [
+    {
+      "path": ".env.example",
+      "sha256": "4cfbfe887ea5c45a5cfe840609ff678ac3e15c5759a7af1f013b432b9fbf71cb",
+      "size": 115
+    },
+    {
+      "path": ".gitignore",
+      "sha256": "fcb4547d5681a4d59d03a76dbb373f33cef833d8b9187ad3b59465ca300d2720",
+      "size": 138
+    },
+    {
+      "path": "App.tsx",
+      "sha256": "c938ee833f068bbc821955019b6c71cd43cbc0253f15fa69727c1b66e1f1443d",
+      "size": 580
+    },
+    {
+      "path": "README.md",
+      "sha256": "79ed8a9301c5944dc1d3a1cdbf3eb8120bbe16ab12bc10f7ccf352368626962e",
+      "size": 452
+    },
+    {
+      "path": "__tests__/client.test.ts",
+      "sha256": "6090d4575f43381e94f9d1da316c49836771449fcf3e24c1420c6d7f4b534079",
+      "size": 978
+    },
+    {
+      "path": "app.json",
+      "sha256": "211ef0bc9315eb3733bc065586ad83e7b63a1e03a77710c417c4f2bb9ee8f8fa",
+      "size": 285
+    },
+    {
+      "path": "index.ts",
+      "sha256": "9feb78c747e7c526cb3ab8f57210053654d966ba71aa24328088c3ebcc5ff76f",
+      "size": 101
+    },
+    {
+      "path": "package.json",
+      "sha256": "bda40b6e4135ba0ce1aadfd85adb154e098aa4c5b22b0e7cd62877663f93eb61",
+      "size": 812
+    },
+    {
+      "path": "src/api/client.ts",
+      "sha256": "3268af3339c02bde6ee5ff8f7dac3207e9090efad86cee4b3400c1b168eb3094",
+      "size": 1788
+    },
+    {
+      "path": "src/api/index.ts",
+      "sha256": "a3fa4373171a3684e69fe2220ca3ab5caecce14d3bb929a1c1191cbb4e264c8c",
+      "size": 26
+    },
+    {
+      "path": "src/components/ErrorView.tsx",
+      "sha256": "cfe91ae3bb09005b0e7cddaf70c4593a79f6238aa8a3a3990b0ab33cbb605cd8",
+      "size": 1019
+    },
+    {
+      "path": "src/components/LoadingView.tsx",
+      "sha256": "ee003f9005a17714cf91dd8ea992315d08b4e40b744f256524a5eaa132eae0d2",
+      "size": 414
+    },
+    {
+      "path": "src/config/env.ts",
+      "sha256": "da4c8e80cedc27b36d88a9f226ce46ae256e08d0ff96abe4e1b556b013d2557e",
+      "size": 153
+    },
+    {
+      "path": "src/hooks/useApi.ts",
+      "sha256": "e8053dcfc75337f5a264395a513783875c747f0310f6de45ffa64be39ad508e9",
+      "size": 1478
+    },
+    {
+      "path": "src/navigation/RootNavigator.tsx",
+      "sha256": "f8b7e4af970c8822c39bf8c12e8b8e5064d6f30d68c6f73a560907cc28e7d774",
+      "size": 540
+    },
+    {
+      "path": "src/screens/HomeScreen.tsx",
+      "sha256": "0c40550da5c18d64b79a2a50750ba9a3bc4c9bf44dbff35d755ae1f2f7eecc72",
+      "size": 761
+    },
+    {
+      "path": "src/theme/colors.ts",
+      "sha256": "58074c5cd138c9db8f7c1972c9a7b3325c755203894a4187d13d490119ec1256",
+      "size": 379
+    },
+    {
+      "path": "src/theme/useTheme.ts",
+      "sha256": "2a5d0839b9b88cb1f26e1ab1f19e0a158551fd485b15f9b6db66ecc0af4b2c3d",
+      "size": 762
+    },
+    {
+      "path": "src/types/api.ts",
+      "sha256": "26f899b79f9e8b9dc20227029368ed6688f1169f6cee416bdbdcfa89f7d23bcb",
+      "size": 164
+    },
+    {
+      "path": "tsconfig.json",
+      "sha256": "62cfa165a869ec49b3027afd38c4d283a1099bc00e347c0dbac600b8edced198",
+      "size": 132
+    }
+  ],
+  "license": {
+    "kind": "commercial-single-developer",
+    "file": "LICENSE"
+  }
+}

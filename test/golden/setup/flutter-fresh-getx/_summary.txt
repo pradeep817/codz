@@ -1,0 +1,5 @@
+• Create lib/app/data/network/api_client.dart: createDio() with base URL https://api.yourapp.com
+• Create lib/app/bindings/initial_binding.dart: InitialBinding that registers Dio; new repositories are added here
+• Update lib/main.dart: GetMaterialApp with initialBinding
+• Update pubspec.yaml: add dio, get
+• Save conventions: models in lib/app/data/models, repositories in lib/app/data/repositories, registration with getx

@@ -1,0 +1,3 @@
+• Import 2 operations from "Pet Store" (Swagger): 2 added, 0 already present, 0 skipped
+•   GET    /api/pets  →  listPets()  in lib/api/pets.ts
+•   POST   /api/pets  →  addPet()  in lib/api/pets.ts

@@ -1,0 +1,4 @@
+• Create lib/core/network/dio_provider.dart: createDio() and dioProvider
+• Update lib/main.dart: wrap the app in ProviderScope
+• Update pubspec.yaml: add dio, flutter_riverpod
+• Save conventions: models in lib/data/models, repositories in lib/data/repositories, registration with riverpod

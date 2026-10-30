@@ -1,0 +1,45 @@
+# devtool configuration. Commit this file.
+# Values below were detected by `devtool init` (or chosen in `devtool setup`).
+# Correct any that are wrong: devtool always uses these values instead of guessing again.
+framework: flutter
+conventions:
+  # package name from pubspec.yaml
+  packageName: project
+  # HTTP client: dio or http
+  http: dio
+  # model serialization: manual (hand-written fromJson), json_serializable or freezed
+  serialization: manual
+  # state management library
+  stateManagement: getx
+  # router library
+  router: navigator
+  # where model classes live
+  modelsFolder: lib/app/data/models
+  # suffix in model file names, for example _model, or empty
+  modelFileSuffix: _model
+  # suffix in model class names, for example Model, or empty
+  modelClassSuffix: Model
+  # annotation used on json_serializable models
+  jsonAnnotation: ''
+  # where repository or service classes live
+  repoFolder: lib/app/data/repositories
+  # class kind for API calls: repository, service or api
+  repoKind: repository
+  # name of the Dio field inside repository classes
+  dioField: _dio
+  # how repositories are registered: getx, riverpod, get_it or none
+  di: getx
+  # Dio base URL found in the code, if it is a literal
+  baseUrl: https://api.yourapp.com
+  # package or relative imports
+  importStyle: package
+  # indentation used in Dart files
+  indent: 2
+  # file that creates the Dio instance (mocks are registered there)
+  networkFile: lib/app/data/network/api_client.dart
+  # where feature modules live (GetX CLI layout: <name>/bindings, controllers, views)
+  modulesFolder: lib/app/modules
+  # GetX app_pages.dart with the GetPage list (app_routes.dart sits next to it)
+  routesFile: lib/app/routes/app_pages.dart
+  # file where new classes are registered: the GetX binding or the get_it setup
+  diFile: lib/app/bindings/initial_binding.dart

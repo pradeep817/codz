@@ -1,0 +1,6 @@
+{
+  "@@locale": "fr",
+  "homeTitle": "Home",
+  "profileTitle": "Profile",
+  "welcomeUser": "Welcome {name}"
+}

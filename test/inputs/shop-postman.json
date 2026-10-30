@@ -1,0 +1,30 @@
+{
+  "info": { "name": "Shop", "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json" },
+  "variable": [{ "key": "baseUrl", "value": "https://api.yourapp.com/v1" }],
+  "item": [
+    {
+      "name": "Products",
+      "item": [
+        {
+          "name": "List products",
+          "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer secret" }], "url": { "raw": "{{baseUrl}}/products?category=home" } },
+          "response": [{ "name": "ok", "code": 200, "body": "[{\"id\": 1, \"title\": \"Lamp\", \"price\": 25}]" }]
+        },
+        {
+          "name": "Get product",
+          "request": { "method": "GET", "url": "{{baseUrl}}/products/:id" },
+          "response": [{ "name": "ok", "code": 200, "body": "{\"id\": 1, \"title\": \"Lamp\", \"price\": 25}" }]
+        }
+      ]
+    },
+    {
+      "name": "Create review",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/products/:productId/reviews",
+        "body": { "mode": "raw", "raw": "{\"rating\": 5, \"text\": \"Great\"}" }
+      },
+      "response": []
+    }
+  ]
+}

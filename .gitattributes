@@ -1,0 +1,6 @@
+# Golden files and fixtures are compared byte for byte; keep LF line endings
+# on every platform (Windows checkouts would otherwise get CRLF).
+* text=auto eol=lf
+*.png binary
+*.bat text eol=crlf
+*.jar binary

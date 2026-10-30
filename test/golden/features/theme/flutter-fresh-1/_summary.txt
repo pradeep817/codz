@@ -1,0 +1,8 @@
+• Create lib/core/theme/app_colors.dart: AppColors
+• Add AppColors.primary = #6750A4 in lib/core/theme/app_colors.dart
+• Create lib/core/theme/app_theme.dart: AppTheme.light / AppTheme.dark seeded from AppColors.primary
+• Update lib/main.dart: theme: AppTheme.light (replaces the template theme)
+• Create lib/core/theme/app_sizes.dart: AppSizes
+• Add AppSizes.radius = 12.0 in lib/core/theme/app_sizes.dart
+• Use the font Inter in lib/core/theme/app_theme.dart
+! Add the Inter font files under fonts: in pubspec.yaml (or use the google_fonts package), or Flutter falls back to the default font.

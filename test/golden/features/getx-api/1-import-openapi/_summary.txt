@@ -1,0 +1,9 @@
+• Import 5 operations from "Shop API" (OpenAPI): 5 added, 0 already present, 0 skipped
+•   GET    /v1/users  →  listUsers()  in lib/data/repositories/user_repository.dart
+•   POST   /v1/users  →  createUser()  in lib/data/repositories/user_repository.dart
+•   GET    /v1/users/{userId}  →  getUser()  in lib/data/repositories/user_repository.dart
+•   DELETE /v1/users/{userId}  →  deleteUser()  in lib/data/repositories/user_repository.dart
+•   GET    /v1/orders/{orderId}  →  getOrder()  in lib/data/repositories/order_repository.dart
+! dio is not in pubspec.yaml yet; the generated code needs it. Run `flutter pub add dio` (or `devtool setup` for the whole networking layer).
+! listUsers: No dependency injection setup was detected, so UserRepository is not registered anywhere. Run `devtool setup` to add one.
+! getOrder: No dependency injection setup was detected, so OrderRepository is not registered anywhere. Run `devtool setup` to add one.

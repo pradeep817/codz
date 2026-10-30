@@ -1,0 +1,106 @@
+{
+  "schema": 1,
+  "framework": "react-native",
+  "adapter": "react-native@0.1.0",
+  "conventions": {
+    "importAlias": "",
+    "aliasBase": ".",
+    "http": "fetch",
+    "httpHelper": "apiFetch",
+    "httpHelperFile": "src/api/client.ts",
+    "apiFolder": "src/api",
+    "apiFileNaming": "kebab",
+    "apiFileSuffix": "",
+    "apiFileResource": "plural",
+    "baseUrlEnv": "",
+    "modelsFolder": "src/types",
+    "modelsLayout": "per-file",
+    "modelsFile": "",
+    "modelFileNaming": "kebab",
+    "importStyle": "relative",
+    "quote": "single",
+    "semicolons": "true",
+    "indent": "2",
+    "i18n": "",
+    "styling": "",
+    "flavor": "bare",
+    "router": "react-navigation",
+    "routerDir": "",
+    "navigatorFile": "src/navigation/RootNavigator.tsx",
+    "screensFolder": "src/screens",
+    "configFile": "src/config/env.ts"
+  },
+  "routes": [
+    {
+      "name": "Home",
+      "path": "Home",
+      "params": [],
+      "file": "src/navigation/RootNavigator.tsx"
+    }
+  ],
+  "endpoints": [
+    {
+      "name": "getJobs",
+      "method": "GET",
+      "path": "/jobs",
+      "response": "Job[]",
+      "file": "src/api/jobs.ts",
+      "calledFrom": [
+        "src/screens/HomeScreen.tsx"
+      ]
+    },
+    {
+      "name": "getJob",
+      "method": "GET",
+      "path": "/jobs/{id}",
+      "response": "Job",
+      "file": "src/api/jobs.ts",
+      "calledFrom": []
+    }
+  ],
+  "models": [
+    {
+      "name": "Job",
+      "file": "src/types/job.ts",
+      "fields": [
+        {
+          "name": "id",
+          "type": "number",
+          "nullable": false
+        },
+        {
+          "name": "title",
+          "type": "string",
+          "nullable": false
+        },
+        {
+          "name": "done",
+          "type": "boolean",
+          "nullable": false
+        }
+      ]
+    }
+  ],
+  "locales": {
+    "languages": [],
+    "files": [],
+    "keyCount": 0
+  },
+  "baseUrls": [
+    {
+      "name": "API_URL",
+      "value": "https://api.fieldops.dev/v1",
+      "file": "src/config/env.ts"
+    }
+  ],
+  "stats": {
+    "files": 11,
+    "byExtension": {
+      ".ts": 4,
+      ".json": 3,
+      ".tsx": 3,
+      ".js": 1
+    }
+  },
+  "notes": []
+}

@@ -1,0 +1,3 @@
+• Create lib/data/models/product_model.dart: class ProductModel
+• Create lib/data/repositories/product_repository.dart: ProductRepository.getProducts() for GET /products
+• Register ProductRepository with a Riverpod provider (productRepositoryProvider) in lib/data/repositories/product_repository.dart

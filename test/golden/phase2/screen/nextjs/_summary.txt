@@ -1,0 +1,4 @@
+• Create app/users/[id]/page.tsx: UserProfilePage at /users/[id]
+• Link to it with: <Link href={`/users/${id}`}>
+• app/users/[id]/page.tsx awaits getUser() on the server and renders the result
+• Create app/users/[id]/loading.tsx and app/users/[id]/error.tsx (loading state, and an error with retry)
