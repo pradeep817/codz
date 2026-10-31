@@ -394,6 +394,11 @@ export async function planApiUpdate(root: string, adapter: Adapter, name: string
   const spec = buildEndpoint({ method: ep.method as HttpMethod, url, responseSamples: loaded, name: ep.name, modelName, unwrap: opts.noUnwrap ? 'never' : 'auto' });
   spec.pathParams = spec.pathParams.map((p) => ({ ...p, type: sig.pathTypes.get(p.name) ?? p.type }));
   spec.queryParams = sig.query;
+  // A sample shows a field present, not that it always is: a field that was optional stays optional
+  // (making it required would also break code that checks it, like dueAt?.isBefore(...)).
+  const before = map.models.find((m) => m.name === rootClass);
+  const inferred = spec.models.find((m) => m.name === modelName) ?? spec.models[spec.models.length - 1];
+  if (before && inferred) for (const f of inferred.fields) if (before.fields.find((b) => b.name === f.jsonName)?.nullable) f.nullable = true;
   if (sig.bodyType) {
     const suffix = lang === 'dart' ? map.conventions.modelClassSuffix ?? '' : '';
     const bodyModel = suffix && sig.bodyType.endsWith(suffix) ? sig.bodyType.slice(0, -suffix.length) : sig.bodyType;

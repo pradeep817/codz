@@ -281,7 +281,8 @@ function flutterTests(root: string, map: ProjectMap, eps: EndpointInfo[]): Chang
       const body = decl && unwrapsData(src.slice(decl.start, decl.end), c) ? { data: value } : value;
       const list2 = /^List<(.+)>$/.exec(type);
       const model = map.models.find((m) => m.name === (list2?.[1] ?? type).replace(/\?$/, ''));
-      if (model && model.file !== file) modelFiles.add(model.file);
+      // Imported only when the test names it (isA<Model>); a list is checked by its length.
+      if (model && model.file !== file && !list2 && !voidish) modelFiles.add(model.file);
       const expectResult = voidish ? null : list2 ? `      expect(result, hasLength(${Array.isArray(value) ? value.length : 1}));` : model ? `      expect(result, isA<${model.name}>());` : '      expect(result, isNotNull);';
       const call = `${sig.repoClass}(dio).${ep.name}(${args.join(', ')})`;
       groups.push(

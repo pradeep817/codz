@@ -4,7 +4,7 @@ class User {
     required this.name,
     required this.email,
     required this.createdAt,
-    required this.role,
+    this.role,
     required this.phone,
   });
 
@@ -13,7 +13,7 @@ class User {
         name: json['name'] as String,
         email: json['email'] as String,
         createdAt: DateTime.parse(json['created_at'] as String),
-        role: json['role'] as String,
+        role: json['role'] as String?,
         phone: json['phone'] as String,
       );
 
@@ -21,7 +21,7 @@ class User {
   final String name;
   final String email;
   final DateTime createdAt;
-  final String role;
+  final String? role;
   final String phone;
 
   Map<String, dynamic> toJson() => {

@@ -1,7 +1,6 @@
 • Update getUser() (GET /v1/users/{userId}) from 1 new sample
 • Fields added to User: phone
 • Fields removed from User: avatar_url
-• Fields that changed type: role: String? → String
 • Update lib/models/user.dart: class User (rewritten)
 ! dio is not in pubspec.yaml yet; the generated code needs it. Run `flutter pub add dio` (or `codz setup` for the whole networking layer).
-! No code outside the models uses the removed or changed fields (avatar_url, role).
+! No code outside the models uses the removed or changed fields (avatar_url).
