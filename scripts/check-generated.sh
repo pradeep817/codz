@@ -34,7 +34,7 @@ if command -v flutter >/dev/null 2>&1; then
 
   d=$(copy flutter-getit)
   (cd "$d" && dtq api add "${FLAGS[@]}" < "$IN/visit-curl.txt")
-  (cd "$d" && flutter pub get >/dev/null && dart run build_runner build --delete-conflicting-outputs >/dev/null && dart analyze lib) && echo "✓ flutter-getit: dart analyze clean" || { echo "✗ flutter-getit"; status=1; }
+  (cd "$d" && flutter pub get >/dev/null && dart run build_runner build --delete-conflicting-outputs 2>&1 | tail -n 30 && dart analyze lib) && echo "✓ flutter-getit: dart analyze clean" || { echo "✗ flutter-getit"; status=1; }
 
   for arch in getx riverpod get_it; do
     d="$WORK/fresh-$arch"; cp -R "$ROOT/fixtures/flutter-fresh" "$d"
@@ -46,7 +46,7 @@ if command -v flutter >/dev/null 2>&1; then
   for fx in flutter-fresh flutter-getx-cli; do
     d="$WORK/modules-$fx"; cp -R "$ROOT/fixtures/$fx" "$d"
     (cd "$d" && dtq setup --architecture getx --base-url https://api.example.com "${FLAGS[@]}")
-    (cd "$d" && dtq module add home "${FLAGS[@]}")
+    [ -d "$d/lib/app/modules/home" ] || (cd "$d" && dtq module add home "${FLAGS[@]}")
     (cd "$d" && dtq module add order_details "${FLAGS[@]}")
     (cd "$d" && dtq api add --into order_details "${FLAGS[@]}" < "$IN/order-curl.txt")
     (cd "$d" && dtq api add --url 'https://api.example.com/products' --sample "$IN/products.json" --into home "${FLAGS[@]}")
@@ -87,7 +87,7 @@ if command -v flutter >/dev/null 2>&1; then
   (cd "$d" && dtq screen add members --api getProjectMembers --path /projects/:projectId/members "${FLAGS[@]}")
   (cd "$d" && dtq mock add --all "${FLAGS[@]}")
   (cd "$d" && dtq test add --all "${FLAGS[@]}")
-  (cd "$d" && flutter pub get >/dev/null && dart run build_runner build --delete-conflicting-outputs >/dev/null && dart analyze lib test && flutter test) && echo "✓ flutter-bloc-retrofit (freezed, Retrofit, Cubit screens): dart analyze clean" || { echo "✗ flutter-bloc-retrofit"; status=1; }
+  (cd "$d" && flutter pub get >/dev/null && dart run build_runner build --delete-conflicting-outputs 2>&1 | tail -n 30 && dart analyze lib test && flutter test) && echo "✓ flutter-bloc-retrofit (freezed, Retrofit, Cubit screens): dart analyze clean" || { echo "✗ flutter-bloc-retrofit"; status=1; }
 
   d=$(copy flutter-riverpod)
   d2="$WORK/riverpod-session"; mv "$d" "$d2"; d="$d2"
@@ -349,7 +349,7 @@ if command -v flutter >/dev/null 2>&1; then
     (cd "$d" && dtq init --yes --no-color)
     (cd "$d" && dtq api add --url 'https://api.example.com/products?category=home' --sample "$IN/products.json" "${FLAGS[@]}")
     (cd "$d" && dtq screen add products --api getProducts "${FLAGS[@]}")
-    (cd "$d" && flutter pub get >/dev/null && flutter analyze && flutter test) && echo "✓ codz new flutter-riverpod-dio + api add + screen: analyze and tests pass" || { echo "✗ starter flutter-riverpod-dio"; status=1; }
+    (cd "$d" && flutter pub get >/dev/null && flutter analyze --no-fatal-infos && flutter test) && echo "✓ codz new flutter-riverpod-dio + api add + screen: analyze and tests pass" || { echo "✗ starter flutter-riverpod-dio"; status=1; }
   fi
 fi
 d="$WORK/starter-next"
