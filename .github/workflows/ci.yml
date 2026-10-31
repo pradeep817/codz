@@ -47,6 +47,7 @@ jobs:
   generated-code:
     name: Generated code compiles (tsc + dart analyze)
     runs-on: ubuntu-latest
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -58,8 +59,9 @@ jobs:
           channel: stable
           cache: true
       - name: Run codz on every fixture and compile the result
+        timeout-minutes: 50
         run: bash ./scripts/check-generated.sh 2>&1 | tee "$RUNNER_TEMP/step.log"; exit ${PIPESTATUS[0]}
-      - if: failure()
+      - if: failure() || cancelled()
         run: bash scripts/ci-annotate.sh "$RUNNER_TEMP/step.log" "Generated code"
 
   android:

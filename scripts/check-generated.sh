@@ -14,6 +14,8 @@ FLAGS=(--yes --allow-dirty --no-verify --no-color)
 status=0
 
 copy() { cp -R "$ROOT/fixtures/$1" "$WORK/$1"; echo "$WORK/$1"; }
+# Long tool runs get a time limit, so a hang fails one check instead of the whole job.
+tmo() { if command -v timeout >/dev/null 2>&1; then timeout 600 "$@"; else "$@"; fi; }
 # Runs one codz command quietly; when it fails, says which and shows its output,
 # and the check keeps going (the script still exits 1 at the end).
 dtq() {
@@ -30,17 +32,20 @@ if command -v flutter >/dev/null 2>&1; then
   d=$(copy flutter-riverpod)
   (cd "$d" && dtq api add "${FLAGS[@]}" < "$IN/order-curl.txt")
   (cd "$d" && dtq api add --url 'https://api.example.com/products?category=home' --sample "$IN/products.json" "${FLAGS[@]}")
-  (cd "$d" && flutter pub get >/dev/null && dart analyze lib) && echo "✓ flutter-riverpod: dart analyze clean" || { echo "✗ flutter-riverpod"; status=1; }
+  echo "→ $(basename "$d"): pub get, analyze"
+  (cd "$d" && tmo flutter pub get >/dev/null && dart analyze lib) && echo "✓ flutter-riverpod: dart analyze clean" || { echo "✗ flutter-riverpod"; status=1; }
 
   d=$(copy flutter-getit)
   (cd "$d" && dtq api add "${FLAGS[@]}" < "$IN/visit-curl.txt")
-  (cd "$d" && flutter pub get >/dev/null && dart run build_runner build --delete-conflicting-outputs 2>&1 | tail -n 30 && dart analyze lib) && echo "✓ flutter-getit: dart analyze clean" || { echo "✗ flutter-getit"; status=1; }
+  echo "→ $(basename "$d"): pub get, analyze"
+  (cd "$d" && tmo flutter pub get >/dev/null && tmo dart run build_runner build --delete-conflicting-outputs 2>&1 | tail -n 30 && dart analyze lib) && echo "✓ flutter-getit: dart analyze clean" || { echo "✗ flutter-getit"; status=1; }
 
   for arch in getx riverpod get_it; do
     d="$WORK/fresh-$arch"; cp -R "$ROOT/fixtures/flutter-fresh" "$d"
     (cd "$d" && dtq setup --architecture "$arch" --base-url https://api.example.com "${FLAGS[@]}")
     (cd "$d" && dtq api add "${FLAGS[@]}" < "$IN/order-curl.txt")
-    (cd "$d" && flutter pub get >/dev/null && dart analyze lib) && echo "✓ flutter-fresh + $arch setup: dart analyze clean" || { echo "✗ flutter-fresh + $arch"; status=1; }
+    echo "→ $(basename "$d"): pub get, analyze"
+    (cd "$d" && tmo flutter pub get >/dev/null && dart analyze lib) && echo "✓ flutter-fresh + $arch setup: dart analyze clean" || { echo "✗ flutter-fresh + $arch"; status=1; }
   done
 
   for fx in flutter-fresh flutter-getx-cli; do
@@ -50,7 +55,8 @@ if command -v flutter >/dev/null 2>&1; then
     (cd "$d" && dtq module add order_details "${FLAGS[@]}")
     (cd "$d" && dtq api add --into order_details "${FLAGS[@]}" < "$IN/order-curl.txt")
     (cd "$d" && dtq api add --url 'https://api.example.com/products' --sample "$IN/products.json" --into home "${FLAGS[@]}")
-    (cd "$d" && flutter pub get >/dev/null && dart analyze lib) && echo "✓ $fx + GetX modules: dart analyze clean" || { echo "✗ $fx + GetX modules"; status=1; }
+    echo "→ $(basename "$d"): pub get, analyze"
+    (cd "$d" && tmo flutter pub get >/dev/null && dart analyze lib) && echo "✓ $fx + GetX modules: dart analyze clean" || { echo "✗ $fx + GetX modules"; status=1; }
   done
   # Every other command on one project per architecture: import, edit, mocks, locales, theme, routes.
   printf '{"id": 7, "name": "Bo", "email": "b@x.com", "created_at": "2026-01-02T00:00:00Z", "role": "admin", "phone": "+91 99999"}' > "$WORK/user-v2.json"
@@ -73,7 +79,8 @@ if command -v flutter >/dev/null 2>&1; then
     (cd "$d" && dtq screen add people --api fetchUsers "${FLAGS[@]}")
     (cd "$d" && dtq api import "$IN/shop.har" --base-url https://api.shop.dev --skip-conflicts "${FLAGS[@]}")
     (cd "$d" && dtq doctor --fix "${FLAGS[@]}")
-    (cd "$d" && flutter pub get >/dev/null && dart analyze lib) && echo "✓ flutter-fresh + $arch, full session: dart analyze clean" || { echo "✗ flutter-fresh + $arch full session"; status=1; }
+    echo "→ $(basename "$d"): pub get, analyze"
+    (cd "$d" && tmo flutter pub get >/dev/null && dart analyze lib) && echo "✓ flutter-fresh + $arch, full session: dart analyze clean" || { echo "✗ flutter-fresh + $arch full session"; status=1; }
   done
 
   # freezed models + Retrofit clients + Cubit screens (get_it), with build_runner.
@@ -87,7 +94,8 @@ if command -v flutter >/dev/null 2>&1; then
   (cd "$d" && dtq screen add members --api getProjectMembers --path /projects/:projectId/members "${FLAGS[@]}")
   (cd "$d" && dtq mock add --all "${FLAGS[@]}")
   (cd "$d" && dtq test add --all "${FLAGS[@]}")
-  (cd "$d" && flutter pub get >/dev/null && dart run build_runner build --delete-conflicting-outputs 2>&1 | tail -n 30 && dart analyze lib test && flutter test) && echo "✓ flutter-bloc-retrofit (freezed, Retrofit, Cubit screens): dart analyze clean" || { echo "✗ flutter-bloc-retrofit"; status=1; }
+  echo "→ $(basename "$d"): pub get, analyze"
+  (cd "$d" && tmo flutter pub get >/dev/null && tmo dart run build_runner build --delete-conflicting-outputs 2>&1 | tail -n 30 && dart analyze lib test && tmo flutter test) && echo "✓ flutter-bloc-retrofit (freezed, Retrofit, Cubit screens): dart analyze clean" || { echo "✗ flutter-bloc-retrofit"; status=1; }
 
   d=$(copy flutter-riverpod)
   d2="$WORK/riverpod-session"; mv "$d" "$d2"; d="$d2"
@@ -97,7 +105,8 @@ if command -v flutter >/dev/null 2>&1; then
   (cd "$d" && dtq screen add user-details --api getUser --path /users/:id "${FLAGS[@]}")
   (cd "$d" && dtq api sync "$IN/shop-openapi.yaml" --add "${FLAGS[@]}")
   (cd "$d" && dtq screen add new-user --api createUser --form "${FLAGS[@]}")
-  (cd "$d" && flutter pub get >/dev/null && dart analyze lib) && echo "✓ flutter-riverpod + go_router route, theme, ARB key: dart analyze clean" || { echo "✗ flutter-riverpod session"; status=1; }
+  echo "→ $(basename "$d"): pub get, analyze"
+  (cd "$d" && tmo flutter pub get >/dev/null && dart analyze lib) && echo "✓ flutter-riverpod + go_router route, theme, ARB key: dart analyze clean" || { echo "✗ flutter-riverpod session"; status=1; }
 else
   echo "- Flutter SDK not found; skipping the Dart checks"
 fi
@@ -349,7 +358,8 @@ if command -v flutter >/dev/null 2>&1; then
     (cd "$d" && dtq init --yes --no-color)
     (cd "$d" && dtq api add --url 'https://api.example.com/products?category=home' --sample "$IN/products.json" "${FLAGS[@]}")
     (cd "$d" && dtq screen add products --api getProducts "${FLAGS[@]}")
-    (cd "$d" && flutter pub get >/dev/null && flutter analyze --no-fatal-infos && flutter test) && echo "✓ codz new flutter-riverpod-dio + api add + screen: analyze and tests pass" || { echo "✗ starter flutter-riverpod-dio"; status=1; }
+    echo "→ $(basename "$d"): pub get, analyze"
+    (cd "$d" && tmo flutter pub get >/dev/null && flutter analyze --no-fatal-infos && tmo flutter test) && echo "✓ codz new flutter-riverpod-dio + api add + screen: analyze and tests pass" || { echo "✗ starter flutter-riverpod-dio"; status=1; }
   fi
 fi
 d="$WORK/starter-next"
@@ -358,7 +368,7 @@ if [ -d "$d/node_modules/next" ]; then
   (cd "$d" && dtq init --yes --no-color)
   (cd "$d" && dtq api add --url 'https://api.example.com/products' --sample "$IN/products.json" "${FLAGS[@]}")
   (cd "$d" && dtq screen add products --api getProducts "${FLAGS[@]}")
-  (cd "$d" && npx --no-install tsc --noEmit && NEXT_TELEMETRY_DISABLED=1 npx --no-install next build >/dev/null) && echo "✓ codz new nextjs-app-router-fetch + api add + screen: tsc and next build pass" || { echo "✗ starter nextjs-app-router-fetch"; status=1; }
+  (cd "$d" && npx --no-install tsc --noEmit && NEXT_TELEMETRY_DISABLED=1 tmo npx --no-install next build >/dev/null) && echo "✓ codz new nextjs-app-router-fetch + api add + screen: tsc and next build pass" || { echo "✗ starter nextjs-app-router-fetch"; status=1; }
 else
   echo "- codz new nextjs-app-router-fetch: npm install did not run (offline?), so the build check was skipped"
 fi
@@ -372,7 +382,8 @@ if command -v flutter >/dev/null 2>&1; then
   (cd "$d" && dtq api import "$IN/shop-openapi.yaml" "${FLAGS[@]}")
   (cd "$d" && dtq screen add people --api listUsers "${FLAGS[@]}")
   (cd "$d" && dtq mock add --all "${FLAGS[@]}")
-  (cd "$d" && flutter pub get >/dev/null && dart analyze lib) && echo "✓ flutter create + riverpod session: dart analyze clean" || { echo "✗ flutter create session"; status=1; }
+  echo "→ $(basename "$d"): pub get, analyze"
+  (cd "$d" && tmo flutter pub get >/dev/null && dart analyze lib) && echo "✓ flutter create + riverpod session: dart analyze clean" || { echo "✗ flutter create session"; status=1; }
 fi
 
 [ -f "$WORK/failed" ] && status=1

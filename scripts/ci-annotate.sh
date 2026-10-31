@@ -6,6 +6,8 @@
 log="$1"; title="${2:-Failures}"
 [ -f "$log" ] || exit 0
 lines=$({ grep -B 15 -E '✗' "$log" | grep -vE '^(--)?$'; grep -E 'not ok|error:|error TS|FAIL|Exception|^e: |Expected:|Actual:|Some tests failed' "$log"; } | awk '!seen[$0]++' | head -n 150)
-[ -n "$lines" ] || lines=$(tail -n 40 "$log")
+lines="$lines
+--- last lines ---
+$(tail -n 15 "$log")"
 msg=$(printf '%s' "$lines" | sed -e 's/%/%25/g' -e 's/\r//g' | awk 'BEGIN{ORS="%0A"} {print}')
 echo "::error title=${title}::${msg}"
