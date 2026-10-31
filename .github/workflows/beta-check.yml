@@ -33,7 +33,11 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - run: TMPDIR="$RUNNER_TEMP" bash scripts/check-all.sh --only next,react,rn
+      - run: TMPDIR="$RUNNER_TEMP" bash scripts/check-all.sh --only next,react,rn 2>&1 | tee "$RUNNER_TEMP/step.log"; exit ${PIPESTATUS[0]}
+      - if: failure()
+        run: |
+          bash scripts/ci-annotate.sh "$RUNNER_TEMP/step.log" "Build check"
+          for f in "$RUNNER_TEMP"/codz-check.*/logs/*.log; do [ -f "$f" ] && bash scripts/ci-annotate.sh "$f" "$(basename "$f" .log)"; done
       - uses: actions/upload-artifact@v4
         if: failure()
         with:
@@ -55,7 +59,11 @@ jobs:
         with:
           channel: stable
           cache: true
-      - run: TMPDIR="$RUNNER_TEMP" bash scripts/check-all.sh --only flutter
+      - run: TMPDIR="$RUNNER_TEMP" bash scripts/check-all.sh --only flutter 2>&1 | tee "$RUNNER_TEMP/step.log"; exit ${PIPESTATUS[0]}
+      - if: failure()
+        run: |
+          bash scripts/ci-annotate.sh "$RUNNER_TEMP/step.log" "Build check"
+          for f in "$RUNNER_TEMP"/codz-check.*/logs/*.log; do [ -f "$f" ] && bash scripts/ci-annotate.sh "$f" "$(basename "$f" .log)"; done
       - uses: actions/upload-artifact@v4
         if: failure()
         with:
@@ -81,7 +89,11 @@ jobs:
         with:
           gradle-version: '8.11.1'
       # ubuntu-latest has the Android SDK and sets ANDROID_HOME.
-      - run: TMPDIR="$RUNNER_TEMP" bash scripts/check-all.sh --only android
+      - run: TMPDIR="$RUNNER_TEMP" bash scripts/check-all.sh --only android 2>&1 | tee "$RUNNER_TEMP/step.log"; exit ${PIPESTATUS[0]}
+      - if: failure()
+        run: |
+          bash scripts/ci-annotate.sh "$RUNNER_TEMP/step.log" "Build check"
+          for f in "$RUNNER_TEMP"/codz-check.*/logs/*.log; do [ -f "$f" ] && bash scripts/ci-annotate.sh "$f" "$(basename "$f" .log)"; done
       - uses: actions/upload-artifact@v4
         if: failure()
         with:
@@ -99,7 +111,11 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - run: TMPDIR="$RUNNER_TEMP" bash scripts/check-all.sh --only ios
+      - run: TMPDIR="$RUNNER_TEMP" bash scripts/check-all.sh --only ios 2>&1 | tee "$RUNNER_TEMP/step.log"; exit ${PIPESTATUS[0]}
+      - if: failure()
+        run: |
+          bash scripts/ci-annotate.sh "$RUNNER_TEMP/step.log" "Build check"
+          for f in "$RUNNER_TEMP"/codz-check.*/logs/*.log; do [ -f "$f" ] && bash scripts/ci-annotate.sh "$f" "$(basename "$f" .log)"; done
       - uses: actions/upload-artifact@v4
         if: failure()
         with:

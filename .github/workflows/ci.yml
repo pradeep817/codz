@@ -27,7 +27,9 @@ jobs:
       - name: Install dev dependencies (TypeScript for the typecheck)
         run: npm install --no-audit --no-fund
       - name: Unit, golden and CLI tests
-        run: npm test
+        run: npm test 2>&1 | tee "$RUNNER_TEMP/step.log"; exit ${PIPESTATUS[0]}
+      - if: failure()
+        run: bash scripts/ci-annotate.sh "$RUNNER_TEMP/step.log" "Tests"
       - name: Typecheck
         run: npm run typecheck
       - name: Starter templates pass the publishing gates
@@ -58,7 +60,9 @@ jobs:
       - name: Run codz on every fixture and compile the result
         env:
           TSC: npx tsc
-        run: bash ./scripts/check-generated.sh
+        run: bash ./scripts/check-generated.sh 2>&1 | tee "$RUNNER_TEMP/step.log"; exit ${PIPESTATUS[0]}
+      - if: failure()
+        run: bash scripts/ci-annotate.sh "$RUNNER_TEMP/step.log" "Generated code"
 
   android:
     name: Created Android projects build (Gradle)
@@ -76,7 +80,9 @@ jobs:
         with:
           gradle-version: '8.11.1'
       - name: codz create + session for each architecture, then assembleDebug and unit tests
-        run: bash ./scripts/check-android.sh
+        run: bash ./scripts/check-android.sh 2>&1 | tee "$RUNNER_TEMP/step.log"; exit ${PIPESTATUS[0]}
+      - if: failure()
+        run: bash scripts/ci-annotate.sh "$RUNNER_TEMP/step.log" "Android"
 
   package:
     name: npm package runs on Node 20
