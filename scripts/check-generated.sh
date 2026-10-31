@@ -38,7 +38,7 @@ if command -v flutter >/dev/null 2>&1; then
   d=$(copy flutter-getit)
   (cd "$d" && dtq api add "${FLAGS[@]}" < "$IN/visit-curl.txt")
   echo "→ $(basename "$d"): pub get, analyze"
-  (cd "$d" && tmo flutter pub get >/dev/null && tmo dart run build_runner build --delete-conflicting-outputs 2>&1 | tail -n 30 && dart analyze lib) && echo "✓ flutter-getit: dart analyze clean" || { echo "✗ flutter-getit"; status=1; }
+  (cd "$d" && tmo flutter pub get >/dev/null && { tmo dart run build_runner build --delete-conflicting-outputs > "$WORK/br.log" 2>&1 || { echo "build_runner failed:"; grep -m 1 -B 2 -A 30 -E "Error|Exception|SEVERE|Bad state" "$WORK/br.log" || head -n 40 "$WORK/br.log"; false; }; } && dart analyze lib) && echo "✓ flutter-getit: dart analyze clean" || { echo "✗ flutter-getit"; status=1; }
 
   for arch in getx riverpod get_it; do
     d="$WORK/fresh-$arch"; cp -R "$ROOT/fixtures/flutter-fresh" "$d"
@@ -95,7 +95,7 @@ if command -v flutter >/dev/null 2>&1; then
   (cd "$d" && dtq mock add --all "${FLAGS[@]}")
   (cd "$d" && dtq test add --all "${FLAGS[@]}")
   echo "→ $(basename "$d"): pub get, analyze"
-  (cd "$d" && tmo flutter pub get >/dev/null && tmo dart run build_runner build --delete-conflicting-outputs 2>&1 | tail -n 30 && dart analyze lib test && tmo flutter test) && echo "✓ flutter-bloc-retrofit (freezed, Retrofit, Cubit screens): dart analyze clean" || { echo "✗ flutter-bloc-retrofit"; status=1; }
+  (cd "$d" && tmo flutter pub get >/dev/null && { tmo dart run build_runner build --delete-conflicting-outputs > "$WORK/br.log" 2>&1 || { echo "build_runner failed:"; grep -m 1 -B 2 -A 30 -E "Error|Exception|SEVERE|Bad state" "$WORK/br.log" || head -n 40 "$WORK/br.log"; false; }; } && dart analyze lib test && tmo flutter test) && echo "✓ flutter-bloc-retrofit (freezed, Retrofit, Cubit screens): dart analyze clean" || { echo "✗ flutter-bloc-retrofit"; status=1; }
 
   d=$(copy flutter-riverpod)
   d2="$WORK/riverpod-session"; mv "$d" "$d2"; d="$d2"

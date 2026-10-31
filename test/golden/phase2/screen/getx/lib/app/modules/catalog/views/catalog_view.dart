@@ -23,14 +23,14 @@ class CatalogView extends GetView<CatalogController> {
             ),
           );
         }
-        if (controller.products.isEmpty) return const Center(child: Text('Nothing here yet.'));
+        if (controller.products.isEmpty) return const Center(child: Text('No items'));
         return RefreshIndicator(
           onRefresh: controller.loadProducts,
           child: ListView.builder(
             itemCount: controller.products.length,
             itemBuilder: (context, index) {
               final item = controller.products[index];
-              return ListTile(title: Text('${item.name}'));
+              return ListTile(title: Text(item.name));
             },
           ),
         );

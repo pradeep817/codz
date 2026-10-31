@@ -23,6 +23,10 @@ import { findDeclaration } from './apiEdit.ts';
 import { planModuleAdd } from './module.ts';
 import { planRouteAdd } from './route.ts';
 
+/** Dart: the text a Text widget shows for a field: the String itself, or the value interpolated (lint-clean either way). */
+const dartShow = (expr: string, f?: { type: string; nullable: boolean }) => (f && f.type.replace(/\?$/, '') === 'String' ? (f.nullable ? `${expr} ?? ''` : expr) : `'\${${expr}}'`);
+const fieldOf = (m: ModelInfo | undefined, name: string) => m?.fields.find((f) => f.name === name);
+
 export interface ScreenOptions {
   name: string;
   api?: string;
@@ -144,14 +148,14 @@ async function getxScreen(root: string, adapter: Adapter, map: ProjectMap, opts:
   const I = '        ';
   const dataLines = shape.list
     ? [
-        `${I}if (controller.${base}.isEmpty) return const Center(child: Text('Nothing here yet.'));`,
+        `${I}if (controller.${base}.isEmpty) return const Center(child: Text('No items'));`,
         `${I}return RefreshIndicator(`,
         `${I}  onRefresh: ${needsArgs ? `() async {}` : `controller.${action}`},`,
         `${I}  child: ListView.builder(`,
         `${I}    itemCount: controller.${base}.length,`,
         `${I}    itemBuilder: (context, index) {`,
         `${I}      final item = controller.${base}[index];`,
-        `${I}      return ListTile(title: Text(${title ? `'\${item.${camel(title)}}'` : `item.toString()`}));`,
+        `${I}      return ListTile(title: Text(${title ? dartShow(`item.${camel(title)}`, fieldOf(shape.model, title)) : `item.toString()`}));`,
         `${I}    },`,
         `${I}  ),`,
         `${I});`,
@@ -162,7 +166,7 @@ async function getxScreen(root: string, adapter: Adapter, map: ProjectMap, opts:
         `${I}return ListView(`,
         `${I}  children: [`,
         ...(shape.model?.fields.length
-          ? shape.model.fields.map((f) => `${I}    ListTile(title: const Text('${f.name}'), subtitle: Text('\${data.${camel(f.name)}}')),`)
+          ? shape.model.fields.map((f) => `${I}    ListTile(title: const Text('${f.name}'), subtitle: Text(${dartShow(`data.${camel(f.name)}`, f)})),`)
           : [`${I}    ListTile(title: Text(data.toString())),`]),
         `${I}  ],`,
         `${I});`,
@@ -250,12 +254,12 @@ async function flutterScreen(root: string, adapter: Adapter, map: ProjectMap, op
   const dataView = shape.list
     ? [
         `${I}final items = snapshot.data!;`,
-        `${I}if (items.isEmpty) return const Center(child: Text('Nothing here yet.'));`,
+        `${I}if (items.isEmpty) return const Center(child: Text('No items'));`,
         `${I}return RefreshIndicator(`,
         `${I}  onRefresh: () async => _reload(),`,
         `${I}  child: ListView.builder(`,
         `${I}    itemCount: items.length,`,
-        `${I}    itemBuilder: (context, index) => ListTile(title: Text(${title ? `'\${items[index].${camel(title)}}'` : 'items[index].toString()'})),`,
+        `${I}    itemBuilder: (context, index) => ListTile(title: Text(${title ? dartShow(`items[index].${camel(title)}`, fieldOf(shape.model, title)) : 'items[index].toString()'})),`,
         `${I}  ),`,
         `${I});`,
       ]
@@ -264,7 +268,7 @@ async function flutterScreen(root: string, adapter: Adapter, map: ProjectMap, op
         ...(/\?$/.test(sig.returnType) ? [`${I}if (data == null) return const SizedBox.shrink();`] : []),
         `${I}return ListView(`,
         `${I}  children: [`,
-        ...(shape.model?.fields.length ? shape.model.fields.map((f) => `${I}    ListTile(title: const Text('${f.name}'), subtitle: Text('\${data.${camel(f.name)}}')),`) : [`${I}    ListTile(title: Text(data.toString())),`]),
+        ...(shape.model?.fields.length ? shape.model.fields.map((f) => `${I}    ListTile(title: const Text('${f.name}'), subtitle: Text(${dartShow(`data.${camel(f.name)}`, f)})),`) : [`${I}    ListTile(title: Text(data.toString())),`]),
         `${I}  ],`,
         `${I});`,
       ];
@@ -416,12 +420,12 @@ function blocScreen(
   const dataView = shape.list
     ? [
         `  Widget _data(BuildContext context, ${T} items) {`,
-        "    if (items.isEmpty) return const Center(child: Text('Nothing here yet.'));",
+        "    if (items.isEmpty) return const Center(child: Text('No items'));",
         '    return RefreshIndicator(',
         `      onRefresh: () => ${reload},`,
         '      child: ListView.builder(',
         '        itemCount: items.length,',
-        `        itemBuilder: (context, index) => ListTile(title: Text(${title ? `'\${items[index].${camel(title)}}'` : 'items[index].toString()'})),`,
+        `        itemBuilder: (context, index) => ListTile(title: Text(${title ? dartShow(`items[index].${camel(title)}`, fieldOf(shape.model, title)) : 'items[index].toString()'})),`,
         '      ),',
         '    );',
         '  }',
@@ -431,7 +435,7 @@ function blocScreen(
         ...(/\?$/.test(T) ? ['    if (data == null) return const SizedBox.shrink();'] : []),
         '    return ListView(',
         '      children: [',
-        ...(shape.model?.fields.length ? shape.model.fields.map((f) => `        ListTile(title: const Text('${f.name}'), subtitle: Text('\${data.${camel(f.name)}}')),`) : ['        ListTile(title: Text(data.toString())),']),
+        ...(shape.model?.fields.length ? shape.model.fields.map((f) => `        ListTile(title: const Text('${f.name}'), subtitle: Text(${dartShow(`data.${camel(f.name)}`, f)})),`) : ['        ListTile(title: Text(data.toString())),']),
         '      ],',
         '    );',
         '  }',
