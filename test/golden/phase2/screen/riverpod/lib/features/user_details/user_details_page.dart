@@ -52,7 +52,7 @@ class _UserDetailsPageState extends ConsumerState<UserDetailsPage> {
             children: [
               ListTile(title: const Text('id'), subtitle: Text('${data.id}')),
               ListTile(title: const Text('name'), subtitle: Text(data.name)),
-              ListTile(title: const Text('email'), subtitle: Text(data.email ?? '')),
+              ListTile(title: const Text('email'), subtitle: Text('${data.email}')),
             ],
           );
         },

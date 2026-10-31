@@ -23,8 +23,8 @@ import { findDeclaration } from './apiEdit.ts';
 import { planModuleAdd } from './module.ts';
 import { planRouteAdd } from './route.ts';
 
-/** Dart: the text a Text widget shows for a field: the String itself, or the value interpolated (lint-clean either way). */
-const dartShow = (expr: string, f?: { type: string; nullable: boolean }) => (f && f.type.replace(/\?$/, '') === 'String' ? (f.nullable ? `${expr} ?? ''` : expr) : `'\${${expr}}'`);
+/** Dart: the text a Text widget shows for a field: a non-null String as it is, anything else interpolated (never a dead ?? on a field that turns out non-null). */
+const dartShow = (expr: string, f?: { type: string; nullable: boolean }) => (f && f.type === 'String' && !f.nullable ? expr : `'\${${expr}}'`);
 const fieldOf = (m: ModelInfo | undefined, name: string) => m?.fields.find((f) => f.name === name);
 
 export interface ScreenOptions {
