@@ -11,6 +11,7 @@ import { exists, readJson, readText, walk } from '../core/fsutil.ts';
 import { dirtyFiles, isGitRepo } from '../core/git.ts';
 import type { Adapter } from '../core/types.ts';
 import { PATH_KEYS, validateConfig } from '../core/validateConfig.ts';
+import { runTool } from '../core/proc.ts';
 
 export type CheckStatus = 'pass' | 'warn' | 'fail';
 
@@ -37,7 +38,7 @@ const FROM_SOURCE = import.meta.url.endsWith('.ts');
 const MIN_NODE = FROM_SOURCE ? [22, 18] : [20, 0];
 
 const has = (cmd: string, args = ['--version']) => {
-  const r = spawnSync(cmd, args, { encoding: 'utf8', timeout: 10000, shell: process.platform === 'win32' });
+  const r = runTool(cmd, args, { timeout: 10000 });
   return r.status === 0 ? (r.stdout || r.stderr).trim().split('\n')[0] : null;
 };
 

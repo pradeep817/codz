@@ -14,80 +14,89 @@ FLAGS=(--yes --allow-dirty --no-verify --no-color)
 status=0
 
 copy() { cp -R "$ROOT/fixtures/$1" "$WORK/$1"; echo "$WORK/$1"; }
+# Runs one codz command quietly; when it fails, says which and shows its output,
+# and the check keeps going (the script still exits 1 at the end).
+dtq() {
+  if ! "${DT[@]}" "$@" > "$WORK/last.log" 2>&1; then
+    echo "✗ codz $(printf '%s ' "$@" | cut -c1-160)failed in ${PWD#"$WORK"/}:"
+    tail -n 15 "$WORK/last.log" | sed 's/^/    | /'
+    touch "$WORK/failed"
+  fi
+}
 
 echo "Working in $WORK"
 
 if command -v flutter >/dev/null 2>&1; then
   d=$(copy flutter-riverpod)
-  (cd "$d" && "${DT[@]}" api add "${FLAGS[@]}" < "$IN/order-curl.txt" >/dev/null 2>&1)
-  (cd "$d" && "${DT[@]}" api add --url 'https://api.example.com/products?category=home' --sample "$IN/products.json" "${FLAGS[@]}" >/dev/null 2>&1)
+  (cd "$d" && dtq api add "${FLAGS[@]}" < "$IN/order-curl.txt")
+  (cd "$d" && dtq api add --url 'https://api.example.com/products?category=home' --sample "$IN/products.json" "${FLAGS[@]}")
   (cd "$d" && flutter pub get >/dev/null && dart analyze lib) && echo "✓ flutter-riverpod: dart analyze clean" || { echo "✗ flutter-riverpod"; status=1; }
 
   d=$(copy flutter-getit)
-  (cd "$d" && "${DT[@]}" api add "${FLAGS[@]}" < "$IN/visit-curl.txt" >/dev/null 2>&1)
+  (cd "$d" && dtq api add "${FLAGS[@]}" < "$IN/visit-curl.txt")
   (cd "$d" && flutter pub get >/dev/null && dart run build_runner build --delete-conflicting-outputs >/dev/null && dart analyze lib) && echo "✓ flutter-getit: dart analyze clean" || { echo "✗ flutter-getit"; status=1; }
 
   for arch in getx riverpod get_it; do
     d="$WORK/fresh-$arch"; cp -R "$ROOT/fixtures/flutter-fresh" "$d"
-    (cd "$d" && "${DT[@]}" setup --architecture "$arch" --base-url https://api.example.com "${FLAGS[@]}" >/dev/null 2>&1)
-    (cd "$d" && "${DT[@]}" api add "${FLAGS[@]}" < "$IN/order-curl.txt" >/dev/null 2>&1)
+    (cd "$d" && dtq setup --architecture "$arch" --base-url https://api.example.com "${FLAGS[@]}")
+    (cd "$d" && dtq api add "${FLAGS[@]}" < "$IN/order-curl.txt")
     (cd "$d" && flutter pub get >/dev/null && dart analyze lib) && echo "✓ flutter-fresh + $arch setup: dart analyze clean" || { echo "✗ flutter-fresh + $arch"; status=1; }
   done
 
   for fx in flutter-fresh flutter-getx-cli; do
     d="$WORK/modules-$fx"; cp -R "$ROOT/fixtures/$fx" "$d"
-    (cd "$d" && "${DT[@]}" setup --architecture getx --base-url https://api.example.com "${FLAGS[@]}" >/dev/null 2>&1)
-    (cd "$d" && "${DT[@]}" module add home "${FLAGS[@]}" >/dev/null 2>&1)
-    (cd "$d" && "${DT[@]}" module add order_details "${FLAGS[@]}" >/dev/null 2>&1)
-    (cd "$d" && "${DT[@]}" api add --into order_details "${FLAGS[@]}" < "$IN/order-curl.txt" >/dev/null 2>&1)
-    (cd "$d" && "${DT[@]}" api add --url 'https://api.example.com/products' --sample "$IN/products.json" --into home "${FLAGS[@]}" >/dev/null 2>&1)
+    (cd "$d" && dtq setup --architecture getx --base-url https://api.example.com "${FLAGS[@]}")
+    (cd "$d" && dtq module add home "${FLAGS[@]}")
+    (cd "$d" && dtq module add order_details "${FLAGS[@]}")
+    (cd "$d" && dtq api add --into order_details "${FLAGS[@]}" < "$IN/order-curl.txt")
+    (cd "$d" && dtq api add --url 'https://api.example.com/products' --sample "$IN/products.json" --into home "${FLAGS[@]}")
     (cd "$d" && flutter pub get >/dev/null && dart analyze lib) && echo "✓ $fx + GetX modules: dart analyze clean" || { echo "✗ $fx + GetX modules"; status=1; }
   done
   # Every other command on one project per architecture: import, edit, mocks, locales, theme, routes.
   printf '{"id": 7, "name": "Bo", "email": "b@x.com", "created_at": "2026-01-02T00:00:00Z", "role": "admin", "phone": "+91 99999"}' > "$WORK/user-v2.json"
   for arch in getx riverpod get_it; do
     d="$WORK/session-$arch"; cp -R "$ROOT/fixtures/flutter-fresh" "$d"
-    (cd "$d" && "${DT[@]}" setup --architecture "$arch" --base-url https://api.example.com "${FLAGS[@]}" >/dev/null 2>&1)
-    (cd "$d" && "${DT[@]}" api import "$IN/shop-openapi.yaml" "${FLAGS[@]}" >/dev/null 2>&1)
-    if [ "$arch" = getx ]; then (cd "$d" && "${DT[@]}" module add users --api listUsers "${FLAGS[@]}" >/dev/null 2>&1); fi
-    (cd "$d" && "${DT[@]}" api update getUser --sample "$WORK/user-v2.json" "${FLAGS[@]}" >/dev/null 2>&1)
-    (cd "$d" && "${DT[@]}" api rename listUsers fetchUsers "${FLAGS[@]}" >/dev/null 2>&1)
-    (cd "$d" && "${DT[@]}" api remove deleteUser "${FLAGS[@]}" >/dev/null 2>&1)
-    (cd "$d" && "${DT[@]}" mock add --all "${FLAGS[@]}" >/dev/null 2>&1)
+    (cd "$d" && dtq setup --architecture "$arch" --base-url https://api.example.com "${FLAGS[@]}")
+    (cd "$d" && dtq api import "$IN/shop-openapi.yaml" "${FLAGS[@]}")
+    if [ "$arch" = getx ]; then (cd "$d" && dtq module add users --api listUsers "${FLAGS[@]}"); fi
+    (cd "$d" && dtq api update getUser --sample "$WORK/user-v2.json" "${FLAGS[@]}")
+    (cd "$d" && dtq api rename listUsers fetchUsers "${FLAGS[@]}")
+    (cd "$d" && dtq api remove deleteUser "${FLAGS[@]}")
+    (cd "$d" && dtq mock add --all "${FLAGS[@]}")
     if [ "$arch" = getx ]; then
-      (cd "$d" && "${DT[@]}" locale key home.title Welcome "${FLAGS[@]}" >/dev/null 2>&1)
-      (cd "$d" && "${DT[@]}" locale add hi "${FLAGS[@]}" >/dev/null 2>&1)
+      (cd "$d" && dtq locale key home.title Welcome "${FLAGS[@]}")
+      (cd "$d" && dtq locale add hi "${FLAGS[@]}")
     fi
-    (cd "$d" && "${DT[@]}" theme set primary '#6750A4' radius 12 "${FLAGS[@]}" >/dev/null 2>&1)
-    (cd "$d" && "${DT[@]}" route add settings "${FLAGS[@]}" >/dev/null 2>&1)
-    (cd "$d" && "${DT[@]}" route add order-details --path /orders/:id "${FLAGS[@]}" >/dev/null 2>&1)
-    (cd "$d" && "${DT[@]}" screen add people --api fetchUsers "${FLAGS[@]}" >/dev/null 2>&1)
-    (cd "$d" && "${DT[@]}" api import "$IN/shop.har" --base-url https://api.shop.dev --skip-conflicts "${FLAGS[@]}" >/dev/null 2>&1)
-    (cd "$d" && "${DT[@]}" doctor --fix "${FLAGS[@]}" >/dev/null 2>&1)
+    (cd "$d" && dtq theme set primary '#6750A4' radius 12 "${FLAGS[@]}")
+    (cd "$d" && dtq route add settings "${FLAGS[@]}")
+    (cd "$d" && dtq route add order-details --path /orders/:id "${FLAGS[@]}")
+    (cd "$d" && dtq screen add people --api fetchUsers "${FLAGS[@]}")
+    (cd "$d" && dtq api import "$IN/shop.har" --base-url https://api.shop.dev --skip-conflicts "${FLAGS[@]}")
+    (cd "$d" && dtq doctor --fix "${FLAGS[@]}")
     (cd "$d" && flutter pub get >/dev/null && dart analyze lib) && echo "✓ flutter-fresh + $arch, full session: dart analyze clean" || { echo "✗ flutter-fresh + $arch full session"; status=1; }
   done
 
   # freezed models + Retrofit clients + Cubit screens (get_it), with build_runner.
   d=$(copy flutter-bloc-retrofit)
   printf '{"id": 1, "title": "Ship", "due_at": "2026-01-02T00:00:00Z", "done": false, "priority": 2}' > "$WORK/task-v2.json"
-  (cd "$d" && "${DT[@]}" api add --url 'https://api.taskboard.dev/v1/projects/{projectId}/members?role=admin' --sample "$IN/products.json" "${FLAGS[@]}" >/dev/null 2>&1)
-  (cd "$d" && "${DT[@]}" api add --curl "curl -X POST https://api.taskboard.dev/v1/tasks -d '{\"title\":\"x\"}'" --name createTask --model-name CreatedTask --sample "$IN/user.json" "${FLAGS[@]}" >/dev/null 2>&1)
-  (cd "$d" && "${DT[@]}" api update getTask --sample "$WORK/task-v2.json" "${FLAGS[@]}" >/dev/null 2>&1)
-  (cd "$d" && "${DT[@]}" api rename getTasks fetchTasks "${FLAGS[@]}" >/dev/null 2>&1)
-  (cd "$d" && "${DT[@]}" screen add task-details --api getTask --path /tasks/:id "${FLAGS[@]}" >/dev/null 2>&1)
-  (cd "$d" && "${DT[@]}" screen add members --api getProjectMembers --path /projects/:projectId/members "${FLAGS[@]}" >/dev/null 2>&1)
-  (cd "$d" && "${DT[@]}" mock add --all "${FLAGS[@]}" >/dev/null 2>&1)
-  (cd "$d" && "${DT[@]}" test add --all "${FLAGS[@]}" >/dev/null 2>&1)
+  (cd "$d" && dtq api add --url 'https://api.taskboard.dev/v1/projects/{projectId}/members?role=admin' --sample "$IN/products.json" "${FLAGS[@]}")
+  (cd "$d" && dtq api add --curl "curl -X POST https://api.taskboard.dev/v1/tasks -d '{\"title\":\"x\"}'" --name createTask --model-name CreatedTask --sample "$IN/user.json" "${FLAGS[@]}")
+  (cd "$d" && dtq api update getTask --sample "$WORK/task-v2.json" "${FLAGS[@]}")
+  (cd "$d" && dtq api rename getTasks fetchTasks "${FLAGS[@]}")
+  (cd "$d" && dtq screen add task-details --api getTask --path /tasks/:id "${FLAGS[@]}")
+  (cd "$d" && dtq screen add members --api getProjectMembers --path /projects/:projectId/members "${FLAGS[@]}")
+  (cd "$d" && dtq mock add --all "${FLAGS[@]}")
+  (cd "$d" && dtq test add --all "${FLAGS[@]}")
   (cd "$d" && flutter pub get >/dev/null && dart run build_runner build --delete-conflicting-outputs >/dev/null && dart analyze lib test && flutter test) && echo "✓ flutter-bloc-retrofit (freezed, Retrofit, Cubit screens): dart analyze clean" || { echo "✗ flutter-bloc-retrofit"; status=1; }
 
   d=$(copy flutter-riverpod)
   d2="$WORK/riverpod-session"; mv "$d" "$d2"; d="$d2"
-  (cd "$d" && "${DT[@]}" route add order-details --path /orders/:orderId "${FLAGS[@]}" >/dev/null 2>&1)
-  (cd "$d" && "${DT[@]}" theme set primary '#0F766E' "${FLAGS[@]}" >/dev/null 2>&1)
-  (cd "$d" && "${DT[@]}" locale key welcomeUser 'Welcome {name}' "${FLAGS[@]}" >/dev/null 2>&1)
-  (cd "$d" && "${DT[@]}" screen add user-details --api getUser --path /users/:id "${FLAGS[@]}" >/dev/null 2>&1)
-  (cd "$d" && "${DT[@]}" api sync "$IN/shop-openapi.yaml" --add "${FLAGS[@]}" >/dev/null 2>&1)
-  (cd "$d" && "${DT[@]}" screen add new-user --api createUser --form "${FLAGS[@]}" >/dev/null 2>&1)
+  (cd "$d" && dtq route add order-details --path /orders/:orderId "${FLAGS[@]}")
+  (cd "$d" && dtq theme set primary '#0F766E' "${FLAGS[@]}")
+  (cd "$d" && dtq locale key welcomeUser 'Welcome {name}' "${FLAGS[@]}")
+  (cd "$d" && dtq screen add user-details --api getUser --path /users/:id "${FLAGS[@]}")
+  (cd "$d" && dtq api sync "$IN/shop-openapi.yaml" --add "${FLAGS[@]}")
+  (cd "$d" && dtq screen add new-user --api createUser --form "${FLAGS[@]}")
   (cd "$d" && flutter pub get >/dev/null && dart analyze lib) && echo "✓ flutter-riverpod + go_router route, theme, ARB key: dart analyze clean" || { echo "✗ flutter-riverpod session"; status=1; }
 else
   echo "- Flutter SDK not found; skipping the Dart checks"
@@ -97,36 +106,36 @@ TSC="${TSC:-npx -y -p typescript tsc}"
 TSC_OPTS='"strict": true, "noEmit": true, "target": "ES2022", "module": "esnext", "moduleResolution": "bundler", "lib": ["ES2022", "DOM"], "types": []'
 
 d=$(copy nextjs-helper)
-(cd "$d" && "${DT[@]}" api add "${FLAGS[@]}" < "$IN/order-curl.txt" >/dev/null 2>&1)
-(cd "$d" && "${DT[@]}" api add --url 'https://api.example.com/products?category=home&page=1' --sample "$IN/products.json" "${FLAGS[@]}" >/dev/null 2>&1)
-(cd "$d" && "${DT[@]}" api add --curl 'curl -X DELETE https://api.example.com/users/5' "${FLAGS[@]}" >/dev/null 2>&1)
+(cd "$d" && dtq api add "${FLAGS[@]}" < "$IN/order-curl.txt")
+(cd "$d" && dtq api add --url 'https://api.example.com/products?category=home&page=1' --sample "$IN/products.json" "${FLAGS[@]}")
+(cd "$d" && dtq api add --curl 'curl -X DELETE https://api.example.com/users/5' "${FLAGS[@]}")
 printf '{ "compilerOptions": { %s, "paths": { "@/*": ["./*"] } }, "include": ["lib/**/*.ts", "types/**/*.ts", "env.d.ts"] }\n' "$TSC_OPTS" > "$d/tsconfig.check.json"
 printf 'declare const process: { env: Record<string, string | undefined> };\n' > "$d/env.d.ts"
 (cd "$d" && $TSC -p tsconfig.check.json) && echo "✓ nextjs-helper: tsc clean" || { echo "✗ nextjs-helper"; status=1; }
 
 d=$(copy nextjs-plain)
-(cd "$d" && "${DT[@]}" api add --url 'https://api.acme.dev/v1/teams/7f3e9d2a-1b4c-4e5f-8a9b-0c1d2e3f4a5b' --sample "$IN/team-1.json" --sample "$IN/team-2.json" --model-name TeamDetail "${FLAGS[@]}" >/dev/null 2>&1)
-(cd "$d" && "${DT[@]}" api add --url 'POST https://api.acme.dev/v1/users' --request-sample "$IN/user.json" --sample "$IN/user.json" "${FLAGS[@]}" >/dev/null 2>&1)
+(cd "$d" && dtq api add --url 'https://api.acme.dev/v1/teams/7f3e9d2a-1b4c-4e5f-8a9b-0c1d2e3f4a5b' --sample "$IN/team-1.json" --sample "$IN/team-2.json" --model-name TeamDetail "${FLAGS[@]}")
+(cd "$d" && dtq api add --url 'POST https://api.acme.dev/v1/users' --request-sample "$IN/user.json" --sample "$IN/user.json" "${FLAGS[@]}")
 printf '{ "compilerOptions": { %s }, "include": ["src/services/*.ts", "src/models/*.ts", "env.d.ts"] }\n' "$TSC_OPTS" > "$d/tsconfig.check.json"
 printf 'declare const process: { env: Record<string, string | undefined> };\n' > "$d/env.d.ts"
 (cd "$d" && $TSC -p tsconfig.check.json) && echo "✓ nextjs-plain: tsc clean" || { echo "✗ nextjs-plain"; status=1; }
 
 for arch in fetch-helper plain-fetch; do
   d="$WORK/next-fresh-$arch"; cp -R "$ROOT/fixtures/nextjs-fresh" "$d"
-  (cd "$d" && "${DT[@]}" setup --architecture "$arch" --base-url https://api.example.com "${FLAGS[@]}" >/dev/null 2>&1)
-  (cd "$d" && "${DT[@]}" api add "${FLAGS[@]}" < "$IN/order-curl.txt" >/dev/null 2>&1)
+  (cd "$d" && dtq setup --architecture "$arch" --base-url https://api.example.com "${FLAGS[@]}")
+  (cd "$d" && dtq api add "${FLAGS[@]}" < "$IN/order-curl.txt")
   printf '{ "compilerOptions": { %s, "paths": { "@/*": ["./*"] } }, "include": ["lib/**/*.ts", "types/**/*.ts", "env.d.ts"] }\n' "$TSC_OPTS" > "$d/tsconfig.check.json"
   printf 'declare const process: { env: Record<string, string | undefined> };\n' > "$d/env.d.ts"
   (cd "$d" && $TSC -p tsconfig.check.json) && echo "✓ nextjs-fresh + $arch setup: tsc clean" || { echo "✗ nextjs-fresh + $arch"; status=1; }
 done
 
 d="$WORK/next-session"; cp -R "$ROOT/fixtures/nextjs-helper" "$d"
-(cd "$d" && "${DT[@]}" api import "$IN/petstore-swagger.json" "${FLAGS[@]}" >/dev/null 2>&1)
-(cd "$d" && "${DT[@]}" api import "$IN/shop-postman.json" "${FLAGS[@]}" >/dev/null 2>&1)
-(cd "$d" && "${DT[@]}" api update getUser --sample "$IN/user.json" "${FLAGS[@]}" >/dev/null 2>&1)
-(cd "$d" && "${DT[@]}" api rename listPets fetchPets "${FLAGS[@]}" >/dev/null 2>&1)
-(cd "$d" && "${DT[@]}" mock add --all "${FLAGS[@]}" >/dev/null 2>&1)
-(cd "$d" && "${DT[@]}" doctor --fix "${FLAGS[@]}" >/dev/null 2>&1)
+(cd "$d" && dtq api import "$IN/petstore-swagger.json" "${FLAGS[@]}")
+(cd "$d" && dtq api import "$IN/shop-postman.json" "${FLAGS[@]}")
+(cd "$d" && dtq api update getUser --sample "$IN/user.json" "${FLAGS[@]}")
+(cd "$d" && dtq api rename listPets fetchPets "${FLAGS[@]}")
+(cd "$d" && dtq mock add --all "${FLAGS[@]}")
+(cd "$d" && dtq doctor --fix "${FLAGS[@]}")
 printf '{ "compilerOptions": { %s, "paths": { "@/*": ["./*"] } }, "include": ["lib/**/*.ts", "types/**/*.ts", "env.d.ts"] }\n' "$TSC_OPTS" > "$d/tsconfig.check.json"
 printf 'declare const process: { env: Record<string, string | undefined> };\n' > "$d/env.d.ts"
 (cd "$d" && $TSC -p tsconfig.check.json) && echo "✓ nextjs-helper, import + update + rename + mocks: tsc clean" || { echo "✗ nextjs-helper session"; status=1; }
@@ -170,13 +179,13 @@ else
 fi
 TSX_OPTS='"strict": true, "noEmit": true, "target": "ES2022", "module": "esnext", "moduleResolution": "bundler", "lib": ["ES2022", "DOM"], "jsx": "preserve"'
 d="$WORK/next-pages"; cp -R "$ROOT/fixtures/nextjs-helper" "$d"
-(cd "$d" && "${DT[@]}" screen add user-profile --api getUser --path /users/:id "${FLAGS[@]}" >/dev/null 2>&1)
-(cd "$d" && "${DT[@]}" route add settings "${FLAGS[@]}" >/dev/null 2>&1)
-(cd "$d" && "${DT[@]}" api rename getUser fetchUser "${FLAGS[@]}" >/dev/null 2>&1)
-(cd "$d" && "${DT[@]}" api sync "$IN/shop-openapi.yaml" --add "${FLAGS[@]}" >/dev/null 2>&1)
-(cd "$d" && "${DT[@]}" screen add new-user --api createUser --form "${FLAGS[@]}" >/dev/null 2>&1)
-(cd "$d" && "${DT[@]}" screen add edit-user --api updateUser --path /users/:id/edit --form "${FLAGS[@]}" >/dev/null 2>&1)
-(cd "$d" && "${DT[@]}" test add --all "${FLAGS[@]}" >/dev/null 2>&1)
+(cd "$d" && dtq screen add user-profile --api getUser --path /users/:id "${FLAGS[@]}")
+(cd "$d" && dtq route add settings "${FLAGS[@]}")
+(cd "$d" && dtq api rename getUser fetchUser "${FLAGS[@]}")
+(cd "$d" && dtq api sync "$IN/shop-openapi.yaml" --add "${FLAGS[@]}")
+(cd "$d" && dtq screen add new-user --api createUser --form "${FLAGS[@]}")
+(cd "$d" && dtq screen add edit-user --api updateUser --path /users/:id/edit --form "${FLAGS[@]}")
+(cd "$d" && dtq test add --all "${FLAGS[@]}")
 printf 'declare const process: { env: Record<string, string | undefined> };\n' > "$d/env.d.ts"
 write_shims "$d"
 printf '{ "compilerOptions": { %s, %s, "paths": { "@/*": ["./*"] } }, "include": ["app/**/*.tsx", "components/**/*.tsx", "lib/**/*.ts", "types/**/*.ts", "env.d.ts", "next-shim.d.ts", "vitest-shim.d.ts"%s] }\n' \
@@ -185,14 +194,14 @@ printf '{ "compilerOptions": { %s, %s, "paths": { "@/*": ["./*"] } }, "include":
 
 # axios + TanStack Query: API functions through the axios instance, and hooks.
 d="$WORK/next-axios"; cp -R "$ROOT/fixtures/nextjs-axios" "$d"
-(cd "$d" && "${DT[@]}" api add --url 'https://api.crm.dev/v1/deals/{dealId}/notes?page=1&q=x' --sample "$IN/products.json" "${FLAGS[@]}" >/dev/null 2>&1)
-(cd "$d" && "${DT[@]}" api add --curl "curl -X PATCH https://api.crm.dev/v1/deals/7 -d '{\"stage\":\"won\"}'" --name updateDeal --model-name DealResult --sample "$IN/user.json" "${FLAGS[@]}" >/dev/null 2>&1)
-(cd "$d" && "${DT[@]}" api add --curl 'curl -X DELETE https://api.crm.dev/v1/deals/7' --name deleteDeal "${FLAGS[@]}" >/dev/null 2>&1)
-(cd "$d" && "${DT[@]}" api add --curl 'curl -X POST https://api.crm.dev/v1/deals/7/archive' --name archiveDeal "${FLAGS[@]}" >/dev/null 2>&1)
-(cd "$d" && "${DT[@]}" api rename getContact fetchContact "${FLAGS[@]}" >/dev/null 2>&1)
-(cd "$d" && "${DT[@]}" mock add --all "${FLAGS[@]}" >/dev/null 2>&1)
-(cd "$d" && "${DT[@]}" test add --all "${FLAGS[@]}" >/dev/null 2>&1)
-(cd "$d" && "${DT[@]}" screen add contact --api fetchContact --path /contacts/:id "${FLAGS[@]}" >/dev/null 2>&1)
+(cd "$d" && dtq api add --url 'https://api.crm.dev/v1/deals/{dealId}/notes?page=1&q=x' --sample "$IN/products.json" "${FLAGS[@]}")
+(cd "$d" && dtq api add --curl "curl -X PATCH https://api.crm.dev/v1/deals/7 -d '{\"stage\":\"won\"}'" --name updateDeal --model-name DealResult --sample "$IN/user.json" "${FLAGS[@]}")
+(cd "$d" && dtq api add --curl 'curl -X DELETE https://api.crm.dev/v1/deals/7' --name deleteDeal "${FLAGS[@]}")
+(cd "$d" && dtq api add --curl 'curl -X POST https://api.crm.dev/v1/deals/7/archive' --name archiveDeal "${FLAGS[@]}")
+(cd "$d" && dtq api rename getContact fetchContact "${FLAGS[@]}")
+(cd "$d" && dtq mock add --all "${FLAGS[@]}")
+(cd "$d" && dtq test add --all "${FLAGS[@]}")
+(cd "$d" && dtq screen add contact --api fetchContact --path /contacts/:id "${FLAGS[@]}")
 if (cd "$TYPES" && npm install --no-save --no-audit --no-fund axios@1 @tanstack/react-query@5 >/dev/null 2>&1); then
   LIB_TYPES="\"paths\": { \"@/*\": [\"./src/*\"], \"axios\": [\"$TYPES/node_modules/axios\"], \"@tanstack/react-query\": [\"$TYPES/node_modules/@tanstack/react-query\"] }"; LIB_SHIM=""
 else
@@ -229,15 +238,15 @@ printf '{ "compilerOptions": { %s, %s, %s }, "include": ["src/**/*.ts", "src/**/
 # codz create: brand-new projects for every architecture, then an endpoint each.
 if command -v flutter >/dev/null 2>&1; then
   for arch in riverpod getx bloc get_it; do
-    (cd "$WORK" && "${DT[@]}" create "made_$arch" --type flutter --architecture "$arch" --base-url https://api.example.com --no-git --no-install --yes --no-color >/dev/null 2>&1)
-    (cd "$WORK/made_$arch" && "${DT[@]}" api add "${FLAGS[@]}" < "$IN/order-curl.txt" >/dev/null 2>&1)
+    (cd "$WORK" && dtq create "made_$arch" --type flutter --architecture "$arch" --base-url https://api.example.com --no-git --no-install --yes --no-color)
+    (cd "$WORK/made_$arch" && dtq api add "${FLAGS[@]}" < "$IN/order-curl.txt")
     (cd "$WORK/made_$arch" && flutter pub get >/dev/null && dart analyze lib) && echo "✓ codz create flutter + $arch: dart analyze clean" || { echo "✗ codz create flutter + $arch"; status=1; }
   done
 fi
 for arch in fetch-helper plain-fetch; do
   d="$WORK/made-next-$arch"
-  (cd "$WORK" && "${DT[@]}" create "made-next-$arch" --type nextjs --architecture "$arch" --base-url https://api.example.com --offline --no-git --no-install --yes --no-color >/dev/null 2>&1)
-  (cd "$d" && "${DT[@]}" api add "${FLAGS[@]}" < "$IN/order-curl.txt" >/dev/null 2>&1)
+  (cd "$WORK" && dtq create "made-next-$arch" --type nextjs --architecture "$arch" --base-url https://api.example.com --offline --no-git --no-install --yes --no-color)
+  (cd "$d" && dtq api add "${FLAGS[@]}" < "$IN/order-curl.txt")
   printf '{ "compilerOptions": { %s, "paths": { "@/*": ["./*"] } }, "include": ["lib/**/*.ts", "types/**/*.ts", "env.d.ts"] }\n' "$TSC_OPTS" > "$d/tsconfig.check.json"
   printf 'declare const process: { env: Record<string, string | undefined> };\n' > "$d/env.d.ts"
   (cd "$d" && $TSC -p tsconfig.check.json) && echo "✓ codz create nextjs + $arch: tsc clean" || { echo "✗ codz create nextjs + $arch"; status=1; }
@@ -302,18 +311,18 @@ SHIM
 for flavor in expo bare; do
   for arch in fetch-helper axios axios-react-query; do
     name="rn-$flavor-$arch"; d="$WORK/$name"
-    (cd "$WORK" && "${DT[@]}" create "$name" --type react-native --flavor "$flavor" --architecture "$arch" --base-url https://api.example.com --offline --no-git --no-install --yes --no-color >/dev/null 2>&1)
-    (cd "$d" && "${DT[@]}" api add --url 'https://api.example.com/products?category=home' --sample "$IN/products.json" "${FLAGS[@]}" >/dev/null 2>&1)
-    (cd "$d" && "${DT[@]}" api add "${FLAGS[@]}" < "$IN/order-curl.txt" >/dev/null 2>&1)
-    (cd "$d" && "${DT[@]}" api add --url 'https://api.example.com/users/{id}' --sample "$IN/user.json" "${FLAGS[@]}" >/dev/null 2>&1)
-    (cd "$d" && "${DT[@]}" api add --curl "curl -X POST https://api.example.com/orders -d '{\"product_id\":3,\"qty\":2,\"gift\":true,\"note\":\"x\"}'" --name createOrder --model-name CreatedOrder --sample "$IN/user.json" "${FLAGS[@]}" >/dev/null 2>&1)
-    (cd "$d" && "${DT[@]}" screen add products --api getProducts "${FLAGS[@]}" >/dev/null 2>&1)
-    (cd "$d" && "${DT[@]}" screen add user --api getUser --path /users/:id "${FLAGS[@]}" >/dev/null 2>&1)
-    (cd "$d" && "${DT[@]}" screen add new-order --api createOrder --form "${FLAGS[@]}" >/dev/null 2>&1)
-    (cd "$d" && "${DT[@]}" route add settings "${FLAGS[@]}" >/dev/null 2>&1)
-    (cd "$d" && "${DT[@]}" mock add --all "${FLAGS[@]}" >/dev/null 2>&1)
-    (cd "$d" && "${DT[@]}" test add --all "${FLAGS[@]}" >/dev/null 2>&1)
-    (cd "$d" && "${DT[@]}" theme set primary '#0F766E' radius 12 "${FLAGS[@]}" >/dev/null 2>&1)
+    (cd "$WORK" && dtq create "$name" --type react-native --flavor "$flavor" --architecture "$arch" --base-url https://api.example.com --offline --no-git --no-install --yes --no-color)
+    (cd "$d" && dtq api add --url 'https://api.example.com/products?category=home' --sample "$IN/products.json" "${FLAGS[@]}")
+    (cd "$d" && dtq api add "${FLAGS[@]}" < "$IN/order-curl.txt")
+    (cd "$d" && dtq api add --url 'https://api.example.com/users/{id}' --sample "$IN/user.json" "${FLAGS[@]}")
+    (cd "$d" && dtq api add --curl "curl -X POST https://api.example.com/orders -d '{\"product_id\":3,\"qty\":2,\"gift\":true,\"note\":\"x\"}'" --name createOrder --model-name CreatedOrder --sample "$IN/user.json" "${FLAGS[@]}")
+    (cd "$d" && dtq screen add products --api getProducts "${FLAGS[@]}")
+    (cd "$d" && dtq screen add user --api getUser --path /users/:id "${FLAGS[@]}")
+    (cd "$d" && dtq screen add new-order --api createOrder --form "${FLAGS[@]}")
+    (cd "$d" && dtq route add settings "${FLAGS[@]}")
+    (cd "$d" && dtq mock add --all "${FLAGS[@]}")
+    (cd "$d" && dtq test add --all "${FLAGS[@]}")
+    (cd "$d" && dtq theme set primary '#0F766E' radius 12 "${FLAGS[@]}")
     write_rn_shims "$d"
     alias=''; if [ "$flavor" = expo ]; then alias=', "paths": { "@/*": ["./src/*"] }'; fi
     printf '{ "compilerOptions": { "strict": true, "noEmit": true, "target": "ES2022", "module": "esnext", "moduleResolution": "bundler", "lib": ["ES2022", "DOM"], "jsx": "preserve", "types": [], "skipLibCheck": true%s }, "include": ["App.tsx", "src/**/*.ts", "src/**/*.tsx", "rn-shim.d.ts"] }\n' "$alias" > "$d/tsconfig.check.json"
@@ -325,20 +334,20 @@ done
 # then the init contract, an endpoint and a screen, then the platform's own checks.
 if command -v flutter >/dev/null 2>&1; then
   d="$WORK/starter_app"
-  (cd "$WORK" && "${DT[@]}" new starter_app --template "$ROOT/starters/flutter-riverpod-dio" --org com.acme --yes --no-color >/dev/null 2>&1) || { echo "✗ codz new flutter-riverpod-dio"; status=1; }
+  (cd "$WORK" && dtq new starter_app --template "$ROOT/starters/flutter-riverpod-dio" --org com.acme --yes --no-color) || { echo "✗ codz new flutter-riverpod-dio"; status=1; }
   if [ -d "$d" ]; then
-    (cd "$d" && "${DT[@]}" init --yes --no-color >/dev/null 2>&1)
-    (cd "$d" && "${DT[@]}" api add --url 'https://api.example.com/products?category=home' --sample "$IN/products.json" "${FLAGS[@]}" >/dev/null 2>&1)
-    (cd "$d" && "${DT[@]}" screen add products --api getProducts "${FLAGS[@]}" >/dev/null 2>&1)
+    (cd "$d" && dtq init --yes --no-color)
+    (cd "$d" && dtq api add --url 'https://api.example.com/products?category=home' --sample "$IN/products.json" "${FLAGS[@]}")
+    (cd "$d" && dtq screen add products --api getProducts "${FLAGS[@]}")
     (cd "$d" && flutter pub get >/dev/null && flutter analyze && flutter test) && echo "✓ codz new flutter-riverpod-dio + api add + screen: analyze and tests pass" || { echo "✗ starter flutter-riverpod-dio"; status=1; }
   fi
 fi
 d="$WORK/starter-next"
-(cd "$WORK" && "${DT[@]}" new starter-next --template "$ROOT/starters/nextjs-app-router-fetch" --yes --no-color >/dev/null 2>&1) || { echo "✗ codz new nextjs-app-router-fetch"; status=1; }
+(cd "$WORK" && dtq new starter-next --template "$ROOT/starters/nextjs-app-router-fetch" --yes --no-color) || { echo "✗ codz new nextjs-app-router-fetch"; status=1; }
 if [ -d "$d/node_modules/next" ]; then
-  (cd "$d" && "${DT[@]}" init --yes --no-color >/dev/null 2>&1)
-  (cd "$d" && "${DT[@]}" api add --url 'https://api.example.com/products' --sample "$IN/products.json" "${FLAGS[@]}" >/dev/null 2>&1)
-  (cd "$d" && "${DT[@]}" screen add products --api getProducts "${FLAGS[@]}" >/dev/null 2>&1)
+  (cd "$d" && dtq init --yes --no-color)
+  (cd "$d" && dtq api add --url 'https://api.example.com/products' --sample "$IN/products.json" "${FLAGS[@]}")
+  (cd "$d" && dtq screen add products --api getProducts "${FLAGS[@]}")
   (cd "$d" && npx --no-install tsc --noEmit && NEXT_TELEMETRY_DISABLED=1 npx --no-install next build >/dev/null) && echo "✓ codz new nextjs-app-router-fetch + api add + screen: tsc and next build pass" || { echo "✗ starter nextjs-app-router-fetch"; status=1; }
 else
   echo "- codz new nextjs-app-router-fetch: npm install did not run (offline?), so the build check was skipped"
@@ -349,11 +358,12 @@ node "$ROOT/scripts/starters.ts" check "$ROOT"/starters/*/ >/dev/null && echo "�
 if command -v flutter >/dev/null 2>&1; then
   d="$WORK/created_app"
   (cd "$WORK" && flutter create --no-pub --project-name created_app created_app >/dev/null)
-  (cd "$d" && "${DT[@]}" setup --architecture riverpod --base-url https://api.example.com "${FLAGS[@]}" >/dev/null 2>&1)
-  (cd "$d" && "${DT[@]}" api import "$IN/shop-openapi.yaml" "${FLAGS[@]}" >/dev/null 2>&1)
-  (cd "$d" && "${DT[@]}" screen add people --api listUsers "${FLAGS[@]}" >/dev/null 2>&1)
-  (cd "$d" && "${DT[@]}" mock add --all "${FLAGS[@]}" >/dev/null 2>&1)
+  (cd "$d" && dtq setup --architecture riverpod --base-url https://api.example.com "${FLAGS[@]}")
+  (cd "$d" && dtq api import "$IN/shop-openapi.yaml" "${FLAGS[@]}")
+  (cd "$d" && dtq screen add people --api listUsers "${FLAGS[@]}")
+  (cd "$d" && dtq mock add --all "${FLAGS[@]}")
   (cd "$d" && flutter pub get >/dev/null && dart analyze lib) && echo "✓ flutter create + riverpod session: dart analyze clean" || { echo "✗ flutter create session"; status=1; }
 fi
 
+[ -f "$WORK/failed" ] && status=1
 exit $status

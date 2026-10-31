@@ -111,3 +111,14 @@ describe('change sets', () => {
     }
   });
 });
+
+describe('running tools on Windows', () => {
+  it('quotes arguments for cmd.exe so paths with spaces and quotes survive', async () => {
+    const { winQuote } = await import('../src/core/proc.ts');
+    assert.equal(winQuote('analyze'), 'analyze');
+    assert.equal(winQuote('C:\\Users\\Jo Doe\\app'), '"C:\\Users\\Jo Doe\\app"');
+    assert.equal(winQuote(''), '""');
+    assert.equal(winQuote('say "hi"'), '"say \\"hi\\""');
+    assert.equal(winQuote('C:\\dir with space\\'), '"C:\\dir with space\\\\"');
+  });
+});

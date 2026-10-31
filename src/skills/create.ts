@@ -10,7 +10,6 @@
 // Each type is one entry in PROJECT_TYPES, so more platforms plug in the same way.
 
 import { checkBaseUrl } from '../core/safe.ts';
-import { spawnSync } from 'node:child_process';
 import { existsSync, mkdirSync, readdirSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { addGradleWrapper, androidPackage, androidSkeleton } from './androidSkeleton.ts';
@@ -21,6 +20,7 @@ import { DART_RESERVED } from '../input/naming.ts';
 import { detectProject, initFiles, writeInitFiles } from './init.ts';
 import { planSetup } from './setup.ts';
 import { planThemeSet } from './theme.ts';
+import { runTool, toolMissing } from '../core/proc.ts';
 
 export interface CreateOptions {
   type: string;
@@ -322,10 +322,8 @@ function validate(o: CreateOptions, t: ProjectType): void {
 }
 
 function run(cmd: string, args: string[], cwd: string): { ok: boolean; missing: boolean; output: string } {
-  // Windows: flutter, npx and gradle are .bat/.cmd files, which only run through a shell.
-  const r = spawnSync(cmd, args, { cwd, encoding: 'utf8', timeout: 15 * 60_000, shell: process.platform === 'win32' });
-  // Through cmd.exe a missing program is an exit code and a message, not ENOENT.
-  const missing = (r.error as NodeJS.ErrnoException | undefined)?.code === 'ENOENT' || (process.platform === 'win32' && /is not recognized as an internal or external command/i.test(r.stderr ?? ''));
+  const r = runTool(cmd, args, { cwd, timeout: 15 * 60_000 });
+  const missing = toolMissing(r);
   return { ok: r.status === 0, missing, output: `${r.stdout ?? ''}${r.stderr ?? ''}`.trim() };
 }
 

@@ -43,8 +43,8 @@ import { allowedFlags, BOOLEAN_FLAGS, findCommand, FLAGS, renderCommandHelp, ren
 import { closest } from './core/validateConfig.ts';
 import { recordEvent } from './core/events.ts';
 import { buildReport, renderReport } from './skills/report.ts';
-import { spawnSync } from 'node:child_process';
 import { homedir } from 'node:os';
+import { runTool } from './core/proc.ts';
 
 /** Operating-system errors that are not codz bugs, with what to do about them. */
 const SYSTEM_ERRORS: Record<string, { code: string; say: string; hint: string }> = {
@@ -305,7 +305,7 @@ function installDependencies(root: string, adapter: Adapter, out: Out): string |
   const cmd = adapter.afterSetup?.(root);
   if (cmd) {
     out.print(`Running ${cmd.label}...`);
-    const r = spawnSync(cmd.cmd, cmd.args, { cwd: root, encoding: 'utf8', shell: process.platform === 'win32' });
+    const r = runTool(cmd.cmd, cmd.args, { cwd: root });
     if (r.status === 0) {
       out.print(`${cmd.label}: done.`);
       return cmd.label;

@@ -9,7 +9,6 @@
 // `dart analyze` run afterwards when the Dart SDK is installed, and a new
 // analyzer error reverts the change.
 
-import { spawnSync } from 'node:child_process';
 import { join } from 'node:path';
 import { detectEol, exists, readText, walk, withEol } from '../core/fsutil.ts';
 import { ToolError, type Adapter, type AdapterContext, type EndpointSpec, type PlannedEdits } from '../core/types.ts';
@@ -25,6 +24,7 @@ import { newRetrofitClient, renderRetrofitMethod } from './flutterStyles.ts';
 
 import { scan, base, pubspecDeps } from './flutterScan.ts';
 import { addDartImport, addToClass, importUri, indentStyled, insertGetxRegistration, r0, renderMethod, renderModel, resourceOf } from './flutterGen.ts';
+import { runTool } from '../core/proc.ts';
 
 // Other modules import these from here.
 export { DIO_FIELD, pubspecDeps } from './flutterScan.ts';
@@ -258,7 +258,7 @@ export const flutterAdapter: Adapter = {
   architectures: flutterArchitectures,
   planSetup: planFlutterSetup,
   afterSetup() {
-    const probe = spawnSync('flutter', ['--version'], { encoding: 'utf8', shell: process.platform === 'win32' });
+    const probe = runTool('flutter', ['--version']);
     if (probe.error || probe.status !== 0) return null;
     return { cmd: 'flutter', args: ['pub', 'get'], label: 'flutter pub get' };
   },

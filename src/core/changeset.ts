@@ -2,7 +2,6 @@
 // backups, formatting and verification) and undo.
 
 import { fileHeader } from './templates.ts';
-import { spawnSync } from 'node:child_process';
 import { randomBytes } from 'node:crypto';
 import { closeSync, existsSync, lstatSync, mkdirSync, openSync, readdirSync, readFileSync, realpathSync, renameSync, rmdirSync, rmSync, unlinkSync, writeFileSync, writeSync } from 'node:fs';
 import { dirname, join, resolve, sep } from 'node:path';
@@ -11,6 +10,7 @@ import { diffStats, unifiedDiff } from './diff.ts';
 import { exists, hash, readJson, readText } from './fsutil.ts';
 import { dirtyFiles, isGitRepo } from './git.ts';
 import { ToolError, type Adapter, type ChangeSet, type FileChange, type GeneratedRecord, type PlannedEdits } from './types.ts';
+import { runTool, toolMissing } from './proc.ts';
 
 export function newId(): string {
   const d = new Date();
@@ -182,8 +182,8 @@ export interface ApplyResult {
 }
 
 function run(cmd: string, args: string[], cwd: string): { ok: boolean; output: string; missing: boolean } {
-  const r = spawnSync(cmd, args, { cwd, encoding: 'utf8', timeout: 180_000, shell: process.platform === 'win32' });
-  if (r.error && (r.error as NodeJS.ErrnoException).code === 'ENOENT') return { ok: false, output: '', missing: true };
+  const r = runTool(cmd, args, { cwd, timeout: 180_000 });
+  if (toolMissing(r)) return { ok: false, output: '', missing: true };
   return { ok: r.status === 0, output: `${r.stdout ?? ''}${r.stderr ?? ''}`, missing: false };
 }
 

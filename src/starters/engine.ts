@@ -10,7 +10,6 @@
 // The target never exists half-built: any failure before the rename removes
 // the temporary folder.
 
-import { spawnSync } from 'node:child_process';
 import { randomBytes } from 'node:crypto';
 import { chmodSync, existsSync, lstatSync, mkdirSync, readdirSync, readFileSync, renameSync, rmSync, writeFileSync } from 'node:fs';
 import { basename, dirname, join, resolve } from 'node:path';
@@ -21,6 +20,7 @@ import { ToolError } from '../core/types.ts';
 import { placeholderValues, satisfies, STEP_ALLOWLIST, type Answers, type Manifest, type StepId } from './manifest.ts';
 import { checkCollisions, checkRelPath } from './paths.ts';
 import type { VerifiedTemplate } from './source.ts';
+import { runTool } from '../core/proc.ts';
 
 export interface PlannedFile {
   path: string;
@@ -66,7 +66,7 @@ function run(cmd: string, args: string[], cwd: string, timeout = 15 * 60_000): {
   // here is a fixed word or an answer that passed the identifier / reverse-domain checks, so nothing a shell
   // would interpret can reach it.
   for (const a of args) if (!/^[A-Za-z0-9._\-=/]+$/.test(a)) throw new ToolError('internal', `Refusing to run ${cmd} with the argument "${a}".`);
-  const r = spawnSync(cmd, args, { cwd, encoding: 'utf8', timeout, shell: process.platform === 'win32' });
+  const r = runTool(cmd, args, { cwd, timeout });
   const missing = (r.error as NodeJS.ErrnoException | undefined)?.code === 'ENOENT' || (process.platform === 'win32' && r.status === 1 && /not recognized/i.test(r.stderr ?? ''));
   return { ok: r.status === 0, missing, output: `${r.stdout ?? ''}${r.stderr ?? ''}`.trim() };
 }

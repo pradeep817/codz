@@ -1,13 +1,13 @@
-import { fileURLToPath } from 'node:url';
 // codz's minimal Android project: what Android Studio's "Empty Activity"
 // template gives you (Kotlin, Jetpack Compose, a version catalog), plus
 // Navigation Compose with a Home screen so screens can be added right away.
 // Android has no command-line project creator, so create always uses this.
 
-import { spawnSync } from 'node:child_process';
 import { chmodSync, copyFileSync, existsSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { runTool } from '../core/proc.ts';
 
 export const ANDROID_SKELETON_VERSIONS = {
   agp: '8.7.3',
@@ -277,7 +277,7 @@ export function addGradleWrapper(dir: string): boolean {
   const tmp = mkdtempSync(join(tmpdir(), 'codz-wrapper-'));
   try {
     writeFileSync(join(tmp, 'settings.gradle.kts'), 'rootProject.name = "wrapper"\n');
-    const r = spawnSync(process.platform === 'win32' ? 'gradle.bat' : 'gradle', ['wrapper', '--gradle-version', ANDROID_SKELETON_VERSIONS.gradle, '--distribution-type', 'bin', '-q', '--offline'], { cwd: tmp, encoding: 'utf8', timeout: 5 * 60_000, shell: process.platform === 'win32' });
+    const r = runTool('gradle', ['wrapper', '--gradle-version', ANDROID_SKELETON_VERSIONS.gradle, '--distribution-type', 'bin', '-q', '--offline'], { cwd: tmp, timeout: 5 * 60_000 });
     if (r.status !== 0 || !existsSync(join(tmp, 'gradlew'))) return false;
     mkdirSync(join(dir, 'gradle/wrapper'), { recursive: true });
     for (const p of ['gradlew', 'gradlew.bat', 'gradle/wrapper/gradle-wrapper.jar']) copyFileSync(join(tmp, p), join(dir, p));
