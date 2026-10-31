@@ -5,7 +5,7 @@
 # Usage: scripts/ci-annotate.sh <log file> [title]
 log="$1"; title="${2:-Failures}"
 [ -f "$log" ] || exit 0
-lines=$(grep -E '✗|not ok|error:|Error|FAIL|failed|Exception|^e: |^    \| ' "$log" | grep -v '^\s*$' | head -n 80)
+lines=$(grep -E '✗|not ok|error:|error TS|Error|FAIL|failed|Exception|^e: |^    \| | error • | warning • | info • |Expected:|Actual:' "$log" | grep -v '^\s*$' | head -n 120)
 [ -n "$lines" ] || lines=$(tail -n 40 "$log")
 msg=$(printf '%s' "$lines" | sed -e 's/%/%25/g' -e 's/\r//g' | awk 'BEGIN{ORS="%0A"} {print}')
 echo "::error title=${title}::${msg}"

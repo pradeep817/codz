@@ -542,6 +542,9 @@ async function nextScreen(root: string, adapter: Adapter, map: ProjectMap, opts:
   page.after = [
     `import { ${ep.name} } from ${q}${from}${q}${semi}`,
     '',
+    // Without route parameters Next.js would render the page once at build time,
+    // calling the API then (and failing the build when it is not reachable).
+    ...(params.length ? [] : ['// Rendered on each request: the data comes from the API.', `export const dynamic = ${q}force-dynamic${q}${semi}`, '']),
     `export default async function ${comp}(${sigParams}) {`,
     ...(params.length ? [`  const { ${params.join(', ')} } = await params${semi}`] : []),
     `  const ${dataVar} = await ${ep.name}(${callArgs})${semi}`,

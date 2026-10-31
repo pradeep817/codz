@@ -58,8 +58,6 @@ jobs:
           channel: stable
           cache: true
       - name: Run codz on every fixture and compile the result
-        env:
-          TSC: npx tsc
         run: bash ./scripts/check-generated.sh 2>&1 | tee "$RUNNER_TEMP/step.log"; exit ${PIPESTATUS[0]}
       - if: failure()
         run: bash scripts/ci-annotate.sh "$RUNNER_TEMP/step.log" "Generated code"

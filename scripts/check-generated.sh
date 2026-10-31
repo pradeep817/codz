@@ -102,6 +102,9 @@ else
   echo "- Flutter SDK not found; skipping the Dart checks"
 fi
 
+# The repo's own TypeScript when installed: a bare `npx tsc` outside a project
+# fetches the unrelated "tsc" package, which always fails.
+if [ -z "${TSC:-}" ] && [ -f "$ROOT/node_modules/typescript/bin/tsc" ]; then TSC="node $ROOT/node_modules/typescript/bin/tsc"; fi
 TSC="${TSC:-npx -y -p typescript tsc}"
 TSC_OPTS='"strict": true, "noEmit": true, "target": "ES2022", "module": "esnext", "moduleResolution": "bundler", "lib": ["ES2022", "DOM"], "types": []'
 
@@ -276,10 +279,10 @@ declare module 'react-native' {
 }
 declare module '@react-navigation/native' { export const NavigationContainer: (props: any) => JSX.Element; }
 declare module '@react-navigation/native-stack' {
-  export type NativeStackScreenProps<P, K extends keyof P> = { route: { params: P[K] }; navigation: unknown };
+  export type NativeStackScreenProps<P, K extends keyof P> = { route: { params: P[K] }; navigation: { navigate(...args: any[]): void; goBack(): void; addListener(event: string, fn: () => void): () => void } };
   export function createNativeStackNavigator<P>(): { Navigator: (props: any) => JSX.Element; Screen: (props: { name: keyof P; component: unknown }) => JSX.Element };
 }
-declare module 'expo-router' { export function useLocalSearchParams<T>(): T; export const Stack: (props: any) => JSX.Element; }
+declare module 'expo-router' { export function useLocalSearchParams<T>(): T; export const Stack: (props: any) => JSX.Element; export const router: { push(href: string): void; back(): void }; export function useFocusEffect(fn: () => void | (() => void)): void; }
 declare module 'expo' { export function registerRootComponent(c: unknown): void; }
 declare module '@tanstack/react-query' {
   export class QueryClient {}
@@ -306,6 +309,13 @@ declare function describe(name: string, fn: () => void): void;
 declare function it(name: string, fn: () => Promise<void> | void): void;
 declare function afterEach(fn: () => void): void;
 declare function expect(v: unknown): { toBe(x: unknown): void; toEqual(x: unknown): void; toContain(x: string): void; toBeUndefined(): void; rejects: { toThrow(): Promise<void> } };
+declare module '@jest/globals' {
+  export const jest: { spyOn(obj: object, method: string): { mockResolvedValue(v: unknown): any; mock: { calls: any[][] } }; restoreAllMocks(): void };
+  export function describe(name: string, fn: () => void): void;
+  export function it(name: string, fn: () => Promise<void> | void): void;
+  export function afterEach(fn: () => void): void;
+  export function expect(v: unknown): { toBe(x: unknown): void; toEqual(x: unknown): void; toContain(x: string): void; toBeUndefined(): void; rejects: { toThrow(): Promise<void> } };
+}
 SHIM
 }
 for flavor in expo bare; do
