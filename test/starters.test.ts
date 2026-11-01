@@ -559,17 +559,12 @@ describe('starters: the catalog (fake registry)', () => {
     buildIndex(reg, [keys.privatePem]); // a good, current index again for the next tests
   });
 
-  it('from an agent (MCP): a paid starter that is not downloaded needs the user; login is not a tool; new only plans', async () => {
+  it('from an agent (CODZ_MCP=1): a paid starter that is not downloaded needs the user', async () => {
     const parent = tmp('mcp');
     process.env.CODZ_MCP = '1';
     try {
       const r = JSON.parse((await cli(['new', 'team', '--template', 'nextjs-team', '--json'], parent)).out);
       assert.equal(r.error.code, 'needs_approval');
-      const { mcpTools, cliArgs } = await import('../src/skills/mcp.ts');
-      const tools = mcpTools();
-      assert.ok(!tools.some((t) => t.name === 'login' || t.name === 'logout'));
-      const tool = tools.find((t) => t.name === 'new')!;
-      assert.ok(cliArgs(tool, { args: ['web'], template: 'nextjs-app-router-fetch' }).includes('--plan'));
     } finally {
       delete process.env.CODZ_MCP;
       rmSync(parent, { recursive: true, force: true });

@@ -105,7 +105,7 @@ cd shop_app && codz init                     # then api add, screen add, ... as 
 - **Data only.** A starter is files plus a manifest. It never runs its own scripts; codz runs only `flutter create`, `flutter pub get`, `dart format` and `npm install --ignore-scripts`, with arguments it builds itself from typed answers.
 - **Strict reading.** The archive reader accepts regular files and folders only. Links, devices, `..`, absolute paths, Windows reserved names, case or Unicode clashes, and oversized or bomb archives stop it before anything is written.
 - **One step, and undoable.** The preview lists every file and step. The project is built in a temporary folder and moved into place in one rename. `codz undo` inside the new project removes it again while you have not changed it; files from `pub get`, `npm install` and `codz init` do not count as changes.
-- **Plans and agents.** `--plan` (or `--json` without `--yes`) saves a plan, and `codz apply <id>` creates exactly that. From MCP, `new` only plans, `login` is not a tool, and a paid starter has to be downloaded once by a person first.
+- **Plans and agents.** `--plan` (or `--json` without `--yes`) saves a plan, and `codz apply <id>` creates exactly that. When an AI agent runs codz (`CODZ_MCP=1`), a paid starter has to be downloaded once by a person first.
 - **Offline.** `--cached` uses only what is already downloaded. In CI, set `CODZ_TOKEN` instead of logging in.
 
 The catalog is served by the separate codz store project (accounts, purchases, `codz login`); until a release points at it, `new` works with template folders or `CODZ_REGISTRY`. Starter sources live in `starters/`, and `scripts/starters.ts` checks, packs and signs them (see starters/README.md).
@@ -464,20 +464,6 @@ codz api add --curl "..." --plan --json      # get the diff and a plan id
 codz apply <plan-id> --json                  # apply exactly what was shown
 ```
 
-### MCP server
-
-```bash
-codz mcp                 # in the project folder (or: codz mcp --cwd /path/to/project)
-```
-
-`codz mcp` serves codz over the Model Context Protocol on stdio, for AI agents and editors that support MCP. Every command becomes a tool (`api add` → `api_add`, `api sync` → `api_sync`, `doctor`, ...), with a JSON schema built from its options. Tools that edit code never write: they return the diff and a `planId`, and the `apply` tool applies that plan exactly as shown. Two resources: `codz://project` (what codz knows about the project) and `codz://commands` (every command and option).
-
-To add it to an MCP client, register a stdio server whose command is `codz` with the arguments `["mcp", "--cwd", "/path/to/project"]`. Many clients take a JSON entry like:
-
-```json
-{ "mcpServers": { "codz": { "command": "codz", "args": ["mcp", "--cwd", "/path/to/project"] } } }
-```
-
 ### VS Code extension
 
 `extensions/vscode` runs codz from the command palette: add an endpoint from a cURL command or URL, sync with a spec, show an endpoint and jump to its uses, rename, mock and test every endpoint, doctor findings in the Problems panel, undo. Every change opens as a diff first and is applied only when you click Apply. Package it with `npx @vscode/vsce package` in that folder and install the `.vsix`; see its README.
@@ -513,8 +499,7 @@ bin/codz.js         entry point
 src/cli.ts             commands and flags
 src/core/              types, cache, config and YAML reader, JSON editing, diff, change sets, git
 src/input/             cURL, paste, OpenAPI/Swagger/Postman parsing, naming, model inference
-src/core/commands.ts   the command and option table (help, completion, parser, docs, MCP tools)
-src/skills/mcp.ts      codz mcp: the Model Context Protocol server
+src/core/commands.ts   the command and option table (help, completion, parser, docs)
 src/starters/          codz new and the starter catalog (the only network code; loaded on demand)
 starters/              the internal starter templates; scripts/starters.ts publishes them
 extensions/vscode/     the VS Code extension

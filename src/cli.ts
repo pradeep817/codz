@@ -20,7 +20,6 @@ import { listApiImport, planApiImport } from './skills/apiImport.ts';
 import { planApiSync } from './skills/apiSync.ts';
 import { planTestAdd } from './skills/testgen.ts';
 import { listTemplates, planTemplatesInit } from './skills/templatesCmd.ts';
-import { serveMcp } from './skills/mcp.ts';
 import { createProject, describeCreate, PROJECT_TYPES, projectType, type CreateOptions } from './skills/create.ts';
 import { planApiRemove, planApiRename, planApiUpdate } from './skills/apiEdit.ts';
 import { planMockAdd } from './skills/mock.ts';
@@ -458,7 +457,7 @@ export async function main(argv: string[]): Promise<number> {
   const started = Date.now();
   const event = (ok: boolean, code?: string) => {
     const [cmd, sub] = args.positional;
-    if (!cmd || ['report', 'completion', 'help', 'mcp'].includes(cmd) || args.flags.help || args.flags.version) return;
+    if (!cmd || ['report', 'completion', 'help'].includes(cmd) || args.flags.help || args.flags.version) return;
     const spec = findCommand(cmd, sub);
     const name = spec ? (spec.sub ? `${spec.cmd} ${spec.sub}` : spec.cmd) : 'unknown';
     const start = resolve(typeof args.flags.cwd === 'string' ? args.flags.cwd : process.cwd());
@@ -617,7 +616,6 @@ async function run(args: Args, out: Out): Promise<number> {
     process.stdout.write(completionScript(sub));
     return 0;
   }
-  if (cmd === 'mcp') return serveMcp(root, VERSION);
   if (cmd === 'doctor' && flags.setup === true) {
     let a = genericAdapter;
     try {

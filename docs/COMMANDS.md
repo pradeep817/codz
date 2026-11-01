@@ -394,12 +394,6 @@ Accepts the change options.
 
 Find problems in codz.config.yaml (exit 1 on errors).
 
-### `codz mcp [--cwd <project>]`
-
-Serve codz to AI agents and editors over the Model Context Protocol (stdio).
-
-Every command becomes a tool (api add → api_add). Tools that edit code return a diff and a plan id; the apply tool applies it. Resources: codz://project and codz://commands.
-
 ### `codz completion bash|zsh|fish`
 
 Print the shell completion script.

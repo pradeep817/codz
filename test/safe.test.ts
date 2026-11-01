@@ -52,14 +52,7 @@ describe('safe: escaping for generated code', () => {
   });
 });
 
-describe('safe: MCP tool calls and the project boundary', () => {
-  it('a tool call cannot smuggle options through positional arguments', async () => {
-    const { mcpTools, cliArgs } = await import('../src/skills/mcp.ts');
-    const tool = mcpTools().find((t) => t.name === 'api_add')!;
-    for (const bad of ['--cwd', '--yes', '-y', '--root=/']) assert.throws(() => cliArgs(tool, { args: [bad] }), /cannot start with "-"/);
-    assert.ok(cliArgs(tool, { args: ['curl https://api.example.com/x'] }).includes('--plan'));
-  });
-
+describe('safe: the project boundary', () => {
   it('writes through a symbolic link that leaves the project are refused', async () => {
     const { mkdtempSync, mkdirSync, symlinkSync, rmSync } = await import('node:fs');
     const { tmpdir } = await import('node:os');
