@@ -9,7 +9,7 @@ This is a beta. It will get some things wrong, and that is exactly what we want 
 You need Node.js 20 or newer (22 recommended) and git.
 
 ```bash
-npm install -g @pradeep817/codz      # the command is `codz`
+npm install -g codz-cli              # the command is `codz`
 codz --version
 codz doctor --setup                  # checks Node, git, your formatter and analyzer
 ```
@@ -28,7 +28,7 @@ In your app's folder:
 ```bash
 codz init                                       # detects the framework and conventions
 codz explain                                    # what codz understood about the project
-codz feature add products --spec "$(npm root -g)/@pradeep817/codz/examples/openapi.yaml"
+codz feature add products --spec "$(npm root -g)/codz-cli/examples/openapi.yaml"
 ```
 
 `feature add` adds the endpoints, a list, detail, create and edit screen, links them and writes tests, as one change. If your project has no API layer yet, it sets one up first in your framework's usual style (choose another with `--architecture`).

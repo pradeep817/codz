@@ -440,7 +440,7 @@ Agent can explain → plan endpoint → show diff → apply → undo via MCP onl
 
 | ID | Item |
 |----|------|
-| L1 | `npm install -g @pradeep817/codz` |
+| L1 | `npm install -g codz-cli` |
 | L2 | Homebrew formula |
 | L3 | Docs site |
 | L4 | `CHANGELOG.md` + semver |
