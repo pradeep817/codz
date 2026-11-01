@@ -10,7 +10,7 @@ import { loadMap, setCacheWrites } from './core/cache.ts';
 import { applyChangeSet, changeSetJson, historyShow, loadPlan, readHistory, renderDiff, savePlan, undoLast, undoTo, type ApplyResult } from './core/changeset.ts';
 import { changeSummaryLine, commitChange, openDiffInEditor, readClipboard } from './core/workflow.ts';
 import { CONFIG_FILE, loadConfig } from './core/config.ts';
-import { ToolError, type Adapter, type ArchitectureOption, type ChangeSet } from './core/types.ts';
+import { ToolError, type Adapter, type ArchitectureOption, type ChangeSet, type ProjectMap } from './core/types.ts';
 import { planApiAdd, type ApiAddOptions } from './skills/apiAdd.ts';
 import { renderExplain } from './skills/explain.ts';
 import { detectProject, initFiles, writeInitFiles, type Detected } from './skills/init.ts';
@@ -45,6 +45,7 @@ import { recordEvent } from './core/events.ts';
 import { buildReport, renderReport } from './skills/report.ts';
 import { homedir } from 'node:os';
 import { runTool } from './core/proc.ts';
+import { connectHints, MockServer, mockApiFromProject, mockApiFromSpec, type MockApi } from './skills/mockServer.ts';
 
 /** Operating-system errors that are not codz bugs, with what to do about them. */
 const SYSTEM_ERRORS: Record<string, { code: string; say: string; hint: string }> = {
@@ -667,6 +668,50 @@ async function run(args: Args, out: Out): Promise<number> {
     return diffFails(report, failOn) ? 1 : 0;
   }
 
+  // mock serve: a local fake API; with --spec it works anywhere, without a project.
+  if (cmd === 'mock' && sub === 'serve') {
+    const num = (k: string, def: number) => {
+      const v = flags[k];
+      if (v === undefined) return def;
+      const n = Number(v);
+      if (!Number.isInteger(n) || n < 0) throw new ToolError('bad_args', `--${k} must be a whole number, got "${v}".`);
+      return n;
+    };
+    const port = num('port', 4010);
+    let api: MockApi;
+    let framework: string | null = null;
+    let map: ProjectMap | null = null;
+    const hasProject = existsSync(join(root, CONFIG_FILE));
+    if (hasProject) {
+      try {
+        const a = adapterFor(root).adapter;
+        framework = a.id;
+        map = (await loadMap(root, a, loadConfig(root).conventions)).map;
+      } catch {
+        framework = null;
+      }
+    }
+    if (typeof flags.spec === 'string') api = mockApiFromSpec(resolve(flags.spec));
+    else if (map && framework) api = mockApiFromProject(root, map, framework === 'flutter' ? 'dart' : framework === 'android' ? 'kt' : framework === 'ios' ? 'swift' : 'ts');
+    else throw new ToolError('bad_args', 'No codz project here, so there are no endpoints to mock.', 'Serve an API file instead: codz mock serve --spec api.yaml (or run codz init in your app first).');
+    const lan = flags.lan === true;
+    const server = new MockServer(api, { port, host: lan ? '0.0.0.0' : '127.0.0.1', delay: num('delay', 300), items: num('items', 5), log: (line) => out.print(`  ${line}`) });
+    const actual = await server.start();
+    out.print(`Mock API on http://localhost:${actual}, from ${api.source}:`);
+    for (const r of api.routes.slice(0, 40)) out.print(`  ${r.method.padEnd(6)} ${r.path}`);
+    if (api.routes.length > 40) out.print(`  … and ${api.routes.length - 40} more`);
+    out.print('');
+    for (const h of connectHints(map, framework, actual, lan)) out.print(h);
+    out.print('Lists, create, edit and delete share in-memory data (restart to reset). Press Ctrl+C to stop.');
+    out.print('');
+    await new Promise<void>((done) => {
+      process.once('SIGINT', () => done());
+      process.once('SIGTERM', () => done());
+    });
+    await server.stop();
+    return 0;
+  }
+
   const { adapter } = adapterFor(root);
 
   switch (cmd) {
@@ -686,7 +731,7 @@ async function run(args: Args, out: Out): Promise<number> {
       return 0;
     }
     case 'mock': {
-      if (sub !== 'add') throw new ToolError('bad_args', `Unknown command "mock ${sub ?? ''}".`, 'Usage: codz mock add <endpoint> [--sample file.json] | codz mock add --all');
+      if (sub !== 'add') throw new ToolError('bad_args', `Unknown command "mock ${sub ?? ''}".`, 'Usage: codz mock add <endpoint> [--sample file.json] | codz mock add --all | codz mock serve [--spec api.yaml] [--port 4010]');
       const cs = await planMockAdd(root, adapter, { endpoints: positional.slice(2), all: flags.all === true, sample: typeof flags.sample === 'string' ? flags.sample : args.multi.sample?.[0], keepValues: flags['keep-values'] === true, force: flags.force === true });
       return handleChange(root, out, flags, cs, adapter);
     }

@@ -170,6 +170,20 @@ Every endpoint: method, path, function, response, file.
 
 One endpoint: signature, models, every place that uses it.
 
+### `codz mock serve [--spec <file>] [--port 4010] [--delay 300] [--items 5] [--lan]`
+
+A local fake API with sample data, so screens show data before the backend exists.
+
+Answers the project's endpoints, or every operation in --spec (OpenAPI, Swagger, Postman, HAR), with sample data from the response models. A list and its items share in-memory data, so create, edit and delete work and the list shows the change; restarting resets it. Paths match by their last segments, so /v1/products reaches GET /products. Prints how to point the app at it (emulator, simulator, phone).
+
+| Option | |
+| --- | --- |
+| `--spec <file>` | OpenAPI, Swagger, Postman or HAR file to take the endpoints from |
+| `--port <n>` | Port for the mock API (default 4010) |
+| `--delay <ms>` | Wait before each answer, so loading states show (default 300) |
+| `--items <n>` | Items in each list to start with (default 5) |
+| `--lan` | Listen on your network too, for a phone on the same Wi-Fi (default: this computer only) |
+
 ### `codz mock add <endpoint>... | --all`
 
 Mock responses for building screens before the backend.

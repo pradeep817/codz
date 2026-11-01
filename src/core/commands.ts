@@ -69,6 +69,11 @@ export const FLAGS: Record<string, FlagSpec> = {
   spec: { value: '<file>', desc: 'OpenAPI, Swagger, Postman or HAR file to take the endpoints from', path: true },
   'no-forms': { desc: 'No create or edit form screens' },
   'no-tests': { desc: 'Do not generate tests' },
+  // mock serve
+  port: { value: '<n>', desc: 'Port for the mock API (default 4010)' },
+  delay: { value: '<ms>', desc: 'Wait before each answer, so loading states show (default 300)' },
+  items: { value: '<n>', desc: 'Items in each list to start with (default 5)' },
+  lan: { desc: 'Listen on your network too, for a phone on the same Wi-Fi (default: this computer only)' },
   // api diff
   format: { value: '<text|md|json|sarif>', desc: 'Report format (default text; md for a pull request comment, sarif for code scanning)', choices: ['text', 'md', 'json', 'sarif'] },
   report: { value: '<file>', desc: 'Write the report to a file', path: true },
@@ -160,6 +165,7 @@ export const COMMAND_LIST: CommandSpec[] = [
   { group: 'Endpoints', cmd: 'api', sub: 'wire', usage: '<endpoint> --into <module>', summary: "Call an endpoint from a module's controller (GetX)", flags: ['into', 'no-load'], change: true, args: 'endpoint' },
   { group: 'Endpoints', cmd: 'api', sub: 'list', usage: '[filter]', summary: 'Every endpoint: method, path, function, response, file', flags: [] },
   { group: 'Endpoints', cmd: 'api', sub: 'show', usage: '<endpoint>', summary: 'One endpoint: signature, models, every place that uses it', flags: [], args: 'endpoint' },
+  { group: 'Endpoints', cmd: 'mock', sub: 'serve', usage: '[--spec <file>] [--port 4010] [--delay 300] [--items 5] [--lan]', summary: 'A local fake API with sample data, so screens show data before the backend exists', flags: ['spec', 'port', 'delay', 'items', 'lan'], notes: ["Answers the project's endpoints, or every operation in --spec (OpenAPI, Swagger, Postman, HAR), with sample data from the response models. A list and its items share in-memory data, so create, edit and delete work and the list shows the change; restarting resets it. Paths match by their last segments, so /v1/products reaches GET /products. Prints how to point the app at it (emulator, simulator, phone)."] },
   { group: 'Endpoints', cmd: 'mock', sub: 'add', usage: '<endpoint>... | --all', summary: 'Mock responses for building screens before the backend', flags: ['all', 'sample', 'keep-values', 'force'], change: true, args: 'endpoints', notes: ['Next.js, React Native and Flutter. Not yet on Android.'] },
   { group: 'Endpoints', cmd: 'test', sub: 'add', usage: '<endpoint>... | --all', summary: 'Unit tests for API functions with the network faked', flags: ['all'], change: true, args: 'endpoints', notes: ['Next.js: Vitest or Jest. React Native: Jest. Flutter: flutter_test with a fake Dio adapter. Android: JUnit with MockWebServer (adds the test dependencies).'] },
   { group: 'Screens and app', cmd: 'screen', sub: 'add', usage: '<name> --api <endpoint> [--path /x/:id] [--form]', summary: 'A working screen (route, page, the call, loading, error, data), or a form with --form', flags: ['api', 'path', 'initial', 'form'], change: true, notes: ['Android: a Compose screen plus a ViewModel (Hilt, Koin or the service locator) with a UiState StateFlow, registered in the NavHost.'] },

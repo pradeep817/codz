@@ -629,8 +629,9 @@ describe('starters: isolation', () => {
       assert.ok(!staticImports.some((p) => p.includes('starters/')), `${f} imports the starters module`);
       if (!f.endsWith('cli.ts')) assert.ok(!/import\(\s*'[^']*starters\//.test(t), `${f} loads the starters module`);
     }
-    // Nothing outside src/starters calls fetch or opens sockets.
-    for (const f of walk(join(REPO, 'src')).filter((f) => !f.includes(`${join('src', 'starters')}`))) {
+    // Nothing outside src/starters calls fetch or opens sockets. mock serve is the one exception: it
+    // only listens on a local port (the fake API) and never sends a request anywhere.
+    for (const f of walk(join(REPO, 'src')).filter((f) => !f.includes(`${join('src', 'starters')}`) && !f.endsWith(join('skills', 'mockServer.ts')))) {
       const t = readFileSync(f, 'utf8');
       assert.ok(!/\bfetch\(\s*[`'"]https?:|node:https?'|node:net'|from 'undici'/.test(t), `${f} has network code`);
     }

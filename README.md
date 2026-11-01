@@ -233,6 +233,16 @@ codz api diff old.yaml new.yaml --fail-on warning                    # exit 1 on
 
 Breaking: an operation removed, a response field removed or retyped, a new path parameter, a new required request field. Warning: a response field that can now be null, a removed query parameter, a retyped request field. Added operations, response fields and optional request fields are listed as additions. Inside a project each change names the endpoint function and the files and lines that use it (its callers, the screens, the model); outside a project it compares the two files only. Nothing is written except the `--report` file.
 
+### Mock API server
+
+```bash
+codz mock serve                      # the project's endpoints, on http://localhost:4010
+codz mock serve --spec api.yaml      # every operation in an OpenAPI, Swagger, Postman or HAR file
+codz mock serve --lan --port 8080    # reachable from a phone on the same Wi-Fi
+```
+
+A local fake API, so new screens show data before the backend exists. Every endpoint answers with sample data built from its response model (5 rows per list, each a little different; `--items`, and a 300 ms delay so loading states show; `--delay 0` to skip it). A list and its items share in-memory data: a create form adds a row the list then shows, edit forms change it and delete removes it, and restarting resets everything. Paths match by their last segments, so `/v1/products` reaches `GET /products`; anything unknown gets a 404 that lists the routes. It sends CORS headers for web apps, and prints how to point your app at it (environment variable for Next.js and Vite, emulator and simulator addresses for mobile). It listens on this computer only unless you pass `--lan`, and it never makes requests of its own.
+
 ### Mock responses
 
 ```bash
