@@ -23,6 +23,7 @@ import { planTestAdd } from './skills/testgen.ts';
 import { listTemplates, planTemplatesInit } from './skills/templatesCmd.ts';
 import { createProject, describeCreate, PROJECT_TYPES, projectType, type CreateOptions } from './skills/create.ts';
 import { planApiRemove, planApiRename, planApiUpdate } from './skills/apiEdit.ts';
+import { planFieldAdd, planFieldRemove } from './skills/field.ts';
 import { planMockAdd } from './skills/mock.ts';
 import { planLocaleAdd, planLocaleKey } from './skills/locale.ts';
 import { planThemeSet } from './skills/theme.ts';
@@ -45,7 +46,7 @@ import { recordEvent } from './core/events.ts';
 import { buildReport, renderReport } from './skills/report.ts';
 import { homedir } from 'node:os';
 import { runTool } from './core/proc.ts';
-import { connectHints, MockServer, mockApiFromProject, mockApiFromSpec, type MockApi } from './skills/mockServer.ts';
+import { connectHints, MockServer, mockApiFromProject, mockApiFromSpec, SCENARIOS, type MockApi, type Scenario } from './skills/mockServer.ts';
 
 /** Operating-system errors that are not codz bugs, with what to do about them. */
 const SYSTEM_ERRORS: Record<string, { code: string; say: string; hint: string }> = {
@@ -719,14 +720,18 @@ async function run(args: Args, out: Out): Promise<number> {
     else if (map && framework) api = mockApiFromProject(root, map, framework === 'flutter' ? 'dart' : framework === 'android' ? 'kt' : framework === 'ios' ? 'swift' : 'ts');
     else throw new ToolError('bad_args', 'No codz project here, so there are no endpoints to mock.', 'Serve an API file instead: codz mock serve --spec api.yaml (or run codz init in your app first).');
     const lan = flags.lan === true;
-    const server = new MockServer(api, { port, host: lan ? '0.0.0.0' : '127.0.0.1', delay: num('delay', 300), items: num('items', 5), log: (line) => out.print(`  ${line}`) });
+    const scenario = (typeof flags.scenario === 'string' ? flags.scenario : 'normal') as Scenario;
+    if (!SCENARIOS.includes(scenario)) throw new ToolError('bad_args', `Unknown scenario "${scenario}".`, `Choose: ${SCENARIOS.join(', ')}.`);
+    const server = new MockServer(api, { scenario, port, host: lan ? '0.0.0.0' : '127.0.0.1', delay: num('delay', 300), items: num('items', 5), log: (line) => out.print(`  ${line}`) });
     const actual = await server.start();
     out.print(`Mock API on http://localhost:${actual}, from ${api.source}:`);
     for (const r of api.routes.slice(0, 40)) out.print(`  ${r.method.padEnd(6)} ${r.path}`);
     if (api.routes.length > 40) out.print(`  … and ${api.routes.length - 40} more`);
     out.print('');
     for (const h of connectHints(map, framework, actual, lan)) out.print(h);
-    out.print('Lists, create, edit and delete share in-memory data (restart to reset). Press Ctrl+C to stop.');
+    out.print(`Switch scenarios (empty, error, unauthorized, slow, offline) and watch requests: http://localhost:${actual}/__codz`);
+    if (scenario !== 'normal') out.print(`Starting in scenario: ${scenario}.`);
+    out.print('Lists, create, edit and delete share in-memory data (reset it on that page). Press Ctrl+C to stop.');
     out.print('');
     await new Promise<void>((done) => {
       process.once('SIGINT', () => done());
@@ -753,6 +758,12 @@ async function run(args: Args, out: Out): Promise<number> {
       out.print(renderExplain(map, adapter, out.color));
       out.result({ map, supportedSetup: adapter.supportedSetup });
       return 0;
+    }
+    case 'field': {
+      const [model, ...rest] = positional.slice(2);
+      if ((sub !== 'add' && sub !== 'remove') || !model) throw new ToolError('bad_args', `Unknown command "field ${sub ?? ''}".`, 'Usage: codz field add <Model> <name:type> ... | codz field remove <Model> <field> ...');
+      const cs = sub === 'add' ? await planFieldAdd(root, adapter, model, rest) : await planFieldRemove(root, adapter, model, rest);
+      return handleChange(root, out, flags, cs, adapter);
     }
     case 'mock': {
       if (sub !== 'add') throw new ToolError('bad_args', `Unknown command "mock ${sub ?? ''}".`, 'Usage: codz mock add <endpoint> [--sample file.json] | codz mock add --all | codz mock serve [--spec api.yaml] [--port 4010]');

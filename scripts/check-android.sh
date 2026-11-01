@@ -27,6 +27,7 @@ for arch in retrofit-hilt retrofit-koin retrofit; do
   run api add --curl "curl -X DELETE https://api.example.com/v1/orders/7" --name deleteOrder
   run screen add products --api getProducts
   run screen add user --api getUser --path /users/:id
+  run field add User nickname:string? score:int? tags:string[]?
   run screen add new-order --api createOrder --form
   run route add settings --path /settings/:section
   run test add --all

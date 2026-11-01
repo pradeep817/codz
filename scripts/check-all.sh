@@ -176,6 +176,7 @@ flutter_arch() {
   copy flutter-fresh "flutter-$arch"
   dt feature add products --spec "$SPEC" --architecture "$arch"
   dt feature add orders --spec "$SPEC"
+  dt field add Product discount_price:double? labels:string[]?
   dt screen add order-tracking --api getOrderTracking --path /orders/:orderId/tracking
   dt auth add
   # flutter create's counter test checks the template home page, which GetX setup replaces (codz warns about it).
@@ -217,6 +218,7 @@ ios_swiftui() {
   dt feature add products --spec "$SPEC" --initial
   dt feature add orders --spec "$SPEC"
   dt screen add order-tracking --api getOrderTracking --path /orders/:orderId/tracking
+  dt field add Product discount_price:double? released_at:date?
   # #Preview needs Xcode's macro plugins, which plain swiftc does not load: check a copy without previews.
   local src="$WORK/ios-typecheck"; rm -rf "$src"; mkdir -p "$src"
   find ShopApp -name '*.swift' | while read -r f; do perl -0pe 's/\n#Preview \{.*\z//s' "$f" > "$src/$(echo "$f" | tr '/' '_')"; done

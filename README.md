@@ -200,6 +200,16 @@ codz api remove deleteUser                       # remove it; lists callers that
 
 `api rename` and `api remove` find uses with your project's own TypeScript compiler when `typescript` is installed in it (it is in almost every Next.js project), so a local variable or parameter that happens to share the name, an object key, or another file's own function with that name is never touched. Without it, codz falls back to its text scanner (`CODZ_NO_AST=1` forces the fallback).
 
+### One field at a time: field add
+
+```bash
+codz field add Product rating:double? tags:string[]   # the backend added two fields
+codz field add Order created_at:date category:Category
+codz field remove Product legacy_code                  # and lists the lines that still use it
+```
+
+The name is the JSON key; codz writes the property name your models use (`created_at` becomes `createdAt` in Dart, Kotlin and Swift). Types: `string`, `int`, `double`, `bool`, `date`, `any`, a model in the project, or a list (`string[]`, `list<Category>`); end with `?` for an optional field. Only the field's own lines change, in every place the model spells it: the TypeScript interface; the Dart constructor, `fromJson`, field and `toJson` (or the freezed factory, with `@JsonKey` for snake_case keys); the Kotlin data class parameter with your serializer's annotation; the Swift property and its `CodingKeys` case. Everything else in the file, including code you wrote, stays as it is. Then it lists the files that use the model, so you can show the field where it belongs, and `codz mock serve` fills it with sample data straight away.
+
 ### Other stacks
 
 codz writes in the style the project already uses:
@@ -239,9 +249,23 @@ Breaking: an operation removed, a response field removed or retyped, a new path 
 codz mock serve                      # the project's endpoints, on http://localhost:4010
 codz mock serve --spec api.yaml      # every operation in an OpenAPI, Swagger, Postman or HAR file
 codz mock serve --lan --port 8080    # reachable from a phone on the same Wi-Fi
+codz mock serve --scenario empty     # start with empty lists (or error, unauthorized, slow, offline)
 ```
 
 A local fake API, so new screens show data before the backend exists. Every endpoint answers with sample data built from its response model (5 rows per list, each a little different; `--items`, and a 300 ms delay so loading states show; `--delay 0` to skip it). A list and its items share in-memory data: a create form adds a row the list then shows, edit forms change it and delete removes it, and restarting resets everything. Paths match by their last segments, so `/v1/products` reaches `GET /products`; anything unknown gets a 404 that lists the routes. It sends CORS headers for web apps, and prints how to point your app at it (environment variable for Next.js and Vite, emulator and simulator addresses for mobile). It listens on this computer only unless you pass `--lan`, and it never makes requests of its own.
+
+**Every screen state, without touching the backend.** Open `http://localhost:4010/__codz` while the app runs:
+
+| Scenario | What the app gets | Checks |
+| --- | --- | --- |
+| `normal` | sample data | the happy path |
+| `empty` | empty lists; their items 404 | empty states |
+| `error` | 500 for every request | error messages and retry buttons |
+| `unauthorized` | 401 for every request | sign-out and token refresh |
+| `slow` | answers after 3 seconds | loading spinners, double taps |
+| `offline` | the connection drops | no-network handling |
+
+Switch for every endpoint, or set one endpoint differently (only `GET /v1/products` empty, say). The same page lists the last requests with their request and response bodies, and **Reset** brings back the starting data. Scripts and tests can switch too: `curl -X POST localhost:4010/__codz/scenario -d '{"scenario":"error","route":"GET /v1/products"}'`, `GET /__codz/state`, `POST /__codz/reset`.
 
 ### Mock responses
 

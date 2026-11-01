@@ -1,6 +1,6 @@
 # codz commands
 
-Generated from `src/core/commands.ts` (codz 0.1.5). Do not edit by hand; run `npm run docs`.
+Generated from `src/core/commands.ts` (codz 0.1.7). Do not edit by hand; run `npm run docs`.
 
 ## Start
 
@@ -170,11 +170,29 @@ Every endpoint: method, path, function, response, file.
 
 One endpoint: signature, models, every place that uses it.
 
-### `codz mock serve [--spec <file>] [--port 4010] [--delay 300] [--items 5] [--lan]`
+### `codz field add <Model> <name:type> [...]`
+
+Add a field to a model, in every place the model spells it.
+
+Types: string, int, double, bool, date, any, a model name, or a list (string[], list<Category>). End with ? for an optional field: rating:double?. The name is the JSON key (created_at); codz writes the property name the project uses (createdAt).
+
+TypeScript interfaces, Dart classes (plain, json_serializable, freezed: constructor, fromJson, field and toJson), Kotlin data classes and Swift Codable structs (CodingKeys too). Only the new lines are added; then it lists the files that use the model.
+
+Accepts the change options.
+
+### `codz field remove <Model> <field> [...]`
+
+Remove a field from a model and list the lines that still use it.
+
+Accepts the change options.
+
+### `codz mock serve [--spec <file>] [--port 4010] [--delay 300] [--items 5] [--scenario normal] [--lan]`
 
 A local fake API with sample data, so screens show data before the backend exists.
 
 Answers the project's endpoints, or every operation in --spec (OpenAPI, Swagger, Postman, HAR), with sample data from the response models. A list and its items share in-memory data, so create, edit and delete work and the list shows the change; restarting resets it. Paths match by their last segments, so /v1/products reaches GET /products. Prints how to point the app at it (emulator, simulator, phone).
+
+Scenarios check every screen state: empty (empty lists), error (500), unauthorized (401), slow (3 s), offline (connection drops). Open http://localhost:4010/__codz to switch them, for every endpoint or one, reset the data, and see each request with its body.
 
 | Option | |
 | --- | --- |
@@ -182,6 +200,7 @@ Answers the project's endpoints, or every operation in --spec (OpenAPI, Swagger,
 | `--port <n>` | Port for the mock API (default 4010) |
 | `--delay <ms>` | Wait before each answer, so loading states show (default 300) |
 | `--items <n>` | Items in each list to start with (default 5) |
+| `--scenario <name>` | How the mock answers at the start; switch live at /__codz |
 | `--lan` | Listen on your network too, for a phone on the same Wi-Fi (default: this computer only) |
 
 ### `codz mock add <endpoint>... | --all`

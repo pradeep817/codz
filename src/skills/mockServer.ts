@@ -93,7 +93,33 @@ export function mockApiFromProject(root: string, map: ProjectMap, lang: 'ts' | '
 
 // ------------------------------------------------------------ the server
 
+/** How the mock answers, to check each state of a screen. */
+export const SCENARIOS = ['normal', 'empty', 'error', 'unauthorized', 'slow', 'offline'] as const;
+export type Scenario = (typeof SCENARIOS)[number];
+export const SCENARIO_HELP: Record<Scenario, string> = {
+  normal: 'sample data',
+  empty: 'lists come back empty (and their items 404)',
+  error: 'every request fails with 500',
+  unauthorized: 'every request fails with 401 (signed out)',
+  slow: 'answers take 3 seconds',
+  offline: 'the connection drops (a network error in the app)',
+};
+
+export interface LogEntry {
+  id: number;
+  time: string;
+  method: string;
+  path: string;
+  status: number;
+  ms: number;
+  scenario: Scenario;
+  request?: unknown;
+  response?: unknown;
+}
+
 export interface MockServerOptions {
+  /** Start in this scenario (default normal). */
+  scenario?: Scenario;
   port?: number;
   /** 127.0.0.1 (this computer, emulators and simulators) unless --lan asks for 0.0.0.0. */
   host?: string;
@@ -163,15 +189,43 @@ interface Collection {
 /** A running mock API: start() it, then stop() it. */
 export class MockServer {
   readonly api: MockApi;
-  private readonly opts: Required<Omit<MockServerOptions, 'log'>> & { log: (line: string) => void };
+  private readonly opts: Required<Omit<MockServerOptions, 'log' | 'scenario'>> & { log: (line: string) => void };
   private readonly map: ProjectMap;
   private readonly collections = new Map<string, Collection>();
   private server: Server | null = null;
+  /** The scenario for every route, and per-route overrides ("GET /v1/products"). */
+  scenario: Scenario;
+  readonly overrides = new Map<string, Scenario>();
+  /** The last requests, newest last. */
+  readonly logEntries: LogEntry[] = [];
+  private nextLogId = 1;
 
   constructor(api: MockApi, opts: MockServerOptions = {}) {
     this.api = api;
     this.opts = { port: opts.port ?? 4010, host: opts.host ?? '127.0.0.1', delay: opts.delay ?? 300, items: opts.items ?? 5, log: opts.log ?? (() => {}) };
     this.map = { models: api.models, endpoints: [], conventions: {} } as unknown as ProjectMap;
+    this.scenario = opts.scenario ?? 'normal';
+  }
+
+  /** The scenario a request gets: its route's override, else the global one. */
+  scenarioFor(route: MockRoute | null): Scenario {
+    return (route && this.overrides.get(`${route.method} ${route.path}`)) || this.scenario;
+  }
+
+  setScenario(scenario: Scenario, route?: string): void {
+    if (!SCENARIOS.includes(scenario)) throw new ToolError('bad_args', `Unknown scenario "${scenario}". Choose: ${SCENARIOS.join(', ')}.`);
+    if (!route) return void (this.scenario = scenario);
+    if (!this.api.routes.some((r) => `${r.method} ${r.path}` === route)) throw new ToolError('bad_args', `No route "${route}".`);
+    if (scenario === this.scenario) this.overrides.delete(route);
+    else this.overrides.set(route, scenario);
+  }
+
+  /** Back to the starting data, scenario and an empty log. */
+  reset(): void {
+    this.collections.clear();
+    this.scenario = 'normal';
+    this.overrides.clear();
+    this.logEntries.length = 0;
   }
 
   /** The collection a route belongs to: GET /products and GET|PUT|DELETE /products/{id} share one. */
@@ -207,6 +261,9 @@ export class MockServer {
   /** The answer to one request: status and JSON body (undefined for no body). */
   handle(method: string, path: string, body: unknown): { status: number; body?: unknown } {
     const m = matchRoute(this.api.routes, method, path);
+    const scenario = this.scenarioFor(m?.route ?? null);
+    if (m && scenario === 'error') return { status: 500, body: { error: 'Internal server error (codz mock scenario: error)' } };
+    if (m && scenario === 'unauthorized') return { status: 401, body: { error: 'Unauthorized (codz mock scenario: unauthorized)' } };
     if (!m) return { status: 404, body: { error: `No mock for ${method} ${segments(path).length ? '/' + segments(path).join('/') : '/'}`, routes: this.api.routes.map((r) => `${r.method} ${r.path}`) } };
     const { route, params } = m;
     const wrap = (v: unknown) => (route.envelope ? { data: v } : v);
@@ -219,8 +276,9 @@ export class MockServer {
     if (c) {
       const { col } = c;
       const find = () => col.items.findIndex((it) => col.idField && String(it[col.idField]) === id);
-      if (method === 'GET' && !itemRoute && listItemType(route.response)) return { status: 200, body: wrap(col.items) };
+      if (method === 'GET' && !itemRoute && listItemType(route.response)) return { status: 200, body: wrap(scenario === 'empty' ? [] : col.items) };
       if (method === 'GET' && itemRoute && route.response === col.model) {
+        if (scenario === 'empty') return { status: 404, body: { error: `No ${col.model} with ${col.idField} ${id} (codz mock scenario: empty)` } };
         const i = find();
         return i >= 0 ? { status: 200, body: wrap(col.items[i]) } : { status: 404, body: { error: `No ${col.model} with ${col.idField} ${id}` } };
       }
@@ -279,6 +337,7 @@ export class MockServer {
     const method = (req.method ?? 'GET').toUpperCase();
     const path = req.url ?? '/';
     if (method === 'OPTIONS') return void res.writeHead(204).end();
+    if (path === '/__codz' || path.startsWith('/__codz/') || path.startsWith('/__codz?')) return this.control(req, res, method, path.split('?')[0]);
     const chunks: Buffer[] = [];
     for await (const c of req) chunks.push(c as Buffer);
     let body: unknown;
@@ -290,12 +349,61 @@ export class MockServer {
         body = undefined;
       }
     }
-    if (this.opts.delay > 0) await new Promise((r) => setTimeout(r, this.opts.delay));
+    const started = Date.now();
+    const scenario = this.scenarioFor(matchRoute(this.api.routes, method, path)?.route ?? null);
+    const wait = scenario === 'slow' ? Math.max(3000, this.opts.delay) : this.opts.delay;
+    if (wait > 0) await new Promise((r) => setTimeout(r, wait));
+    if (scenario === 'offline') {
+      this.record({ method, path, status: 0, ms: Date.now() - started, scenario, request: body });
+      this.opts.log(`${method} ${path.split('?')[0]} → connection dropped (offline)`);
+      return void req.socket.destroy();
+    }
     const out = this.handle(method, path, body);
     const n = Array.isArray(out.body) ? ` (${out.body.length} items)` : out.body && typeof out.body === 'object' && Array.isArray((out.body as { data?: unknown }).data) ? ` (${((out.body as { data: unknown[] }).data).length} items)` : '';
-    this.opts.log(`${method} ${path.split('?')[0]} → ${out.status}${n}`);
+    this.record({ method, path, status: out.status, ms: Date.now() - started, scenario, request: body, response: out.body });
+    this.opts.log(`${method} ${path.split('?')[0]} → ${out.status}${n}${scenario !== 'normal' ? `  [${scenario}]` : ''}`);
     if (out.body === undefined) return void res.writeHead(out.status).end();
     res.writeHead(out.status, { 'Content-Type': 'application/json' }).end(JSON.stringify(out.body));
+  }
+
+  private record(e: Omit<LogEntry, 'id' | 'time'>): void {
+    this.logEntries.push({ id: this.nextLogId++, time: new Date().toISOString(), ...e });
+    if (this.logEntries.length > 200) this.logEntries.shift();
+  }
+
+  /** The control page and its API: /__codz (page), /__codz/state, /__codz/scenario, /__codz/reset. */
+  private async control(req: IncomingMessage, res: ServerResponse, method: string, path: string): Promise<void> {
+    const json = (status: number, value: unknown) => void res.writeHead(status, { 'Content-Type': 'application/json' }).end(JSON.stringify(value));
+    if (method === 'GET' && (path === '/__codz' || path === '/__codz/')) return void res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' }).end(CONTROL_PAGE);
+    if (method === 'GET' && path === '/__codz/state') return json(200, this.state());
+    if (method === 'POST' && (path === '/__codz/scenario' || path === '/__codz/reset')) {
+      const chunks: Buffer[] = [];
+      for await (const c of req) chunks.push(c as Buffer);
+      let input: { scenario?: string; route?: string } = {};
+      try {
+        input = JSON.parse(Buffer.concat(chunks).toString('utf8') || '{}');
+      } catch {
+        return json(400, { error: 'Send JSON: {"scenario": "error", "route": "GET /v1/products"}' });
+      }
+      try {
+        if (path === '/__codz/reset') this.reset();
+        else this.setScenario(input.scenario as Scenario, input.route);
+      } catch (e) {
+        return json(400, { error: (e as Error).message });
+      }
+      this.opts.log(path === '/__codz/reset' ? 'Reset: starting data, normal answers, empty log' : `Scenario: ${input.route ? `${input.route} → ` : ''}${input.scenario}`);
+      return json(200, this.state());
+    }
+    return json(404, { error: 'Control routes: GET /__codz, GET /__codz/state, POST /__codz/scenario, POST /__codz/reset' });
+  }
+
+  state(): { scenario: Scenario; scenarios: { id: Scenario; help: string }[]; routes: { route: string; scenario: Scenario }[]; log: LogEntry[] } {
+    return {
+      scenario: this.scenario,
+      scenarios: SCENARIOS.map((id) => ({ id, help: SCENARIO_HELP[id] })),
+      routes: this.api.routes.map((r) => ({ route: `${r.method} ${r.path}`, scenario: this.scenarioFor(r) })),
+      log: this.logEntries.slice(-100).reverse(),
+    };
   }
 }
 
@@ -356,3 +464,78 @@ export function connectHints(map: ProjectMap | null, framework: string | null, p
   }
   }
 }
+
+/** The page at /__codz: switch scenarios (for every route or one) and watch requests. */
+const CONTROL_PAGE = `<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>codz mock</title>
+<style>
+  :root { --bg: #fff; --fg: #1d1d1f; --muted: #6e6e73; --line: #e5e5ea; --accent: #0f766e; --bad: #b42318; --chip: #f2f2f7; }
+  @media (prefers-color-scheme: dark) { :root { --bg: #161618; --fg: #f2f2f7; --muted: #a1a1a6; --line: #2c2c2e; --accent: #2dd4bf; --bad: #f97066; --chip: #232326; } }
+  * { box-sizing: border-box; }
+  body { margin: 0; padding: 20px 16px 40px; font: 14px/1.45 system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--fg); }
+  main { max-width: 1000px; margin: 0 auto; }
+  h1 { font-size: 20px; margin: 0 0 4px; }
+  h2 { font-size: 15px; margin: 28px 0 8px; }
+  p { margin: 0; color: var(--muted); }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+  button { font: inherit; border: 1px solid var(--line); background: var(--chip); color: var(--fg); padding: 6px 12px; border-radius: 999px; cursor: pointer; }
+  button[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--bg); }
+  table { width: 100%; border-collapse: collapse; }
+  td, th { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { color: var(--muted); font-weight: 500; }
+  code { font: 12px/1.4 ui-monospace, Menlo, monospace; }
+  select { font: inherit; background: var(--chip); color: var(--fg); border: 1px solid var(--line); border-radius: 6px; padding: 2px 6px; }
+  .bad { color: var(--bad); }
+  details pre { margin: 6px 0 0; white-space: pre-wrap; word-break: break-word; font: 12px/1.4 ui-monospace, Menlo, monospace; background: var(--chip); padding: 8px; border-radius: 6px; max-height: 260px; overflow: auto; }
+  .scroll { overflow-x: auto; }
+</style>
+</head>
+<body>
+<main>
+  <h1>codz mock</h1>
+  <p id="help">Switch how the mock answers, then use the app.</p>
+  <div class="chips" id="scenarios"></div>
+  <h2>Per endpoint</h2>
+  <div class="scroll"><table><thead><tr><th>Endpoint</th><th>Answers with</th></tr></thead><tbody id="routes"></tbody></table></div>
+  <h2>Requests <button id="reset" title="Starting data, normal answers, empty log">Reset</button></h2>
+  <div class="scroll"><table><thead><tr><th>Time</th><th>Request</th><th>Status</th><th>ms</th></tr></thead><tbody id="log"></tbody></table></div>
+</main>
+<script>
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
+let state = null;
+let open = new Set();
+async function post(path, body) {
+  const r = await fetch(path, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body || {}) });
+  state = await r.json();
+  render();
+}
+function render() {
+  if (!state || !state.scenarios) return;
+  $('scenarios').innerHTML = state.scenarios.map((s) => '<button data-s="' + s.id + '" aria-pressed="' + (s.id === state.scenario) + '" title="' + esc(s.help) + '">' + s.id + '</button>').join('');
+  const cur = state.scenarios.find((s) => s.id === state.scenario);
+  $('help').textContent = 'Every endpoint: ' + state.scenario + ' (' + (cur ? cur.help : '') + '). Endpoints set differently below win.';
+  $('routes').innerHTML = state.routes.map((r) => '<tr><td><code>' + esc(r.route) + '</code></td><td><select data-r="' + esc(r.route) + '">' + state.scenarios.map((s) => '<option' + (s.id === r.scenario ? ' selected' : '') + '>' + s.id + '</option>').join('') + '</select></td></tr>').join('');
+  $('log').innerHTML = state.log.map((e) => {
+    const body = (e.request !== undefined ? 'Request:\\n' + JSON.stringify(e.request, null, 2) + '\\n\\n' : '') + (e.response !== undefined ? 'Response:\\n' + JSON.stringify(e.response, null, 2) : '');
+    const label = esc(e.method + ' ' + e.path);
+    return '<tr><td>' + new Date(e.time).toLocaleTimeString() + '</td><td>' + (body ? '<details data-id="' + e.id + '"' + (open.has(String(e.id)) ? ' open' : '') + '><summary><code>' + label + '</code></summary><pre>' + esc(body) + '</pre></details>' : '<code>' + label + '</code>') + '</td><td class="' + (e.status >= 400 || e.status === 0 ? 'bad' : '') + '">' + (e.status || 'dropped') + (e.scenario !== 'normal' ? ' <small>(' + e.scenario + ')</small>' : '') + '</td><td>' + e.ms + '</td></tr>';
+  }).join('') || '<tr><td colspan="4"><p>No requests yet. Use the app.</p></td></tr>';
+}
+document.addEventListener('click', (ev) => {
+  const b = ev.target.closest('button[data-s]');
+  if (b) post('/__codz/scenario', { scenario: b.dataset.s });
+  if (ev.target.id === 'reset') post('/__codz/reset');
+});
+document.addEventListener('change', (ev) => { if (ev.target.dataset.r) post('/__codz/scenario', { scenario: ev.target.value, route: ev.target.dataset.r }); });
+document.addEventListener('toggle', (ev) => { const d = ev.target; if (d.dataset && d.dataset.id) d.open ? open.add(d.dataset.id) : open.delete(d.dataset.id); }, true);
+async function poll() { try { state = await (await fetch('/__codz/state')).json(); render(); } catch {} setTimeout(poll, 1000); }
+poll();
+</script>
+</body>
+</html>
+`;

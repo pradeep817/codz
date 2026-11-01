@@ -86,4 +86,49 @@ describe('mock serve', () => {
       cleanup(dir);
     }
   });
+
+  it('scenarios: empty lists, errors, sign-out, per-endpoint overrides and reset', () => {
+    const s = new MockServer(mockApiFromSpec(SPEC), { items: 2, scenario: 'empty' });
+    assert.deepEqual(s.handle('GET', '/v1/products', undefined).body, []);
+    assert.equal(s.handle('GET', '/v1/products/1', undefined).status, 404);
+    s.setScenario('error');
+    assert.equal(s.handle('GET', '/v1/products', undefined).status, 500);
+    assert.equal(s.handle('GET', '/nope', undefined).status, 404, 'unknown paths still list the routes');
+    s.setScenario('normal');
+    s.setScenario('unauthorized', 'GET /v1/products');
+    assert.equal(s.handle('GET', '/v1/products', undefined).status, 401);
+    assert.equal(s.handle('GET', '/v1/products/1', undefined).status, 200, 'other endpoints keep the global scenario');
+    assert.equal(s.state().routes.find((r) => r.route === 'GET /v1/products')?.scenario, 'unauthorized');
+    assert.throws(() => s.setScenario('broken' as never), /Unknown scenario/);
+    assert.throws(() => s.setScenario('error', 'GET /nope'), /No route/);
+    s.handle('DELETE', '/v1/products/1', undefined);
+    s.reset();
+    assert.equal(s.handle('GET', '/v1/products', undefined).status, 200);
+    assert.equal((s.handle('GET', '/v1/products', undefined).body as unknown[]).length, 2, 'reset brings back the starting data');
+  });
+
+  it('control page, live switching, request log and offline over HTTP', async () => {
+    const s = new MockServer(mockApiFromSpec(SPEC), { port: 0, delay: 0, log: () => {} });
+    const port = await s.start();
+    const base = `http://127.0.0.1:${port}`;
+    try {
+      const page = await fetch(`${base}/__codz`);
+      assert.equal(page.status, 200);
+      assert.match(await page.text(), /codz mock/);
+      await fetch(`${base}/v1/products`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: 'Lamp', price: 9 }) });
+      const sw = await fetch(`${base}/__codz/scenario`, { method: 'POST', body: JSON.stringify({ scenario: 'error' }) });
+      assert.equal(((await sw.json()) as { scenario: string }).scenario, 'error');
+      assert.equal((await fetch(`${base}/v1/products`)).status, 500);
+      const bad = await fetch(`${base}/__codz/scenario`, { method: 'POST', body: JSON.stringify({ scenario: 'nope' }) });
+      assert.equal(bad.status, 400);
+      const state = (await (await fetch(`${base}/__codz/state`)).json()) as { log: { method: string; status: number; request?: { name?: string } }[] };
+      assert.equal(state.log[0].status, 500, 'newest first');
+      assert.equal(state.log[1].method, 'POST');
+      assert.equal(state.log[1].request?.name, 'Lamp', 'the log keeps request bodies');
+      s.setScenario('offline');
+      await assert.rejects(fetch(`${base}/v1/products`), 'offline drops the connection');
+    } finally {
+      await s.stop();
+    }
+  });
 });
