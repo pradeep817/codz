@@ -1,7 +1,7 @@
 {
   "name": "codz",
   "version": "0.1.0",
-  "description": "Project-aware dev CLI: understands a project once, then makes deterministic, reviewable changes to it.",
+  "description": "CLI that adds API models, screens, routes and tests to Flutter, Next.js, React Native, Android and iOS apps in your project's own style, from OpenAPI or cURL.",
   "type": "module",
   "bin": {
     "codz": "bin/codz.js"
@@ -34,12 +34,26 @@
     "typescript": "^5.8.0"
   },
   "license": "MIT",
+  "author": "pradeep817",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/pradeep817/codz.git"
+  },
+  "homepage": "https://github.com/pradeep817/codz#readme",
+  "bugs": {
+    "url": "https://github.com/pradeep817/codz/issues"
+  },
   "keywords": [
     "cli",
-    "nextjs",
-    "flutter",
     "codegen",
     "openapi",
+    "flutter",
+    "nextjs",
+    "react-native",
+    "react",
+    "android",
+    "ios",
+    "swiftui",
     "mcp"
   ]
 }
