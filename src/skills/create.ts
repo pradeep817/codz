@@ -199,6 +199,244 @@ function reactNativeSkeleton(o: CreateOptions): Map<string, string> {
   return files;
 }
 
+/** React web app with Vite and TypeScript (what npm create vite gives you, react-ts template). */
+function reactSkeleton(o: CreateOptions): Map<string, string> {
+  const files = new Map<string, string>();
+  const title = o.name.split(/[-_.]/).filter(Boolean).map((w) => w[0].toUpperCase() + w.slice(1)).join(' ');
+  files.set(
+    'package.json',
+    JSON.stringify(
+      {
+        name: o.name,
+        private: true,
+        version: '0.0.0',
+        type: 'module',
+        scripts: { dev: 'vite', build: 'tsc -b && vite build', preview: 'vite preview', test: 'vitest run' },
+        dependencies: { react: '^18.3.1', 'react-dom': '^18.3.1' },
+        devDependencies: { '@types/react': '^18.3.12', '@types/react-dom': '^18.3.1', '@vitejs/plugin-react': '^4.3.4', typescript: '~5.6.2', vite: '^6.0.1', vitest: '^2.1.8' },
+      },
+      null,
+      2,
+    ) + '\n',
+  );
+  files.set('index.html', `<!doctype html>\n<html lang="en">\n  <head>\n    <meta charset="UTF-8" />\n    <meta name="viewport" content="width=device-width, initial-scale=1.0" />\n    <title>${title}</title>\n  </head>\n  <body>\n    <div id="root"></div>\n    <script type="module" src="/src/main.tsx"></script>\n  </body>\n</html>\n`);
+  files.set('vite.config.ts', `import { defineConfig } from 'vite'\nimport react from '@vitejs/plugin-react'\n\nexport default defineConfig({\n  plugins: [react()],\n})\n`);
+  files.set('tsconfig.json', JSON.stringify({ compilerOptions: { target: 'ES2020', lib: ['ES2020', 'DOM', 'DOM.Iterable'], module: 'ESNext', moduleResolution: 'bundler', jsx: 'react-jsx', strict: true, noEmit: true, allowImportingTsExtensions: true, skipLibCheck: true, isolatedModules: true }, include: ['src'] }, null, 2) + '\n');
+  files.set('src/vite-env.d.ts', '/// <reference types="vite/client" />\n');
+  files.set('src/main.tsx', `import { StrictMode } from 'react'\nimport { createRoot } from 'react-dom/client'\nimport App from './App.tsx'\n\ncreateRoot(document.getElementById('root')!).render(\n  <StrictMode>\n    <App />\n  </StrictMode>,\n)\n`);
+  files.set('src/App.tsx', `function App() {\n  return (\n    <main>\n      <h1>${title}</h1>\n    </main>\n  )\n}\n\nexport default App\n`);
+  files.set('.gitignore', 'node_modules\ndist\n*.local\n.codz/\n');
+  return files;
+}
+
+/** The Swift name of an iOS app: shop-app → ShopApp. */
+export const iosAppName = (name: string) => name.split(/[-_]/).filter(Boolean).map((w) => w[0].toUpperCase() + w.slice(1)).join('');
+
+/**
+ * A SwiftUI app as Xcode 16's App template makes it: one target whose sources
+ * are a synchronized folder (new files are part of the app without editing the
+ * project file), an asset catalog, and a generated Info.plist.
+ */
+function iosSkeleton(o: CreateOptions): Map<string, string> {
+  const app = iosAppName(o.name);
+  const bundle = `${o.org}.${o.name.replace(/[^a-zA-Z0-9]/g, '')}`;
+  const files = new Map<string, string>();
+  // Object ids: 24 hex digits, fixed so a project made twice is the same.
+  const id = (n: number) => `C0DE${String(n).padStart(20, '0')}`;
+  const [project, mainGroup, productsGroup, appGroup, target, product, sources, frameworks, resources, projectList, targetList, projDebug, projRelease, targetDebug, targetRelease] = Array.from({ length: 15 }, (_, i) => id(i + 1));
+  const common = [
+    'ALWAYS_SEARCH_USER_PATHS = NO;',
+    'ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;',
+    'CLANG_ENABLE_MODULES = YES;',
+    'CLANG_ENABLE_OBJC_ARC = YES;',
+    'COPY_PHASE_STRIP = NO;',
+    'ENABLE_STRICT_OBJC_MSGSEND = YES;',
+    'ENABLE_USER_SCRIPT_SANDBOXING = YES;',
+    'GCC_C_LANGUAGE_STANDARD = gnu17;',
+    'IPHONEOS_DEPLOYMENT_TARGET = 17.0;',
+    'LOCALIZATION_PREFERS_STRING_CATALOGS = YES;',
+    'SDKROOT = iphoneos;',
+  ];
+  const projSettings = (debug: boolean) => [
+    ...common,
+    ...(debug
+      ? ['DEBUG_INFORMATION_FORMAT = dwarf;', 'ENABLE_TESTABILITY = YES;', 'GCC_OPTIMIZATION_LEVEL = 0;', 'ONLY_ACTIVE_ARCH = YES;', 'SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";', 'SWIFT_OPTIMIZATION_LEVEL = "-Onone";', 'MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;']
+      : ['DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";', 'ENABLE_NS_ASSERTIONS = NO;', 'SWIFT_COMPILATION_MODE = wholemodule;', 'VALIDATE_PRODUCT = YES;', 'MTL_ENABLE_DEBUG_INFO = NO;']),
+  ];
+  const targetSettings = [
+    'ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;',
+    'ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;',
+    'CODE_SIGN_STYLE = Automatic;',
+    'CURRENT_PROJECT_VERSION = 1;',
+    'ENABLE_PREVIEWS = YES;',
+    'GENERATE_INFOPLIST_FILE = YES;',
+    `INFOPLIST_KEY_CFBundleDisplayName = ${app};`,
+    'INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;',
+    'INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;',
+    'INFOPLIST_KEY_UILaunchScreen_Generation = YES;',
+    'INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";',
+    'INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";',
+    'LD_RUNPATH_SEARCH_PATHS = (\n\t\t\t\t\t"$(inherited)",\n\t\t\t\t\t"@executable_path/Frameworks",\n\t\t\t\t);',
+    'MARKETING_VERSION = 1.0;',
+    `PRODUCT_BUNDLE_IDENTIFIER = ${bundle};`,
+    'PRODUCT_NAME = "$(TARGET_NAME)";',
+    'SWIFT_EMIT_LOC_STRINGS = YES;',
+    'SWIFT_VERSION = 5.0;',
+    'TARGETED_DEVICE_FAMILY = "1,2";',
+  ];
+  const config = (key: string, name: string, settings: string[]) => [`\t\t${key} /* ${name} */ = {`, '\t\t\tisa = XCBuildConfiguration;', '\t\t\tbuildSettings = {', ...settings.map((x) => `\t\t\t\t${x}`), '\t\t\t};', `\t\t\tname = ${name};`, '\t\t};'];
+  const phase = (key: string, isa: string, name: string) => [`\t\t${key} /* ${name} */ = {`, `\t\t\tisa = ${isa};`, '\t\t\tbuildActionMask = 2147483647;', '\t\t\tfiles = (', '\t\t\t);', '\t\t\trunOnlyForDeploymentPostprocessing = 0;', '\t\t};'];
+  const pbx = [
+    '// !$*UTF8*$!',
+    '{',
+    '\tarchiveVersion = 1;',
+    '\tclasses = {',
+    '\t};',
+    '\tobjectVersion = 77;',
+    '\tobjects = {',
+    '',
+    '/* Begin PBXFileReference section */',
+    `\t\t${product} /* ${app}.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ${app}.app; sourceTree = BUILT_PRODUCTS_DIR; };`,
+    '/* End PBXFileReference section */',
+    '',
+    '/* Begin PBXFileSystemSynchronizedRootGroup section */',
+    `\t\t${appGroup} /* ${app} */ = {`,
+    '\t\t\tisa = PBXFileSystemSynchronizedRootGroup;',
+    `\t\t\tpath = ${app};`,
+    '\t\t\tsourceTree = "<group>";',
+    '\t\t};',
+    '/* End PBXFileSystemSynchronizedRootGroup section */',
+    '',
+    '/* Begin PBXFrameworksBuildPhase section */',
+    ...phase(frameworks, 'PBXFrameworksBuildPhase', 'Frameworks'),
+    '/* End PBXFrameworksBuildPhase section */',
+    '',
+    '/* Begin PBXGroup section */',
+    `\t\t${mainGroup} = {`,
+    '\t\t\tisa = PBXGroup;',
+    '\t\t\tchildren = (',
+    `\t\t\t\t${appGroup} /* ${app} */,`,
+    `\t\t\t\t${productsGroup} /* Products */,`,
+    '\t\t\t);',
+    '\t\t\tsourceTree = "<group>";',
+    '\t\t};',
+    `\t\t${productsGroup} /* Products */ = {`,
+    '\t\t\tisa = PBXGroup;',
+    '\t\t\tchildren = (',
+    `\t\t\t\t${product} /* ${app}.app */,`,
+    '\t\t\t);',
+    '\t\t\tname = Products;',
+    '\t\t\tsourceTree = "<group>";',
+    '\t\t};',
+    '/* End PBXGroup section */',
+    '',
+    '/* Begin PBXNativeTarget section */',
+    `\t\t${target} /* ${app} */ = {`,
+    '\t\t\tisa = PBXNativeTarget;',
+    `\t\t\tbuildConfigurationList = ${targetList} /* Build configuration list for PBXNativeTarget "${app}" */;`,
+    '\t\t\tbuildPhases = (',
+    `\t\t\t\t${sources} /* Sources */,`,
+    `\t\t\t\t${frameworks} /* Frameworks */,`,
+    `\t\t\t\t${resources} /* Resources */,`,
+    '\t\t\t);',
+    '\t\t\tbuildRules = (',
+    '\t\t\t);',
+    '\t\t\tdependencies = (',
+    '\t\t\t);',
+    '\t\t\tfileSystemSynchronizedGroups = (',
+    `\t\t\t\t${appGroup} /* ${app} */,`,
+    '\t\t\t);',
+    `\t\t\tname = ${app};`,
+    '\t\t\tpackageProductDependencies = (',
+    '\t\t\t);',
+    `\t\t\tproductName = ${app};`,
+    `\t\t\tproductReference = ${product} /* ${app}.app */;`,
+    '\t\t\tproductType = "com.apple.product-type.application";',
+    '\t\t};',
+    '/* End PBXNativeTarget section */',
+    '',
+    '/* Begin PBXProject section */',
+    `\t\t${project} /* Project object */ = {`,
+    '\t\t\tisa = PBXProject;',
+    '\t\t\tattributes = {',
+    '\t\t\t\tBuildIndependentTargetsInParallel = 1;',
+    '\t\t\t\tLastSwiftUpdateCheck = 1600;',
+    '\t\t\t\tLastUpgradeCheck = 1600;',
+    '\t\t\t\tTargetAttributes = {',
+    `\t\t\t\t\t${target} = {`,
+    '\t\t\t\t\t\tCreatedOnToolsVersion = 16.0;',
+    '\t\t\t\t\t};',
+    '\t\t\t\t};',
+    '\t\t\t};',
+    `\t\t\tbuildConfigurationList = ${projectList} /* Build configuration list for PBXProject "${app}" */;`,
+    '\t\t\tdevelopmentRegion = en;',
+    '\t\t\thasScannedForEncodings = 0;',
+    '\t\t\tknownRegions = (',
+    '\t\t\t\ten,',
+    '\t\t\t\tBase,',
+    '\t\t\t);',
+    `\t\t\tmainGroup = ${mainGroup};`,
+    '\t\t\tminimizedProjectReferenceProxies = 1;',
+    '\t\t\tpreferredProjectObjectVersion = 77;',
+    `\t\t\tproductRefGroup = ${productsGroup} /* Products */;`,
+    '\t\t\tprojectDirPath = "";',
+    '\t\t\tprojectRoot = "";',
+    '\t\t\ttargets = (',
+    `\t\t\t\t${target} /* ${app} */,`,
+    '\t\t\t);',
+    '\t\t};',
+    '/* End PBXProject section */',
+    '',
+    '/* Begin PBXResourcesBuildPhase section */',
+    ...phase(resources, 'PBXResourcesBuildPhase', 'Resources'),
+    '/* End PBXResourcesBuildPhase section */',
+    '',
+    '/* Begin PBXSourcesBuildPhase section */',
+    ...phase(sources, 'PBXSourcesBuildPhase', 'Sources'),
+    '/* End PBXSourcesBuildPhase section */',
+    '',
+    '/* Begin XCBuildConfiguration section */',
+    ...config(projDebug, 'Debug', projSettings(true)),
+    ...config(projRelease, 'Release', projSettings(false)),
+    ...config(targetDebug, 'Debug', targetSettings),
+    ...config(targetRelease, 'Release', targetSettings),
+    '/* End XCBuildConfiguration section */',
+    '',
+    '/* Begin XCConfigurationList section */',
+    `\t\t${projectList} /* Build configuration list for PBXProject "${app}" */ = {`,
+    '\t\t\tisa = XCConfigurationList;',
+    '\t\t\tbuildConfigurations = (',
+    `\t\t\t\t${projDebug} /* Debug */,`,
+    `\t\t\t\t${projRelease} /* Release */,`,
+    '\t\t\t);',
+    '\t\t\tdefaultConfigurationIsVisible = 0;',
+    '\t\t\tdefaultConfigurationName = Release;',
+    '\t\t};',
+    `\t\t${targetList} /* Build configuration list for PBXNativeTarget "${app}" */ = {`,
+    '\t\t\tisa = XCConfigurationList;',
+    '\t\t\tbuildConfigurations = (',
+    `\t\t\t\t${targetDebug} /* Debug */,`,
+    `\t\t\t\t${targetRelease} /* Release */,`,
+    '\t\t\t);',
+    '\t\t\tdefaultConfigurationIsVisible = 0;',
+    '\t\t\tdefaultConfigurationName = Release;',
+    '\t\t};',
+    '/* End XCConfigurationList section */',
+    '\t};',
+    `\trootObject = ${project} /* Project object */;`,
+    '}',
+    '',
+  ].join('\n');
+  files.set(`${app}.xcodeproj/project.pbxproj`, pbx);
+  files.set(`${app}/${app}App.swift`, `import SwiftUI\n\n@main\nstruct ${app}App: App {\n    var body: some Scene {\n        WindowGroup {\n            ContentView()\n        }\n    }\n}\n`);
+  files.set(`${app}/ContentView.swift`, `import SwiftUI\n\nstruct ContentView: View {\n    var body: some View {\n        Text("${app}")\n            .padding()\n    }\n}\n\n#Preview {\n    ContentView()\n}\n`);
+  files.set(`${app}/Assets.xcassets/Contents.json`, '{\n  "info" : {\n    "author" : "xcode",\n    "version" : 1\n  }\n}\n');
+  files.set(`${app}/Assets.xcassets/AccentColor.colorset/Contents.json`, '{\n  "colors" : [\n    {\n      "idiom" : "universal"\n    }\n  ],\n  "info" : {\n    "author" : "xcode",\n    "version" : 1\n  }\n}\n');
+  files.set(`${app}/Assets.xcassets/AppIcon.appiconset/Contents.json`, '{\n  "images" : [\n    {\n      "idiom" : "universal",\n      "platform" : "ios",\n      "size" : "1024x1024"\n    }\n  ],\n  "info" : {\n    "author" : "xcode",\n    "version" : 1\n  }\n}\n');
+  files.set('.gitignore', 'xcuserdata/\nDerivedData/\n.DS_Store\n.codz/\n');
+  return files;
+}
+
 const npmName = (name: string) => (/^[a-z0-9][a-z0-9._-]*$/.test(name) && name.length <= 214 ? null : 'Use lowercase letters, digits, dots, dashes and underscores, starting with a letter or digit (for example my-app).');
 
 export const PROJECT_TYPES: ProjectType[] = [
@@ -281,6 +519,42 @@ export const PROJECT_TYPES: ProjectType[] = [
     skeleton: (o) => androidSkeleton(o),
     install: () => null,
     framework: 'android',
+  },
+  {
+    id: 'react',
+    label: 'React (Vite)',
+    description: 'React web app with Vite, TypeScript and React Router',
+    architectures: [
+      { id: 'fetch-helper', label: 'Fetch helper', description: 'src/api/client.ts with apiFetch<T>() and ApiError; API URL in src/config/env.ts' },
+      { id: 'axios', label: 'axios', description: 'An axios instance in src/api/client.ts; API functions call it' },
+      { id: 'axios-react-query', label: 'axios + TanStack Query', description: 'The axios instance, a query hook per endpoint, QueryClientProvider around the app' },
+      { ...NONE, label: 'Plain React', description: 'No API layer or router yet; add one later with codz setup' },
+    ],
+    checkName: npmName,
+    needsOrg: false,
+    options: [],
+    // codz writes the react-ts template itself (npm create vite asks questions in some versions).
+    creator: () => null,
+    skeleton: reactSkeleton,
+    install: () => ({ cmd: process.platform === 'win32' ? 'npm.cmd' : 'npm', args: ['install'], label: 'npm install' }),
+    framework: 'react',
+  },
+  {
+    id: 'ios',
+    label: 'iOS (SwiftUI)',
+    description: 'Native iPhone and iPad app in Swift with SwiftUI (open it in Xcode 16 or newer)',
+    architectures: [
+      { id: 'urlsession', label: 'URLSession + async/await', description: 'APIClient with send<T>() over URLSession and JSONDecoder; ObservableObject view models' },
+      { ...NONE, label: 'Plain SwiftUI', description: 'No API layer yet; add one later with codz setup' },
+    ],
+    checkName: (n) => (/^[a-z][a-z0-9-]*$/.test(n) ? null : 'Use lowercase letters, digits and dashes, starting with a letter (for example shop-app); the app is then called ShopApp.'),
+    needsOrg: true,
+    options: [],
+    // Xcode has no command-line project creator; codz writes the App template itself.
+    creator: () => null,
+    skeleton: iosSkeleton,
+    install: () => null,
+    framework: 'ios',
   },
 ];
 
@@ -387,9 +661,9 @@ export async function createProject(o: CreateOptions, log: (line: string) => voi
       const mod = await planModuleAdd(dir, adapter, { name: 'home', initial: true });
       applyChangeSet(dir, mod, { allowDirty: true, verify: false, format: false, adapter });
     }
-    const demo = planDemo({ dir, type: t.id as 'flutter' | 'nextjs' | 'react-native' | 'android', architecture: o.architecture, name: o.name, androidPackage: t.id === 'android' ? androidPackage(o.org, o.name) : undefined });
+    const demo = planDemo({ dir, type: t.id as 'flutter' | 'nextjs' | 'react-native' | 'android' | 'react' | 'ios', architecture: o.architecture, name: o.name, androidPackage: t.id === 'android' ? androidPackage(o.org, o.name) : undefined, iosApp: t.id === 'ios' ? iosAppName(o.name) : undefined });
     if (demo) {
-      const cs = buildChangeSet(dir, 'create', { files: demo.files, summary: demo.summary, warnings: [], generated: [], rewrites: demo.rewrites });
+      const cs = buildChangeSet(dir, 'create', { files: demo.files, summary: demo.summary, warnings: [], generated: [], rewrites: demo.rewrites, ...(demo.deletes ? { deletes: new Set(demo.deletes) } : {}) });
       applyChangeSet(dir, cs, { allowDirty: true, verify: false, format: false, adapter });
       steps.push(...demo.summary);
     }

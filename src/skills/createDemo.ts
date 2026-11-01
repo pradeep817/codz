@@ -16,15 +16,19 @@ export interface DemoPlan {
   /** Existing files replaced on purpose (the template's main.dart, page or home screen). */
   rewrites: string[];
   summary: string[];
+  /** Template files the demo replaces (iOS: ContentView.swift). */
+  deletes?: string[];
 }
 
 interface DemoInput {
   dir: string;
-  type: 'flutter' | 'nextjs' | 'react-native' | 'android';
+  type: 'flutter' | 'nextjs' | 'react-native' | 'android' | 'react' | 'ios';
   architecture: string;
   name: string;
   /** Android: the app's package (com.example.shop). */
   androidPackage?: string;
+  /** iOS: the app's Swift name (ShopApp). */
+  iosApp?: string;
 }
 
 const TASKS = [
@@ -48,6 +52,8 @@ export function planDemo(d: DemoInput): DemoPlan | null {
   if (d.type === 'nextjs') return nextDemo(d, read, write, plan);
   if (d.type === 'react-native') return reactNativeDemo(d, read, write, plan);
   if (d.type === 'android') return androidDemo(d, read, write, plan);
+  if (d.type === 'react') return reactDemo(d, read, write, plan);
+  if (d.type === 'ios') return iosDemo(d, read, write, plan);
   return null;
 }
 
@@ -890,5 +896,223 @@ function androidDemo(d: DemoInput, read: Read, write: Write, plan: DemoPlan): De
     }
   }
   plan.summary.push(`First screen: a demo task list with HomeViewModel (${hilt ? 'Hilt' : koin ? 'Koin' : 'its own Factory'}) and a StateFlow, on sample data (no network)`);
+  return plan;
+}
+
+// ---------------------------------------------------------------- React (Vite)
+
+function reactDemo(d: DemoInput, read: Read, write: Write, plan: DemoPlan): DemoPlan | null {
+  const page = 'src/pages/HomePage.tsx';
+  if (read(page) === null) return null;
+  const query = d.architecture === 'axios-react-query';
+  const q = "'";
+  const semi = /;\s*$/m.test(read(page) ?? '') ? ';' : '';
+  const st = (line: string) => line.replace(/;$/, semi);
+  write(
+    'src/demo/demoTasks.ts',
+    [
+      'export interface DemoTask {',
+      st('  id: number;'),
+      st('  title: string;'),
+      st('  done: boolean;'),
+      '}',
+      '',
+      '/**',
+      ' * Stands in for an API: returns sample tasks after a short delay.',
+      ` * Replace it with real endpoints (codz api add, or codz feature add <name> --spec api.yaml), for example ${d.architecture === 'fetch-helper' ? "apiFetch<DemoTask[]>('/tasks')" : "(await api.get<DemoTask[]>('/tasks')).data"}.`,
+      ' */',
+      'export async function getDemoTasks(): Promise<DemoTask[]> {',
+      st('  await new Promise((resolve) => setTimeout(resolve, 300));'),
+      '  return [',
+      ...TASKS.map((t) => `    { id: ${t.id}, title: ${q}${t.title}${q}, done: ${t.done} },`),
+      st('  ];'),
+      '}',
+      '',
+    ].join('\n'),
+  );
+  const intro = query ? 'TanStack Query loads the tasks (useQuery); ticking one is local state.' : 'The page loads the tasks in an effect and keeps them in state.';
+  const list = (items: string, checked: string, onChange: string) => [
+    `      <p>${intro}</p>`,
+    "      <ul style={{ listStyle: 'none', padding: 0 }}>",
+    `        {${items}.map((task) => (`,
+    '          <li key={task.id}>',
+    '            <label>',
+    `              <input type="checkbox" checked={${checked}} onChange={() => ${onChange}} /> {task.title}`,
+    '            </label>',
+    '          </li>',
+    '        ))}',
+    '      </ul>',
+  ];
+  const body = query
+    ? [
+        st("import { useQuery } from '@tanstack/react-query';"),
+        st("import { useState } from 'react';"),
+        st("import { getDemoTasks } from '../demo/demoTasks';"),
+        '',
+        'export default function HomePage() {',
+        st("  const { data, isLoading, error } = useQuery({ queryKey: ['demo-tasks'], queryFn: getDemoTasks });"),
+        st('  const [flipped, setFlipped] = useState<Record<number, boolean>>({});'),
+        st('  if (isLoading) return <p>Loading…</p>;'),
+        st('  if (error || !data) return <p role="alert">{error instanceof Error ? error.message : String(error)}</p>;'),
+        '  return (',
+        '    <main>',
+        `      <h1>Home</h1>`,
+        ...list('data', 'flipped[task.id] ? !task.done : task.done', 'setFlipped((f) => ({ ...f, [task.id]: !f[task.id] }))'),
+        '    </main>',
+        st('  );'),
+        '}',
+        '',
+      ]
+    : [
+        st("import { useEffect, useState } from 'react';"),
+        st("import { getDemoTasks, type DemoTask } from '../demo/demoTasks';"),
+        '',
+        'export default function HomePage() {',
+        st('  const [tasks, setTasks] = useState<DemoTask[] | null>(null);'),
+        '',
+        '  useEffect(() => {',
+        st('    getDemoTasks().then(setTasks);'),
+        st('  }, []);'),
+        '',
+        st('  const toggle = (id: number) => setTasks((ts) => ts && ts.map((t) => (t.id === id ? { ...t, done: !t.done } : t)));'),
+        st('  if (!tasks) return <p>Loading…</p>;'),
+        '  return (',
+        '    <main>',
+        `      <h1>Home</h1>`,
+        ...list('tasks', 'task.done', 'toggle(task.id)'),
+        '    </main>',
+        st('  );'),
+        '}',
+        '',
+      ];
+  write(page, body.join('\n'));
+  plan.summary.push(`First screen: a demo task list ${query ? 'loaded with TanStack Query (useQuery)' : 'loaded in an effect and kept in state'} on the Home page, on sample data (no network)`);
+  return plan;
+}
+
+// ---------------------------------------------------------------- iOS (SwiftUI)
+
+function iosDemo(d: DemoInput, read: Read, write: Write, plan: DemoPlan): DemoPlan | null {
+  const app = d.iosApp;
+  if (!app || d.architecture !== 'urlsession') return null;
+  const appFile = `${app}/${app}App.swift`;
+  if (read(appFile) === null) return null;
+  const views = `${app}/Views`;
+  if (read(`${views}/LoadState.swift`) === null) {
+    write(`${views}/LoadState.swift`, ['/// What a screen shows while it loads, when it has the data, and when loading failed.', 'enum LoadState<Value> {', '    case loading', '    case loaded(Value)', '    case failed(String)', '}', ''].join('\n'));
+  }
+  write(
+    `${app}/Demo/DemoTaskSource.swift`,
+    [
+      'import Foundation',
+      '',
+      '/// One row of the demo list.',
+      'struct DemoTask: Identifiable, Hashable {',
+      '    let id: Int',
+      '    let title: String',
+      '    var done: Bool',
+      '}',
+      '',
+      '/// Stands in for an API: returns sample tasks after a short delay.',
+      '/// Replace it with real endpoints: codz api add, or codz feature add <name> --spec api.yaml.',
+      'struct DemoTaskSource {',
+      '    func load() async throws -> [DemoTask] {',
+      '        try await Task.sleep(nanoseconds: 400_000_000)',
+      '        return [',
+      ...TASKS.map((t) => `            DemoTask(id: ${t.id}, title: "${t.title}", done: ${t.done}),`),
+      '        ]',
+      '    }',
+      '}',
+      '',
+    ].join('\n'),
+  );
+  write(
+    `${views}/HomeViewModel.swift`,
+    [
+      'import Foundation',
+      '',
+      '@MainActor',
+      'final class HomeViewModel: ObservableObject {',
+      '    @Published private(set) var state: LoadState<[DemoTask]> = .loading',
+      '    private let source: DemoTaskSource',
+      '',
+      '    init(source: DemoTaskSource = DemoTaskSource()) {',
+      '        self.source = source',
+      '    }',
+      '',
+      '    func load() async {',
+      '        do {',
+      '            state = .loaded(try await source.load())',
+      '        } catch {',
+      '            state = .failed(error.localizedDescription)',
+      '        }',
+      '    }',
+      '',
+      '    func toggle(_ task: DemoTask) {',
+      '        guard case .loaded(var tasks) = state, let i = tasks.firstIndex(of: task) else { return }',
+      '        tasks[i].done.toggle()',
+      '        state = .loaded(tasks)',
+      '    }',
+      '}',
+      '',
+    ].join('\n'),
+  );
+  write(
+    `${views}/HomeView.swift`,
+    [
+      'import SwiftUI',
+      '',
+      'struct HomeView: View {',
+      '    @StateObject private var model = HomeViewModel()',
+      '',
+      '    var body: some View {',
+      '        content',
+      `            .navigationTitle("${app}")`,
+      '            .task { await model.load() }',
+      '            .refreshable { await model.load() }',
+      '    }',
+      '',
+      '    @ViewBuilder',
+      '    private var content: some View {',
+      '        switch model.state {',
+      '        case .loading:',
+      '            ProgressView()',
+      '        case .failed(let message):',
+      '            VStack(spacing: 12) {',
+      '                Text(message)',
+      '                Button("Retry") {',
+      '                    Task { await model.load() }',
+      '                }',
+      '            }',
+      '            .padding()',
+      '        case .loaded(let tasks):',
+      '            List {',
+      '                Section {',
+      '                    ForEach(tasks) { task in',
+      '                        Button {',
+      '                            model.toggle(task)',
+      '                        } label: {',
+      '                            Label(task.title, systemImage: task.done ? "checkmark.circle.fill" : "circle")',
+      '                        }',
+      '                    }',
+      '                } footer: {',
+      '                    Text("HomeViewModel (an ObservableObject) holds the list; the view observes it.")',
+      '                }',
+      '            }',
+      '        }',
+      '    }',
+      '}',
+      '',
+      '#Preview {',
+      '    NavigationStack {',
+      '        HomeView()',
+      '    }',
+      '}',
+      '',
+    ].join('\n'),
+  );
+  write(appFile, `import SwiftUI\n\n@main\nstruct ${app}App: App {\n    var body: some Scene {\n        WindowGroup {\n            NavigationStack {\n                HomeView()\n            }\n        }\n    }\n}\n`);
+  plan.deletes = [`${app}/ContentView.swift`];
+  plan.summary.push('First screen: a demo task list with HomeViewModel (an ObservableObject) inside a NavigationStack, on sample data (no network)');
   return plan;
 }

@@ -8,11 +8,11 @@ Generated from `src/core/commands.ts` (codz 0.1.0). Do not edit by hand; run `np
 
 Create a new project and set it up: pick the type, architecture, name and options, then codz runs the platform creator and applies the architecture.
 
-Asks for anything not given as an option. Architectures: Flutter riverpod, getx, bloc, get_it, none; Next.js fetch-helper, plain-fetch, none; React Native fetch-helper, axios-react-query, axios, none (--flavor expo or bare); Android retrofit-hilt, retrofit-koin, retrofit, none (Kotlin, Jetpack Compose, version catalog). Without the platform creator (flutter, npx) or with --offline, codz writes a minimal project itself; Android always uses the built-in template (the Android Studio Empty Activity project plus Navigation Compose).
+Asks for anything not given as an option. Architectures: Flutter riverpod, getx, bloc, get_it, none; Next.js fetch-helper, plain-fetch, none; React Native fetch-helper, axios-react-query, axios, none (--flavor expo or bare); Android retrofit-hilt, retrofit-koin, retrofit, none (Kotlin, Jetpack Compose, version catalog); React (Vite) fetch-helper, axios, axios-react-query, none; iOS urlsession, none (SwiftUI, Xcode 16 project). The app opens on a demo screen written in the chosen architecture, on sample data. Without the platform creator (flutter, npx) or with --offline, codz writes a minimal project itself; Android, React (Vite) and iOS always use the built-in templates.
 
 | Option | |
 | --- | --- |
-| `--type <type>` | Project type: flutter, nextjs, react-native, android |
+| `--type <type>` | Project type: flutter, nextjs, react, react-native, android, ios |
 | `--architecture <id>` | Flutter: getx, riverpod, bloc, get_it. Next.js: fetch-helper, plain-fetch. React Native and React: fetch-helper, axios, axios-react-query. Android: retrofit-hilt, retrofit-koin, retrofit. iOS: urlsession |
 | `--base-url <url>` | The API's base URL (setup), or only HAR requests under it (import/sync) |
 | `--org <com.example>` | Organization in reverse-domain form, for app ids (default com.example) |

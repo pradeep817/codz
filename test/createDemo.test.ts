@@ -82,6 +82,38 @@ describe('codz create: a first screen in the chosen architecture', () => {
     });
   }
 
+  it('React (Vite): React Router home page with useQuery, or state in an effect', async () => {
+    const q = await made({ type: 'react', name: 'web-q', architecture: 'axios-react-query' });
+    const f = await made({ type: 'react', name: 'web-f', architecture: 'fetch-helper' });
+    try {
+      assert.match(q.read('src/pages/HomePage.tsx'), /useQuery\(\{ queryKey: \['demo-tasks'\], queryFn: getDemoTasks \}\)/);
+      assert.match(q.read('src/App.tsx'), /QueryClientProvider/);
+      assert.match(f.read('src/pages/HomePage.tsx'), /getDemoTasks\(\)\.then\(setTasks\)/);
+      assert.match(f.read('src/router.tsx'), /createBrowserRouter/);
+      assert.match(f.read('package.json'), /"vite"/);
+    } finally {
+      q.done();
+      f.done();
+    }
+  });
+
+  it('iOS (SwiftUI): an Xcode 16 project, HomeView with its ObservableObject in a NavigationStack', async () => {
+    const p = await made({ type: 'ios', name: 'shop-app', architecture: 'urlsession' });
+    try {
+      const pbx = p.read('ShopApp.xcodeproj/project.pbxproj');
+      assert.match(pbx, /objectVersion = 77;/);
+      assert.match(pbx, /isa = PBXFileSystemSynchronizedRootGroup;\n\t\t\tpath = ShopApp;/);
+      assert.match(pbx, /PRODUCT_BUNDLE_IDENTIFIER = com\.acme\.shopapp;/);
+      assert.match(p.read('ShopApp/ShopAppApp.swift'), /NavigationStack \{\n\s+HomeView\(\)/);
+      assert.match(p.read('ShopApp/Views/HomeViewModel.swift'), /final class HomeViewModel: ObservableObject/);
+      assert.match(p.read('ShopApp/Views/HomeView.swift'), /@StateObject private var model = HomeViewModel\(\)/);
+      assert.ok(existsSync(join(p.dir, 'ShopApp/Networking/APIClient.swift')));
+      assert.ok(!existsSync(join(p.dir, 'ShopApp/ContentView.swift')));
+    } finally {
+      p.done();
+    }
+  });
+
   it('architecture none keeps the template', async () => {
     const p = await made({ type: 'flutter', name: 'plain_app', architecture: 'none' });
     try {

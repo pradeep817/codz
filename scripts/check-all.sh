@@ -136,6 +136,21 @@ react_router() {
   npx vitest run
 }
 
+react_create() {
+  local arch="$1" name="web-$1"
+  have npm || skip "npm not found"
+  rm -rf "$WORK/$name"; cd "$WORK"
+  "${DT[@]}" create "$name" --type react --architecture "$arch" --base-url https://api.example.com --no-git --no-install --yes --no-color
+  cd "$WORK/$name"
+  dt feature add products --spec "$SPEC"
+  npm install --no-audit --no-fund --legacy-peer-deps
+  npx tsc --noEmit -p tsconfig.json
+  npx vitest run
+  npx vite build
+}
+react_create_fetch() { react_create fetch-helper; }
+react_create_query() { react_create axios-react-query; }
+
 # ---------- React Native ----------
 rn_navigation() {
   have npm || skip "npm not found"
@@ -209,10 +224,23 @@ ios_swiftui() {
   xcrun --sdk iphonesimulator swiftc -typecheck -target "$arch-apple-ios17.0-simulator" "$src"/*.swift
 }
 
+ios_create() {
+  have xcrun || skip "Xcode not found"
+  xcrun --sdk iphonesimulator --show-sdk-path >/dev/null 2>&1 || skip "no iOS simulator SDK (install Xcode's iOS platform)"
+  rm -rf "$WORK/shop-app"; cd "$WORK"
+  "${DT[@]}" create shop-app --type ios --architecture urlsession --org com.acme --base-url https://api.example.com/v1 --no-git --yes --no-color
+  cd "$WORK/shop-app"
+  dt feature add products --spec "$SPEC"
+  # The project file codz wrote must open and build in Xcode: build it for the simulator, unsigned.
+  xcodebuild -project ShopApp.xcodeproj -target ShopApp -sdk iphonesimulator -configuration Debug CODE_SIGNING_ALLOWED=NO build -quiet
+}
+
 echo "codz beta build check — work folder: $WORK"
 check next next-fresh next_fresh
 check next next-helper next_helper
 check react react-vite react_fresh
+check react react-create-fetch react_create_fetch
+check react react-create-query react_create_query
 check react react-axios-query react_axios_query
 check react react-router react_router
 check rn rn-navigation rn_navigation
@@ -226,6 +254,7 @@ check android android-compose-koin android_koin
 check android android-compose-locator android_locator
 check android android-views android_views
 check ios ios-swiftui ios_swiftui
+check ios ios-create ios_create
 
 pass=0; fail=0; skipped=0
 for r in "${RESULTS[@]}"; do

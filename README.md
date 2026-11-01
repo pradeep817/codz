@@ -2,7 +2,7 @@
 
 A project-aware CLI that learns how your project is built, then makes the same structural change the same way every time. It runs offline, never uploads code, shows a diff before writing anything, and can undo every change.
 
-Adapters for **Next.js**, **Flutter**, **React Native** and **Android (Kotlin)**: new projects (`codz create`), API endpoints (add, import, update, rename, remove), screens and forms, routes, mocks, tests, locales, theme values and project health checks, all with a diff first, `--plan`/`apply`, `undo` and `--json`. MIT licensed.
+Adapters for **Next.js**, **React (Vite)**, **Flutter**, **React Native**, **Android (Kotlin)** and **iOS (SwiftUI)**: new projects (`codz create`, opening on a demo screen in the architecture you pick), API endpoints (add, import, update, rename, remove), screens and forms, routes, mocks, tests, locales, theme values and project health checks, all with a diff first, `--plan`/`apply`, `undo` and `--json`. MIT licensed.
 
 ## Requirements
 
@@ -75,9 +75,11 @@ codz create shop-app --type android --architecture retrofit-hilt --org com.acme 
 codz create shop-app --type react-native --flavor expo --architecture axios-react-query
 codz create shop_app --type flutter --architecture riverpod --primary "#0F766E"
 codz create shop-app --type nextjs --architecture fetch-helper --tailwind --dry-run
+codz create shop-web --type react --architecture axios-react-query
+codz create shop-app --type ios --architecture urlsession --org com.acme
 ```
 
-`create` asks for the project type (Flutter, Next.js, React Native, Android), then the architecture for that type, the project name, the organization id (for app ids and packages), the API base URL and the type's own options (Tailwind for Next.js, Expo or the React Native CLI). It runs the platform's own creator (`flutter create`, `create-next-app`, `create-expo-app`, the React Native CLI), applies the architecture with the same `setup` as below, writes `codz.config.yaml`, sets the theme color, installs dependencies and makes the first git commit. Without the platform tool, or with `--offline`, codz writes a minimal project of its own instead. Android has no command-line creator, so codz always writes Android Studio's Empty Activity project itself (Kotlin, Jetpack Compose, a version catalog, Navigation Compose with a Home screen) and adds the Gradle wrapper when Gradle is installed. `--dry-run` lists the steps; `--no-install` and `--no-git` skip those steps.
+`create` asks for the project type (Flutter, Next.js, React (Vite), React Native, Android, iOS), then the architecture for that type, the project name, the organization id (for app ids and packages), the API base URL and the type's own options (Tailwind for Next.js, Expo or the React Native CLI). It runs the platform's own creator (`flutter create`, `create-next-app`, `create-expo-app`, the React Native CLI), applies the architecture with the same `setup` as below, writes `codz.config.yaml`, sets the theme color, installs dependencies and makes the first git commit. Without the platform tool, or with `--offline`, codz writes a minimal project of its own instead. Android has no command-line creator, so codz always writes Android Studio's Empty Activity project itself (Kotlin, Jetpack Compose, a version catalog, Navigation Compose with a Home screen) and adds the Gradle wrapper. React (Vite) and iOS also use built-in templates: Vite's react-ts project, and Xcode 16's SwiftUI App project (a synchronized source folder, so files codz adds are part of the app without editing the project file). Every project opens on a demo task list written in the chosen architecture (a Riverpod notifier, a GetX module, a Cubit, a Hilt or Koin ViewModel, a TanStack Query hook, an ObservableObject...), on sample data, so you start from a working example of the pattern; `codz feature add` and `codz api add` replace the sample data with your API. `--dry-run` lists the steps; `--no-install` and `--no-git` skip those steps.
 
 | Type | Architectures |
 | --- | --- |
