@@ -1,5 +1,5 @@
 {
-  "name": "codz",
+  "name": "@pradeep817/codz",
   "version": "0.1.0",
   "description": "CLI that adds API models, screens, routes and tests to Flutter, Next.js, React Native, Android and iOS apps in your project's own style, from OpenAPI or cURL.",
   "type": "module",

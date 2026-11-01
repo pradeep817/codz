@@ -12,6 +12,13 @@ Adapters for **Next.js**, **Flutter**, **React Native** and **Android (Kotlin)**
 ## Install
 
 ```bash
+npm install -g @pradeep817/codz   # the command is `codz`
+codz --help
+```
+
+From a checkout instead:
+
+```bash
 cd codz
 npm link          # puts `codz` on your PATH
 codz --help
@@ -19,7 +26,7 @@ codz --help
 
 On Node 22.18+ this runs the TypeScript in `src/` directly. On Node 20 or 21, run `npm run build` first; `bin/codz.js` then uses the compiled `dist/` (set `CODZ_DIST=1` to force it).
 
-**Publishing:** `npm publish` builds `dist/` and runs the tests first (`prepublishOnly`); the package ships `bin/`, `dist/`, the README, the license and docs/COMMANDS.md, not the TypeScript source. The name `codz` was free on npm on 1 November 2026; run `npm view codz` just before the first publish to confirm ("404 Not Found" means it is still free). If someone has taken it by then, publish under a scoped name (for example `@your-scope/codz`) by changing `name` in package.json; the command stays `codz`.
+**Publishing:** the package is `@pradeep817/codz` on npm (npm refused the plain name `codz` as too similar to existing packages); the command it installs is still `codz`. `npm publish` builds `dist/` and runs the tests first (`prepublishOnly`); the package ships `bin/`, `dist/`, the README, the license, docs/COMMANDS.md, the examples and assets, not the TypeScript source. Publishing needs two-factor authentication on the npm account. Raise the version first (`npm version patch`): a published version cannot be replaced.
 
 ### Check your setup
 
@@ -479,7 +486,7 @@ node scripts/starters.ts check starters/*/   # starter publishing gates (manifes
 ./scripts/corpus.sh            # run codz (read-only, --dry-run) on the public projects in scripts/corpus.txt
 npm run docs                   # regenerate docs/COMMANDS.md from the command table
 npm run check:all              # beta build check: feature/auth/screen add on every platform, then real builds (tsc, vitest, dart analyze, Gradle, swiftc)
-npm run beta:pack              # tests + dist/ + release/codz-<version>.tgz, checked by installing it in a clean folder
+npm run beta:pack              # tests + dist/ + release/pradeep817-codz-<version>.tgz, checked by installing it in a clean folder
 FUZZ_RUNS=5000 FUZZ_SEED=3 node --test test/fuzz.test.ts   # fuzz the parsers harder
 ```
 
