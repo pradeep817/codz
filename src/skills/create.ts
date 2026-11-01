@@ -14,11 +14,12 @@ import { existsSync, mkdirSync, readdirSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { addGradleWrapper, androidPackage, androidSkeleton } from './androidSkeleton.ts';
 import { ADAPTERS } from '../adapters/index.ts';
-import { applyChangeSet } from '../core/changeset.ts';
+import { applyChangeSet, buildChangeSet } from '../core/changeset.ts';
 import { ToolError, type Adapter } from '../core/types.ts';
 import { DART_RESERVED } from '../input/naming.ts';
 import { detectProject, initFiles, writeInitFiles } from './init.ts';
 import { planSetup } from './setup.ts';
+import { planDemo } from './createDemo.ts';
 import { planThemeSet } from './theme.ts';
 import { runTool, toolMissing } from '../core/proc.ts';
 
@@ -377,6 +378,22 @@ export async function createProject(o: CreateOptions, log: (line: string) => voi
     writeInitFiles(dir, initFiles(dir, adapter, d.map.conventions), false);
   }
   steps.push('Wrote codz.config.yaml');
+
+  // 2b. The first screen: a demo in the architecture just set up, instead of the template's counter.
+  if (o.architecture !== 'none') {
+    if (t.id === 'flutter' && o.architecture === 'getx') {
+      // The GetX module (binding, controller, view and its route) comes from module add.
+      const { planModuleAdd } = await import('./module.ts');
+      const mod = await planModuleAdd(dir, adapter, { name: 'home', initial: true });
+      applyChangeSet(dir, mod, { allowDirty: true, verify: false, format: false, adapter });
+    }
+    const demo = planDemo({ dir, type: t.id as 'flutter' | 'nextjs' | 'react-native' | 'android', architecture: o.architecture, name: o.name, androidPackage: t.id === 'android' ? androidPackage(o.org, o.name) : undefined });
+    if (demo) {
+      const cs = buildChangeSet(dir, 'create', { files: demo.files, summary: demo.summary, warnings: [], generated: [], rewrites: demo.rewrites });
+      applyChangeSet(dir, cs, { allowDirty: true, verify: false, format: false, adapter });
+      steps.push(...demo.summary);
+    }
+  }
 
   // 3. Theme.
   if (o.primary && t.id === 'android') steps.push(`Theme: primary color ${o.primary}`);

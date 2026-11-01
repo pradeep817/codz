@@ -166,7 +166,7 @@ declare namespace JSX {
 }
 declare namespace React { type ReactNode = unknown }
 declare module 'react' {
-  export function useState<T>(initial: T): [T, (next: T) => void];
+  export function useState<T>(initial: T): [T, (next: T | ((prev: T) => T)) => void];
   export type FormEvent<T = unknown> = { preventDefault(): void; currentTarget: T };
 }
 SHIM
@@ -252,16 +252,17 @@ if command -v flutter >/dev/null 2>&1; then
   for arch in riverpod getx bloc get_it; do
     (cd "$WORK" && dtq create "made_$arch" --type flutter --architecture "$arch" --base-url https://api.example.com --no-git --no-install --yes --no-color)
     (cd "$WORK/made_$arch" && dtq api add "${FLAGS[@]}" < "$IN/order-curl.txt")
-    (cd "$WORK/made_$arch" && flutter pub get >/dev/null && dart analyze lib) && echo "✓ codz create flutter + $arch: dart analyze clean" || { echo "✗ codz create flutter + $arch"; status=1; }
+    (cd "$WORK/made_$arch" && flutter pub get >/dev/null && dart analyze lib && tmo flutter test) && echo "✓ codz create flutter + $arch (demo screen in that architecture): dart analyze clean, widget test passes" || { echo "✗ codz create flutter + $arch"; status=1; }
   done
 fi
 for arch in fetch-helper plain-fetch; do
   d="$WORK/made-next-$arch"
   (cd "$WORK" && dtq create "made-next-$arch" --type nextjs --architecture "$arch" --base-url https://api.example.com --offline --no-git --no-install --yes --no-color)
   (cd "$d" && dtq api add "${FLAGS[@]}" < "$IN/order-curl.txt")
-  printf '{ "compilerOptions": { %s, "paths": { "@/*": ["./*"] } }, "include": ["lib/**/*.ts", "types/**/*.ts", "env.d.ts"] }\n' "$TSC_OPTS" > "$d/tsconfig.check.json"
   printf 'declare const process: { env: Record<string, string | undefined> };\n' > "$d/env.d.ts"
-  (cd "$d" && $TSC -p tsconfig.check.json) && echo "✓ codz create nextjs + $arch: tsc clean" || { echo "✗ codz create nextjs + $arch"; status=1; }
+  write_shims "$d"
+  printf '{ "compilerOptions": { %s, %s, "paths": { "@/*": ["./*"] } }, "include": ["app/page.tsx", "app/demo-task-list.tsx", "lib/**/*.ts", "types/**/*.ts", "env.d.ts"%s] }\n' "$TSX_OPTS" "$JSX_TYPES" "${JSX_SHIM:+, \"$JSX_SHIM\"}" > "$d/tsconfig.check.json"
+  (cd "$d" && $TSC -p tsconfig.check.json) && echo "✓ codz create nextjs + $arch (demo page, client list): tsc clean" || { echo "✗ codz create nextjs + $arch"; status=1; }
 done
 
 # React Native: codz create (Expo and CLI, every architecture), then endpoints,
@@ -272,13 +273,13 @@ write_rn_shims() {
 declare namespace JSX { interface IntrinsicElements { [name: string]: any } interface Element {} interface ElementChildrenAttribute { children: {} } }
 declare const process: { env: Record<string, string | undefined> };
 declare module 'react' {
-  export function useState<T>(initial: T): [T, (next: T) => void];
+  export function useState<T>(initial: T): [T, (next: T | ((prev: T) => T)) => void];
   export function useEffect(fn: () => void | (() => void), deps?: unknown[]): void;
   export function useCallback<T extends (...a: any[]) => any>(fn: T, deps: unknown[]): T;
 }
 declare module 'react-native' {
   type C = (props: any) => JSX.Element;
-  export const View: C, Text: C, ScrollView: C, Button: C, ActivityIndicator: C;
+  export const View: C, Text: C, ScrollView: C, Button: C, ActivityIndicator: C, Pressable: C;
   export function FlatList<T>(props: { data: readonly T[] | null | undefined; keyExtractor?: (item: T, index: number) => string; renderItem: (info: { item: T; index: number }) => JSX.Element; [prop: string]: unknown }): JSX.Element;
   export function TextInput(props: { value?: string; onChangeText?: (text: string) => void; [prop: string]: unknown }): JSX.Element;
   export function Switch(props: { value?: boolean; onValueChange?: (value: boolean) => void; [prop: string]: unknown }): JSX.Element;
@@ -296,7 +297,7 @@ declare module 'expo' { export function registerRootComponent(c: unknown): void;
 declare module '@tanstack/react-query' {
   export class QueryClient {}
   export const QueryClientProvider: (props: any) => JSX.Element;
-  export function useQuery<T>(o: { queryKey: unknown[]; queryFn: () => Promise<T> }): { data: T | undefined; isLoading: boolean; error: unknown; refetch: () => Promise<unknown> };
+  export function useQuery<T>(o: { queryKey: unknown[]; queryFn: () => Promise<T> }): { data: T | undefined; isLoading: boolean; isRefetching: boolean; error: unknown; refetch: () => Promise<unknown> };
   export function useMutation<T, V = void>(o: { mutationFn: (v: V) => Promise<T>; onSuccess?: () => unknown }): { mutate(v: V): void };
   export function useQueryClient(): { invalidateQueries(o: { queryKey: unknown[] }): Promise<void> };
 }
