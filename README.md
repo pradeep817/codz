@@ -19,7 +19,7 @@ codz --help
 
 On Node 22.18+ this runs the TypeScript in `src/` directly. On Node 20 or 21, run `npm run build` first; `bin/codz.js` then uses the compiled `dist/` (set `CODZ_DIST=1` to force it).
 
-**Publishing:** `npm publish` builds `dist/` and runs the tests first (`prepublishOnly`); the package ships `bin/`, `dist/`, the README, the license and docs/COMMANDS.md, not the TypeScript source. The name `codz` is already taken on npm, so publish under a scoped name (for example `@your-scope/codz`) by changing `name` in package.json.
+**Publishing:** `npm publish` builds `dist/` and runs the tests first (`prepublishOnly`); the package ships `bin/`, `dist/`, the README, the license and docs/COMMANDS.md, not the TypeScript source. Before the first publish, check the name with `npm view codz` ("404 Not Found" means it is free). If it is taken, publish under a scoped name (for example `@your-scope/codz`) by changing `name` in package.json; the command stays `codz`.
 
 ### Check your setup
 
