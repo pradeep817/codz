@@ -1,6 +1,6 @@
 # codz commands
 
-Generated from `src/core/commands.ts` (codz 0.1.0). Do not edit by hand; run `npm run docs`.
+Generated from `src/core/commands.ts` (codz 0.1.5). Do not edit by hand; run `npm run docs`.
 
 ## Start
 

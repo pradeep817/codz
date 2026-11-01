@@ -1,6 +1,6 @@
 {
   "name": "codz-cli",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "description": "CLI that adds API models, screens, routes and tests to Flutter, Next.js, React Native, Android and iOS apps in your project's own style, from OpenAPI or cURL.",
   "type": "module",
   "bin": {

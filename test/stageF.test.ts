@@ -20,7 +20,7 @@ describe('stage F: npm package', () => {
       const cli = readFileSync(join(out, 'cli.js'), 'utf8');
       assert.doesNotMatch(cli, /from '\.[^']*\.ts'/);
       const v = spawnSync(process.execPath, ['-e', `import(${JSON.stringify(join(out, 'cli.js'))}).then(async (m) => process.exit(await m.main(['--version'])))`], { encoding: 'utf8' });
-      assert.equal(v.stdout.trim(), '0.1.0', v.stderr);
+      assert.equal(v.stdout.trim(), JSON.parse(readFileSync(join(REPO, 'package.json'), 'utf8')).version, v.stderr);
     } finally {
       rmSync(out, { recursive: true, force: true });
     }

@@ -1,7 +1,8 @@
 // codz command line. Every command supports --json for scripts and AI agents.
 
 import { baseUrlProblem } from './core/safe.ts';
-import { existsSync, openSync, writeFileSync } from 'node:fs';
+import { existsSync, openSync, readFileSync, writeFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
 import { ReadStream } from 'node:tty';
 import { dirname, join, resolve } from 'node:path';
 import { createInterface } from 'node:readline/promises';
@@ -38,7 +39,7 @@ import { apiList, apiShow } from './skills/apiList.ts';
 import { cleanPlans, listPlans, showPlan } from './skills/plans.ts';
 import { complete, completionScript, SHELLS } from './skills/completion.ts';
 import { genericAdapter } from './adapters/generic.ts';
-import { allowedFlags, BOOLEAN_FLAGS, findCommand, FLAGS, renderCommandHelp, renderHelp, REPEATABLE_FLAGS } from './core/commands.ts';
+import { allowedFlags, BOOLEAN_FLAGS, CHANGE_FLAGS, COMMAND_LIST, findCommand, FLAGS, GLOBAL_FLAGS, renderCommandHelp, renderHelp, renderMarkdown, REPEATABLE_FLAGS } from './core/commands.ts';
 import { closest } from './core/validateConfig.ts';
 import { recordEvent } from './core/events.ts';
 import { buildReport, renderReport } from './skills/report.ts';
@@ -55,7 +56,14 @@ const SYSTEM_ERRORS: Record<string, { code: string; say: string; hint: string }>
   EMFILE: { code: 'too_many_files', say: 'Too many files are open at once.', hint: 'Close other programs or raise the limit (ulimit -n 4096), then run the command again.' },
 };
 
-export const VERSION = '0.1.0';
+/** From package.json (one folder up from src/ and dist/), so --version matches what npm installed. */
+export const VERSION: string = (() => {
+  try {
+    return (JSON.parse(readFileSync(fileURLToPath(new URL('../package.json', import.meta.url)), 'utf8')) as { version: string }).version;
+  } catch {
+    return '0.0.0';
+  }
+})();
 
 interface Args {
   positional: string[];
@@ -524,6 +532,24 @@ async function run(args: Args, out: Out): Promise<number> {
       out.print(renderCommandHelp(spec));
       return 0;
     }
+  }
+  // The command table as data, for editors, completion and add-ons that call codz.
+  const optionsOf = (names: string[]) => names.map((name) => ({ name, ...FLAGS[name] }));
+  if (cmd === 'help' && flags.json) {
+    process.stdout.write(
+      JSON.stringify(
+        {
+          version: VERSION,
+          commands: COMMAND_LIST.map((c) => ({ ...c, options: optionsOf(c.flags) })),
+          changeFlags: CHANGE_FLAGS,
+          globalFlags: GLOBAL_FLAGS,
+          markdown: renderMarkdown(VERSION),
+        },
+        null,
+        2,
+      ) + '\n',
+    );
+    return 0;
   }
   if (!cmd || flags.help || flags.h || cmd === 'help') {
     out.print(HELP);
