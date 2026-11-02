@@ -208,7 +208,7 @@ codz model Order --sample order.json
 curl -s https://api.example.com/orders/1 | codz model Order
 ```
 
-Writes the model and one for each nested object (`Order`, `OrderCustomer`, `OrderItem`), in the project's own style, with no endpoint. A list gives the model of its items, `{"data": ...}` is unwrapped (`--no-unwrap` keeps it), and pasted text around the JSON (a `response:` label, code fences) is ignored. An existing model is never overwritten unless you pass `--force`; to add one field, use `codz field add`.
+Writes the model and a class for each nested object (`Order`, `Customer`, `OrderItem`), in the project's own style, with no endpoint. They all go in one file, the main model's (`order.dart`, `Order.kt`, `order.ts`), so a long response does not scatter a dozen files; `--split` gives each class its own file. A nested model the project already has is reused, not copied. A list gives the model of its items, `{"data": ...}` is unwrapped (`--no-unwrap` keeps it), and pasted text around the JSON (a `response:` label, code fences) is ignored. An existing model is never overwritten unless you pass `--force`; to add one field, use `codz field add`.
 
 ### Choosing the model folder: --model-dir
 

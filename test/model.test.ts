@@ -48,10 +48,15 @@ describe('model', () => {
   it('writes only model files, nested models included, unwrapping {"data": ...} (Flutter, Retrofit)', () =>
     inFixture('flutter-bloc-retrofit', 'flutter', async (dir, a) => {
       const cs = await planModel(dir, a, 'Order', ORDER);
-      assert.deepEqual(cs.changes.map((c) => c.path).sort(), ['lib/models/customer.dart', 'lib/models/order.dart', 'lib/models/order_item.dart']);
+      assert.deepEqual(cs.changes.map((c) => c.path), ['lib/models/order.dart'], 'nested models go in the main file');
+      const split = await planModel(dir, a, 'Order', ORDER, { split: true });
+      assert.deepEqual(split.changes.map((c) => c.path).sort(), ['lib/models/customer.dart', 'lib/models/order.dart', 'lib/models/order_item.dart']);
       assert.match(cs.warnings.join('\n'), /inner object/);
       apply(dir, cs);
-      assert.match(readFileSync(join(dir, 'lib/models/order.dart'), 'utf8'), /List<OrderItem> items/);
+      const order = readFileSync(join(dir, 'lib/models/order.dart'), 'utf8');
+      assert.match(order, /List<OrderItem> items/);
+      assert.match(order, /abstract class Order with _\$Order[^]*abstract class Customer with _\$Customer[^]*abstract class OrderItem with _\$OrderItem/);
+      assert.equal((order.match(/^part 'order\.g\.dart';$/gm) ?? []).length, 1);
       await assert.rejects(planModel(dir, a, 'Order', ORDER), /already exists/);
       const again = await planModel(dir, a, 'Order', { id: 1, code: 'X' }, { force: true });
       assert.ok(again.changes.some((c) => c.path === 'lib/models/order.dart'));
@@ -82,7 +87,10 @@ describe('model', () => {
     });
     await inFixture('ios-swiftui', 'ios', async (dir, a) => {
       const cs = await planModel(dir, a, 'Order', ORDER);
-      assert.deepEqual(cs.changes.map((c) => c.path).sort(), ['ShopApp/Models/Customer.swift', 'ShopApp/Models/Order.swift', 'ShopApp/Models/OrderItem.swift']);
+      assert.deepEqual(cs.changes.map((c) => c.path), ['ShopApp/Models/Order.swift']);
+      const swift = cs.changes[0].after ?? '';
+      assert.match(swift, /^import Foundation\n\nstruct Order:[^]*struct Customer:[^]*struct OrderItem:/);
+      assert.equal((swift.match(/^import Foundation$/gm) ?? []).length, 1);
     });
   });
 });

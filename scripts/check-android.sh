@@ -35,6 +35,8 @@ for arch in retrofit-hilt retrofit-koin retrofit; do
   run screen add feed --api listFeed --paginate --search
   run env add staging --base-url https://staging.example.com/v1
   run locale extract
+  printf '{"id": 12, "status": "shipped", "customer": {"id": 3, "name": "Asha", "address": {"city": "Pune"}}, "lines": [{"product_id": 7, "qty": 2}]}' > "$d/shipment.json"
+  run model Shipment --sample shipment.json
   run route add settings --path /settings/:section
   run test add --all
   run theme set primary '#0F766E' radius 12

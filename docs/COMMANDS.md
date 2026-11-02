@@ -177,7 +177,7 @@ One endpoint: signature, models, every place that uses it.
 
 A model (and its nested models) from JSON, without an endpoint.
 
-Reads the JSON from --from-clipboard, --sample, or standard input (pipe or paste, then Ctrl+D). Nested objects become their own models (Order → OrderItem, OrderAddress); a list gives the model of its items; {"data": ...} is unwrapped unless --no-unwrap.
+Reads the JSON from --from-clipboard, --sample, or standard input (pipe or paste, then Ctrl+D). Nested objects become their own classes (Order → OrderItem, OrderAddress), written in the same file as the main model; --split gives each its own file. A list gives the model of its items; {"data": ...} is unwrapped unless --no-unwrap.
 
 Writes into the models folder, or --model-dir <folder> for this model only. An existing model with the same name is replaced only with --force.
 
@@ -188,6 +188,7 @@ Writes into the models folder, or --model-dir <folder> for this model only. An e
 | `--model-dir <folder>` | Write new models into this folder for this command only (e.g. lib/features/orders/models); set modelsFolder in codz.config.yaml to change it for good |
 | `--no-unwrap` | Keep a {"data": ...} envelope instead of returning data |
 | `--force` | Do it even when codz would normally refuse (see the command) |
+| `--split` | model: one file per nested class instead of one file for all |
 
 Accepts the change options.
 

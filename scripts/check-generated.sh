@@ -31,6 +31,8 @@ fake_assets() { for f in "$@"; do mkdir -p "$(dirname "$f")"; printf '\x89PNG\r\
 
 # Paged and searchable lists: page + limit + server search, offset paging, and search over loaded items.
 paged_screens() {
+  printf '{"data": {"id": 12, "status": "shipped", "placed_at": "2026-10-01T10:00:00Z", "customer": {"id": 3, "name": "Asha", "address": {"city": "Pune", "zip": "411001"}}, "lines": [{"product_id": 7, "qty": 2}], "note": "x"}}' > "$1/shipment.json"
+  (cd "$1" && dtq model Shipment --sample shipment.json "${FLAGS[@]}" && rm -f shipment.json)
   (cd "$1" && dtq api add --url 'https://api.example.com/catalog?page=1&limit=20&q=lamp' --sample "$IN/products.json" --name listCatalog "${FLAGS[@]}")
   (cd "$1" && dtq api add --url 'https://api.example.com/feed?offset=0' --sample "$IN/products.json" --name listFeed "${FLAGS[@]}")
   (cd "$1" && dtq screen add catalog --api listCatalog --paginate --search "${FLAGS[@]}")

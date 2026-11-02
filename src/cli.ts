@@ -806,7 +806,7 @@ async function run(args: Args, out: Out): Promise<number> {
         }
         from = 'The pasted text';
       }
-      const cs = await planModel(root, adapter, name, parseJsonText(text, from), { noUnwrap: flags['no-unwrap'] === true, force: flags.force === true });
+      const cs = await planModel(root, adapter, name, parseJsonText(text, from), { noUnwrap: flags['no-unwrap'] === true, force: flags.force === true, split: flags.split === true });
       return handleChange(root, out, flags, cs, adapter);
     }
     case 'field': {
