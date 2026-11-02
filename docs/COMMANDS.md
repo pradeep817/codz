@@ -74,6 +74,7 @@ Input: --curl, --url, --clipboard, or a cURL command or URL pasted on stdin, opt
 | `--no-unwrap` | Keep a {"data": ...} envelope instead of returning data |
 | `--into <module>` | Call the endpoint from that module's controller (GetX) |
 | `--no-load` | Do not call the load method from onInit |
+| `--model-dir <folder>` | Write new models into this folder for this command only (e.g. lib/features/orders/models); set modelsFolder in codz.config.yaml to change it for good |
 
 Accepts the change options.
 
@@ -92,6 +93,7 @@ Add every endpoint from an OpenAPI 3, Swagger 2, Postman or HAR file.
 | `--base-url <url>` | The API's base URL (setup), or only HAR requests under it (import/sync) |
 | `--include-errors` | HAR: keep failed (non-2xx) responses |
 | `--skip-conflicts` | Import what works and report endpoints that cannot be added |
+| `--model-dir <folder>` | Write new models into this folder for this command only (e.g. lib/features/orders/models); set modelsFolder in codz.config.yaml to change it for good |
 
 Accepts the change options.
 
@@ -107,6 +109,7 @@ Bring endpoints in line with an API spec: update changed ones, report breaking c
 | `--tag <tag>` | Only operations with this tag (folder in Postman, host in HAR) (repeatable) |
 | `--path </users/{id}>` | Path parameters (api add), route path (screen/route add), or a path filter (import/sync) |
 | `--base-url <url>` | The API's base URL (setup), or only HAR requests under it (import/sync) |
+| `--model-dir <folder>` | Write new models into this folder for this command only (e.g. lib/features/orders/models); set modelsFolder in codz.config.yaml to change it for good |
 
 Accepts the change options.
 
@@ -169,6 +172,24 @@ Every endpoint: method, path, function, response, file.
 ### `codz api show <endpoint>`
 
 One endpoint: signature, models, every place that uses it.
+
+### `codz model <Name> --from-clipboard | --sample <file.json>`
+
+A model (and its nested models) from JSON, without an endpoint.
+
+Reads the JSON from --from-clipboard, --sample, or standard input (pipe or paste, then Ctrl+D). Nested objects become their own models (Order → OrderItem, OrderAddress); a list gives the model of its items; {"data": ...} is unwrapped unless --no-unwrap.
+
+Writes into the models folder, or --model-dir <folder> for this model only. An existing model with the same name is replaced only with --force.
+
+| Option | |
+| --- | --- |
+| `--from-clipboard` | Read the JSON from the clipboard |
+| `--sample <file.json>` | Response sample; repeat for several samples (repeatable) |
+| `--model-dir <folder>` | Write new models into this folder for this command only (e.g. lib/features/orders/models); set modelsFolder in codz.config.yaml to change it for good |
+| `--no-unwrap` | Keep a {"data": ...} envelope instead of returning data |
+| `--force` | Do it even when codz would normally refuse (see the command) |
+
+Accepts the change options.
 
 ### `codz field add <Model> <name:type> [...]`
 
@@ -283,6 +304,7 @@ Everything is planned in a private copy of the project and shown as one diff: on
 | `--no-tests` | Do not generate tests |
 | `--skip-conflicts` | Import what works and report endpoints that cannot be added |
 | `--no-install` | Do not install dependencies |
+| `--model-dir <folder>` | Write new models into this folder for this command only (e.g. lib/features/orders/models); set modelsFolder in codz.config.yaml to change it for good |
 
 Accepts the change options.
 

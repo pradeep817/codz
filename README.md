@@ -200,6 +200,28 @@ codz api remove deleteUser                       # remove it; lists callers that
 
 `api rename` and `api remove` find uses with your project's own TypeScript compiler when `typescript` is installed in it (it is in almost every Next.js project), so a local variable or parameter that happens to share the name, an object key, or another file's own function with that name is never touched. Without it, codz falls back to its text scanner (`CODZ_NO_AST=1` forces the fallback).
 
+### A model from JSON: codz model
+
+```bash
+codz model Order --from-clipboard              # copy a response or object, then run this
+codz model Order --sample order.json
+curl -s https://api.example.com/orders/1 | codz model Order
+```
+
+Writes the model and one for each nested object (`Order`, `OrderCustomer`, `OrderItem`), in the project's own style, with no endpoint. A list gives the model of its items, `{"data": ...}` is unwrapped (`--no-unwrap` keeps it), and pasted text around the JSON (a `response:` label, code fences) is ignored. An existing model is never overwritten unless you pass `--force`; to add one field, use `codz field add`.
+
+### Choosing the model folder: --model-dir
+
+New models go into the project's models folder (`modelsFolder` in `codz.config.yaml`, which `codz init` detects). For a feature-first project where each feature keeps its own models, choose the folder for one command:
+
+```bash
+codz model Order --from-clipboard --model-dir lib/features/orders/models
+codz api add --url https://api.example.com/v1/carts/1 --sample cart.json --model-dir lib/features/cart/models
+codz feature add orders --spec api.yaml --model-dir src/features/orders/types
+```
+
+`--model-dir` works with `model`, `api add`, `api import`, `api sync` and `feature add`, and lasts for that one command. Imports point at the new folder, and Kotlin models get the matching `package` line. Existing models keep their place, so a nested model that already exists elsewhere is reused, not copied. To change the folder for good: `codz config set modelsFolder lib/features/orders/models`.
+
 ### One field at a time: field add
 
 ```bash

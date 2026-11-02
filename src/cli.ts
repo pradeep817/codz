@@ -7,7 +7,8 @@ import { ReadStream } from 'node:tty';
 import { dirname, join, resolve } from 'node:path';
 import { createInterface } from 'node:readline/promises';
 import { adapterFor } from './adapters/index.ts';
-import { loadMap, setCacheWrites } from './core/cache.ts';
+import { loadMap, setCacheWrites, setRunConventions } from './core/cache.ts';
+import { readText } from './core/fsutil.ts';
 import { applyChangeSet, changeSetJson, historyShow, loadPlan, readHistory, renderDiff, savePlan, undoLast, undoTo, type ApplyResult } from './core/changeset.ts';
 import { changeSummaryLine, commitChange, openDiffInEditor, readClipboard } from './core/workflow.ts';
 import { CONFIG_FILE, loadConfig } from './core/config.ts';
@@ -24,6 +25,7 @@ import { listTemplates, planTemplatesInit } from './skills/templatesCmd.ts';
 import { createProject, describeCreate, PROJECT_TYPES, projectType, type CreateOptions } from './skills/create.ts';
 import { planApiRemove, planApiRename, planApiUpdate } from './skills/apiEdit.ts';
 import { planFieldAdd, planFieldRemove } from './skills/field.ts';
+import { normalizeModelDir, parseJsonText, planModel } from './skills/model.ts';
 import { planMockAdd } from './skills/mock.ts';
 import { planLocaleAdd, planLocaleKey } from './skills/locale.ts';
 import { planThemeSet } from './skills/theme.ts';
@@ -742,6 +744,10 @@ async function run(args: Args, out: Out): Promise<number> {
   }
 
   const { adapter } = adapterFor(root);
+  if (typeof flags['model-dir'] === 'string') {
+    const dir = normalizeModelDir(flags['model-dir'], adapter.id);
+    setRunConventions({ modelsFolder: dir, ...(adapter.id === 'nextjs' || adapter.id === 'react' || adapter.id === 'react-native' ? { modelsLayout: 'per-file' } : {}) });
+  }
 
   switch (cmd) {
     case 'report': {
@@ -758,6 +764,30 @@ async function run(args: Args, out: Out): Promise<number> {
       out.print(renderExplain(map, adapter, out.color));
       out.result({ map, supportedSetup: adapter.supportedSetup });
       return 0;
+    }
+    case 'model': {
+      const name = positional.slice(1).join(' ').trim();
+      if (!name) throw new ToolError('bad_args', 'Which model? codz model <Name> --from-clipboard', 'Or: codz model Order --sample order.json');
+      let text: string;
+      let from: string;
+      if (flags['from-clipboard'] === true || flags.clipboard === true) [text, from] = [readClipboard(), 'The clipboard'];
+      else if (typeof flags.sample === 'string' || args.multi.sample?.length) {
+        const file = typeof flags.sample === 'string' ? flags.sample : args.multi.sample![0];
+        const t = readText(resolve(root, file)) ?? readText(resolve(file));
+        if (t === null) throw new ToolError('no_sample', `Cannot read ${file}.`);
+        [text, from] = [t, file];
+      } else {
+        text = await readStdin();
+        if (!text.trim() && process.stdin.isTTY && !out.json) {
+          process.stderr.write('Paste the JSON, then press Ctrl-D (Ctrl-Z then Enter on Windows).\n');
+          const chunks: Buffer[] = [];
+          for await (const chunk of process.stdin) chunks.push(chunk as Buffer);
+          text = Buffer.concat(chunks).toString('utf8');
+        }
+        from = 'The pasted text';
+      }
+      const cs = await planModel(root, adapter, name, parseJsonText(text, from), { noUnwrap: flags['no-unwrap'] === true, force: flags.force === true });
+      return handleChange(root, out, flags, cs, adapter);
     }
     case 'field': {
       const [model, ...rest] = positional.slice(2);

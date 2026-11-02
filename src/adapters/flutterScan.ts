@@ -135,7 +135,7 @@ export async function scan(root: string, configConventions: Conventions): Promis
     const dirs = new Set(modelFiles.map(relDir));
     const inBest = modelFiles.filter((f) => relDir(f) === c.modelsFolder).length;
     if (dirs.size >= 3 && inBest * 2 < modelFiles.length) {
-      map.notes.push(`Models live in ${dirs.size} different folders, so new ones go to lib/models. Use --into <folder> or set modelsFolder in codz.config.yaml to choose.`);
+      map.notes.push(`Models live in ${dirs.size} different folders, so new ones go to lib/models. Use --model-dir <folder> or set modelsFolder in codz.config.yaml to choose.`);
       c.modelsFolder = 'lib/models';
     }
   }

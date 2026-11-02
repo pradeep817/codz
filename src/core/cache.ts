@@ -63,13 +63,20 @@ interface CacheFile {
   map: ProjectMap;
 }
 
+/** Conventions set for one run from the command line (--model-dir); never cached or saved. */
+let runOverrides: Conventions = {};
+export function setRunConventions(c: Conventions): void {
+  runOverrides = { ...c };
+}
+const withRun = (map: ProjectMap): ProjectMap => (Object.keys(runOverrides).length ? { ...map, conventions: { ...map.conventions, ...runOverrides } } : map);
+
 export async function loadMap(root: string, adapter: Adapter, conventions: Conventions, opts: { force?: boolean } = {}): Promise<{ map: ProjectMap; fromCache: boolean }> {
   const cachePath = join(root, TOOL_DIR, 'cache', 'map.json');
   const configText = readText(join(root, 'codz.config.yaml')) ?? '';
   const fp = fingerprint(root, configText);
   const cached = readJson<CacheFile>(cachePath);
   if (!opts.force && cached && cached.schema === MAP_SCHEMA_VERSION && cached.adapter === `${adapter.id}@${adapter.version}` && cached.tool === toolFingerprint() && cached.fingerprint === fp) {
-    return { map: cached.map, fromCache: true };
+    return { map: withRun(cached.map), fromCache: true };
   }
   // An old schema or adapter version is simply rebuilt, never migrated.
   const map = await adapter.scan(root, conventions);
@@ -78,7 +85,7 @@ export async function loadMap(root: string, adapter: Adapter, conventions: Conve
     toolDir(root, 'cache');
     writeFileSync(cachePath, JSON.stringify(file, null, 2));
   }
-  return { map, fromCache: false };
+  return { map: withRun(map), fromCache: false };
 }
 
 export function invalidateMap(root: string): void {
