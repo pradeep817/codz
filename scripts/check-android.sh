@@ -33,6 +33,7 @@ for arch in retrofit-hilt retrofit-koin retrofit; do
   run api add --url 'https://api.example.com/v1/feed?offset=0' --sample "$IN/products.json" --name listFeed
   run screen add catalog --api listCatalog --paginate --search
   run screen add feed --api listFeed --paginate --search
+  run env add staging --base-url https://staging.example.com/v1
   run route add settings --path /settings/:section
   run test add --all
   run theme set primary '#0F766E' radius 12

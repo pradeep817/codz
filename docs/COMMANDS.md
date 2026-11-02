@@ -253,6 +253,31 @@ Accepts the change options.
 
 ## Screens and app
 
+### `codz env add <name> --base-url <url>`
+
+Add an API environment (staging, qa, ...) the app can run against.
+
+Next.js and Expo: .env.<name> plus npm scripts that load it (dotenv-cli). Vite: .env.<name> and --mode <name>. React Native CLI: an API_URLS table in env.ts. Flutter: env/<name>.json for --dart-define-from-file, and a VS Code run configuration. Android: an apiUrls table in the app build file, picked with -PapiEnv=<name> into BuildConfig.BASE_URL. iOS: an AppEnvironment enum, picked with APP_ENV in the scheme.
+
+The base URL you have now becomes the default environment. Never writes .env.local.
+
+| Option | |
+| --- | --- |
+| `--base-url <url>` | The API's base URL (setup), or only HAR requests under it (import/sync) |
+| `--force` | Do it even when codz would normally refuse (see the command) |
+
+Accepts the change options.
+
+### `codz env list`
+
+The API environments and their base URLs.
+
+### `codz env use <name>`
+
+Switch the app to an environment (React Native CLI, Android, iOS).
+
+Accepts the change options.
+
 ### `codz screen add <name> --api <endpoint> [--path /x/:id] [--paginate] [--search] [--form]`
 
 A working screen (route, page, the call, loading, error, data), or a form with --form.

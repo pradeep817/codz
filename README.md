@@ -265,6 +265,29 @@ codz api diff old.yaml new.yaml --fail-on warning                    # exit 1 on
 
 Breaking: an operation removed, a response field removed or retyped, a new path parameter, a new required request field. Warning: a response field that can now be null, a removed query parameter, a retyped request field. Added operations, response fields and optional request fields are listed as additions. Inside a project each change names the endpoint function and the files and lines that use it (its callers, the screens, the model); outside a project it compares the two files only. Nothing is written except the `--report` file.
 
+### API environments: env add
+
+```bash
+codz env add staging --base-url https://staging.example.com
+codz env add qa --base-url https://qa.example.com
+codz env list                      # every environment and its base URL
+codz env use staging               # React Native CLI, Android, iOS: switch in the code
+```
+
+The base URL you have now becomes `default`. Each platform gets its usual mechanism:
+
+| Project | What env add writes | Run against staging |
+| --- | --- | --- |
+| Next.js | `.env.staging` with `NEXT_PUBLIC_API_URL`, `dev:staging` / `build:staging` scripts (with dotenv-cli) | `npm run dev:staging` |
+| React (Vite) | `.env.staging` with `VITE_API_URL`, scripts with `--mode staging` | `npm run dev:staging` |
+| Expo | `.env.staging` with `EXPO_PUBLIC_API_URL`, a `start:staging` script | `npm run start:staging` |
+| React Native CLI | An `API_URLS` table in `src/config/env.ts`; `APP_ENV` picks one | `codz env use staging` |
+| Flutter | `env/staging.json`; Dio reads `String.fromEnvironment('API_BASE_URL')`; a VS Code run configuration | `flutter run --dart-define-from-file=env/staging.json` |
+| Android | An `apiUrls` table in `app/build.gradle(.kts)` into `BuildConfig.BASE_URL` (build variants stay the same) | `./gradlew installDebug -PapiEnv=staging`, or `codz env use staging` |
+| iOS | `AppEnvironment.swift`, an enum the API client reads | `APP_ENV=staging` in the scheme, or `codz env use staging` |
+
+`development`, `production` and `test` need no script in Next.js (and `development`, `production` in Vite): the framework reads those files by itself. codz never writes `.env.local`. Base URLs are not secrets, so these files are meant to be committed; keep keys and tokens out of them.
+
 ### Mock API server
 
 ```bash

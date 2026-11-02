@@ -26,6 +26,7 @@ import { createProject, describeCreate, PROJECT_TYPES, projectType, type CreateO
 import { planApiRemove, planApiRename, planApiUpdate } from './skills/apiEdit.ts';
 import { planFieldAdd, planFieldRemove } from './skills/field.ts';
 import { normalizeModelDir, parseJsonText, planModel } from './skills/model.ts';
+import { listEnvs, planEnvAdd, planEnvUse } from './skills/env.ts';
 import { planMockAdd } from './skills/mock.ts';
 import { planLocaleAdd, planLocaleKey } from './skills/locale.ts';
 import { planThemeSet } from './skills/theme.ts';
@@ -764,6 +765,21 @@ async function run(args: Args, out: Out): Promise<number> {
       out.print(renderExplain(map, adapter, out.color));
       out.result({ map, supportedSetup: adapter.supportedSetup });
       return 0;
+    }
+    case 'env': {
+      if (sub === 'list') {
+        const envs = await listEnvs(root, adapter);
+        if (!envs.length) out.print('No API environments yet. Add one with: codz env add staging --base-url https://staging.example.com');
+        for (const e of envs) out.print(`  ${e.name.padEnd(12)} ${e.baseUrl}   (${e.where})`);
+        out.result({ environments: envs });
+        return 0;
+      }
+      if (sub === 'add') return handleChange(root, out, flags, await planEnvAdd(root, adapter, positional[2], typeof flags['base-url'] === 'string' ? flags['base-url'] : undefined, { force: flags.force === true }), adapter);
+      if (sub === 'use') {
+        if (!positional[2]) throw new ToolError('bad_args', 'Which environment? codz env use <name>');
+        return handleChange(root, out, flags, await planEnvUse(root, adapter, positional[2]), adapter);
+      }
+      throw new ToolError('bad_args', `Unknown command "env ${sub ?? ''}".`, 'Commands: env add <name> --base-url <url>, env list, env use <name>');
     }
     case 'model': {
       const name = positional.slice(1).join(' ').trim();

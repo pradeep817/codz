@@ -34,6 +34,7 @@ paged_screens() {
   (cd "$1" && dtq screen add feed --api listFeed --paginate "${FLAGS[@]}")
   (cd "$1" && dtq api add --url 'https://api.example.com/shelf' --sample "$IN/products.json" --name listShelf "${FLAGS[@]}")
   (cd "$1" && dtq screen add shelf --api listShelf --search "${FLAGS[@]}")
+  (cd "$1" && dtq env add staging --base-url https://staging.example.com "${FLAGS[@]}")
 }
 
 echo "Working in $WORK"

@@ -90,6 +90,7 @@ next_fresh() {
   dt feature add orders --spec "$SPEC"
   dt screen add order-tracking --api getOrderTracking --path /orders/:orderId/tracking
   paged orders
+  dt env add staging --base-url https://staging.example.com
   dt auth add
   npm install --no-audit --no-fund --legacy-peer-deps
   npm install --no-audit --no-fund --legacy-peer-deps -D vitest@2
@@ -117,6 +118,7 @@ react_fresh() {
   dt feature add orders --spec "$SPEC"
   dt screen add order-tracking --api getOrderTracking --path /orders/:orderId/tracking
   paged orders
+  dt env add staging --base-url https://staging.example.com
   npm install --no-audit --no-fund --legacy-peer-deps
   npm install --no-audit --no-fund --legacy-peer-deps -D vitest@2
   npx tsc --noEmit -p tsconfig.json
@@ -129,6 +131,7 @@ react_axios_query() {
   copy react-vite react-query
   dt feature add products --spec "$SPEC" --architecture axios-react-query
   paged
+  dt env add staging --base-url https://staging.example.com
   npm install --no-audit --no-fund --legacy-peer-deps
   npm install --no-audit --no-fund --legacy-peer-deps -D vitest@2
   npx tsc --noEmit -p tsconfig.json
@@ -165,6 +168,7 @@ rn_navigation() {
   copy rn-app rn-app
   dt feature add products --spec "$SPEC"
   paged
+  dt env add staging --base-url https://staging.example.com
   dt auth add
   npm install --no-audit --no-fund --legacy-peer-deps
   npx tsc --noEmit
@@ -188,6 +192,7 @@ flutter_arch() {
   dt field add Product discount_price:double? labels:string[]?
   dt screen add order-tracking --api getOrderTracking --path /orders/:orderId/tracking
   paged orders
+  dt env add staging --base-url https://staging.example.com
   dt auth add
   # flutter create's counter test checks the template home page, which GetX setup replaces (codz warns about it).
   if [ "$arch" = getx ] && grep -q 'Counter increments smoke test' test/widget_test.dart 2>/dev/null; then rm test/widget_test.dart; fi
@@ -212,6 +217,7 @@ android_project() {
   if [ "$ui" = views ]; then dt config set ui views; fi
   dt feature add products --spec "$SPEC"
   paged
+  dt env add staging --base-url https://staging.example.com
   if [ "$arch" = retrofit-hilt ]; then dt auth add; fi
   [ -x ./gradlew ] || { echo "no gradlew in the created project"; exit 1; }
   ./gradlew --no-daemon :app:assembleDebug :app:testDebugUnitTest
@@ -230,6 +236,7 @@ ios_swiftui() {
   dt feature add orders --spec "$SPEC"
   dt screen add order-tracking --api getOrderTracking --path /orders/:orderId/tracking
   paged orders
+  dt env add staging --base-url https://staging.example.com
   dt field add Product discount_price:double? released_at:date?
   # #Preview needs Xcode's macro plugins, which plain swiftc does not load: check a copy without previews.
   local src="$WORK/ios-typecheck"; rm -rf "$src"; mkdir -p "$src"
@@ -246,6 +253,7 @@ ios_create() {
   cd "$WORK/shop-app"
   dt feature add products --spec "$SPEC"
   paged
+  dt env add staging --base-url https://staging.example.com
   # The project file codz wrote must open and build in Xcode: build it for the simulator, unsigned.
   xcodebuild -project ShopApp.xcodeproj -target ShopApp -sdk iphonesimulator -configuration Debug CODE_SIGNING_ALLOWED=NO build -quiet
 }
