@@ -65,7 +65,9 @@ export function scanLocales(root: string, files: string[]): LocaleInfo {
     const d = l.file.split('/').slice(0, -1).join('/');
     byDir.set(d, [...(byDir.get(d) ?? []), l]);
   }
-  const [, chosen] = [...byDir.entries()].sort((a, b) => b[1].length - a[1].length || a[0].localeCompare(b[0]))[0];
+  // Ties go to the shallower folder (lib/l10n over example/lib/l10n).
+  const depth = (d: string) => (d ? d.split('/').length : 0);
+  const [, chosen] = [...byDir.entries()].sort((a, b) => b[1].length - a[1].length || depth(a[0]) - depth(b[0]) || a[0].localeCompare(b[0]))[0];
   const languages = chosen.map((l) => l.lang).sort();
   let keyCount = 0;
   for (const l of chosen) keyCount = Math.max(keyCount, countKeys(readJson(join(root, l.file))));

@@ -13,7 +13,7 @@ IN="$ROOT/test/inputs"
 FLAGS=(--yes --allow-dirty --no-verify --no-color)
 status=0
 
-copy() { cp -R "$ROOT/fixtures/$1" "$WORK/$1"; echo "$WORK/$1"; }
+copy() { rm -rf "$WORK/$1"; cp -R "$ROOT/fixtures/$1" "$WORK/$1"; echo "$WORK/$1"; }
 # Long tool runs get a time limit, so a hang fails one check instead of the whole job.
 tmo() { if command -v timeout >/dev/null 2>&1; then timeout 600 "$@"; else "$@"; fi; }
 # Runs one codz command quietly; when it fails, says which and shows its output,
