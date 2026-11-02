@@ -182,7 +182,6 @@ declare namespace JSX {
   interface Element {}
 }
 declare namespace React { type ReactNode = unknown }
-declare module 'next/link' { const Link: (props: { href: string; children?: unknown; [prop: string]: unknown }) => JSX.Element; export default Link; }
 declare module 'react' {
   export function useState<T>(initial: T): [T, (next: T | ((prev: T) => T)) => void];
   export type FormEvent<T = unknown> = { preventDefault(): void; currentTarget: T };
@@ -199,6 +198,7 @@ declare module 'vitest' {
 }
 SHIM
   printf "declare module 'next/navigation' {\n  export function useParams<T>(): T;\n  export function useRouter(): { push(href: string): void };\n}\n" > "$1/next-shim.d.ts"
+  printf "declare module 'next/link' {\n  const Link: (props: { href: string; children?: unknown; [prop: string]: unknown }) => any;\n  export default Link;\n}\n" >> "$1/next-shim.d.ts"
 }
 TYPES="$WORK/tsx-types"; mkdir -p "$TYPES"
 if (cd "$TYPES" && npm init -y >/dev/null 2>&1 && npm install --no-save --no-audit --no-fund @types/react@19 >/dev/null 2>&1); then
