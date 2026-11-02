@@ -354,6 +354,26 @@ One change with the route, the page, the call to the endpoint, and the loading, 
 - React Native: a screen that loads the endpoint (through its TanStack Query hook when there is one) with `ActivityIndicator`, the error with Retry, and a `FlatList` or the fields; registered in the navigator, or a file under `app/` with Expo Router.
 - Android: a Compose screen and a ViewModel next to it. The ViewModel gets the Retrofit interface from Hilt (`@HiltViewModel`, `hiltViewModel()`), Koin (`viewModelOf(::X)` added to the module, `koinViewModel()`) or the service locator (a `ViewModelProvider.Factory`), reads route parameters from `SavedStateHandle` (converted to `Int` when the method wants one), and exposes `StateFlow<UiState<T>>` (`UiState.kt` with Loading, Success and Error is written once). The screen shows a spinner, the error with Retry, then a `LazyColumn` or the model's fields, and gets a `composable("orders/{id}")` entry in your `NavHost`.
 
+#### Long lists: --paginate and --search
+
+```bash
+codz screen add products --api listProducts --paginate --search
+codz screen add orders --api listOrders --search
+```
+
+`--paginate` loads 20 items at a time and the next page as you reach the end of the list. It needs the endpoint to take a page number (`page`) or an offset (`offset`, `skip`); with a page-size parameter (`limit`, `pageSize`, `per_page`) codz sends 20 and stops at a short page, otherwise it stops at an empty one. `--search` adds a search box: when the endpoint has a search parameter (`q`, `query`, `search`, `term`), the screen asks the server after a short pause in typing and starts again from the first page; otherwise it filters the items already loaded by their text fields, and says so. A new search or refresh replaces a request still loading, so an older answer never overwrites a newer one. Each screen keeps the project's own way of doing things:
+
+| Project | Paged list |
+| --- | --- |
+| Next.js | Server page: `?page=2&q=lamp` in the URL, a search form, Previous / Next links |
+| React | `useState` / `useEffect`, or `useInfiniteQuery` with TanStack Query 5; a Load more button |
+| React Native | `FlatList` with `onEndReached` and pull to refresh; `useInfiniteQuery` with TanStack Query |
+| Flutter (Riverpod, get_it) | A `StatefulWidget` that loads the next page when the end of the list is on screen |
+| Flutter (Bloc) | A Cubit with one state (items, loading, error, query, hasMore) and a `BlocBuilder` page |
+| Flutter (GetX) | The module's controller (`items`, `isLoading`, `load()`, `search()`) and an `Obx` view |
+| Android | A ViewModel with one `StateFlow` state; a `LazyColumn` (Compose) or `RecyclerView` (Views) that loads more near the end |
+| iOS | An `ObservableObject` view model; `List` with `.searchable` and a progress row that loads the next page |
+
 Only GET endpoints make a data screen. For POST, PUT and PATCH endpoints, `--form` makes a form instead:
 
 ```bash

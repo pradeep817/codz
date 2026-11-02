@@ -20,6 +20,7 @@ import { readText } from '../core/fsutil.ts';
 import { ToolError, type ChangeSet, type EndpointInfo, type ModelInfo, type ProjectMap } from '../core/types.ts';
 import { camel, kebab, pascal, words } from '../input/naming.ts';
 import { prefillFor } from './prefill.ts';
+import { detectPaging, PAGE_SIZE, pagingSummary, pagingWarnings } from './paging.ts';
 
 interface Opts {
   name: string;
@@ -28,6 +29,8 @@ interface Opts {
   form?: boolean;
   initial?: boolean;
   load?: string;
+  paginate?: boolean;
+  search?: boolean;
 }
 
 interface SwiftParam {
@@ -205,6 +208,7 @@ export function planIosScreen(root: string, map: ProjectMap, opts: Opts): Change
   if (T === 'Void') throw new ToolError('screen_needs_data', `${ep.name}() returns nothing, so there is no data to show.`);
   const shape = shapeOf(T, map);
   const I = x.I;
+  if (opts.paginate || opts.search) return iosPaged(x, ep, opts, call, shape, n, viewFile, vmFile);
   ensureLoadState(x);
   x.files.set(
     vmFile,
@@ -502,4 +506,157 @@ export function linkIosList(text: string, t: { detail?: { view: string; param: s
     }
   }
   return changed ? out : null;
+}
+
+/** A paged or searchable list: the view model keeps items, loading, error, query (and hasMore); the view uses .searchable and loads more at the end. */
+function iosPaged(x: Ctx, ep: EndpointInfo, opts: Opts, call: Call, shape: { list: boolean; model?: ModelInfo }, n: ReturnType<typeof names>, viewFile: string, vmFile: string): ChangeSet {
+  const T = call.sig.returns;
+  if (!shape.list) throw new ToolError('screen_not_list', `${ep.name}() returns ${T}, not a list; --paginate and --search are for list screens.`);
+  const model = shape.model;
+  const paging = detectPaging(call.sig.params.map((p) => ({ name: p.label, type: p.type })), { paginate: opts.paginate, search: opts.search, modelStringFields: (model?.fields ?? []).filter((f) => f.type === 'String').map((f) => f.name), titleField: titleOf(model)?.name });
+  const item = /^\[(.+)\]\??$/.exec(T)?.[1] ?? 'Any';
+  const I = x.I;
+  const L = (d: number, t: string) => `${I.repeat(d)}${t}`;
+  const pg = paging.paginate;
+  const searchable = Boolean(paging.search || paging.clientSearch);
+  const first = paging.page?.mode === 'offset' ? '0' : '1';
+  // Swift arguments go in declaration order.
+  const route = new Set(call.inits.map((p) => p.label));
+  const args = call.sig.params
+    .map((p) => {
+      if (route.has(p.label)) return `${p.label}: ${swiftName(p.label)}`;
+      if (pg && paging.page?.name === p.label) return `${p.label}: next`;
+      if (pg && paging.size?.name === p.label) return `${p.label}: Self.pageSize`;
+      if (paging.search?.name === p.label) return `${p.label}: search.isEmpty ? nil : search`;
+      return null;
+    })
+    .filter((a): a is string => !!a)
+    .join(', ');
+  const fields = paging.searchFields.map((f) => (model?.fields.find((m) => m.name === f)?.nullable ? `item.${swiftName(f)} ?? ""` : `item.${swiftName(f)}`));
+  x.files.set(
+    vmFile,
+    [
+      'import Foundation',
+      '',
+      '@MainActor',
+      `final class ${n.vm}: ObservableObject {`,
+      L(1, `@Published private(set) var items: [${item}] = []`),
+      L(1, '@Published private(set) var loading = false'),
+      L(1, '@Published private(set) var error: String?'),
+      ...(pg ? [L(1, '@Published private(set) var hasMore = true')] : []),
+      ...(searchable ? [L(1, '@Published var query = ""')] : []),
+      ...(pg && paging.size ? ['', L(1, `private static let pageSize = ${PAGE_SIZE}`)] : []),
+      ...(pg && paging.page!.mode === 'page' ? [L(1, 'private var page = 0')] : []),
+      L(1, 'private var task: Task<Void, Never>?'),
+      ...viewModelHead(x, n.vm, call.inits),
+      ...(paging.clientSearch
+        ? [
+            '',
+            L(1, '/// The items that match the search.'),
+            L(1, `var visible: [${item}] {`),
+            L(2, 'let q = query.trimmingCharacters(in: .whitespaces)'),
+            L(2, 'guard !q.isEmpty else { return items }'),
+            L(2, `return items.filter { item in [${fields.join(', ')}].contains { $0.localizedCaseInsensitiveContains(q) } }`),
+            L(1, '}'),
+          ]
+        : []),
+      '',
+      L(1, `/// Loads ${pg ? 'the first page again (reset) or the next one' : 'the list'}. A new search or refresh replaces a request still running.`),
+      L(1, `func load(${pg ? 'reset: Bool = false' : ''}) async {`),
+      ...(pg ? [L(2, 'if !reset && (loading || !hasMore) { return }')] : []),
+      L(2, 'task?.cancel()'),
+      L(2, `let task = Task { await fetch(${pg ? 'reset: reset' : ''}) }`),
+      L(2, 'self.task = task'),
+      L(2, 'await task.value'),
+      L(1, '}'),
+      '',
+      L(1, `private func fetch(${pg ? 'reset: Bool' : ''}) async {`),
+      L(2, 'loading = true'),
+      L(2, 'error = nil'),
+      ...(paging.search ? [L(2, 'let search = query.trimmingCharacters(in: .whitespaces)')] : []),
+      L(2, 'do {'),
+      ...(pg ? [L(3, `let next = reset ? ${first} : ${paging.page!.mode === 'offset' ? 'items.count' : 'page + 1'}`)] : []),
+      L(3, `let rows = try await api.${ep.name}(${args})`),
+      L(3, 'if Task.isCancelled { return }'),
+      ...(pg ? [L(3, 'items = reset ? rows : items + rows'), ...(paging.page!.mode === 'page' ? [L(3, 'page = next')] : []), L(3, `hasMore = ${paging.size ? 'rows.count == Self.pageSize' : '!rows.isEmpty'}`)] : [L(3, 'items = rows')]),
+      L(2, '} catch {'),
+      L(3, 'if Task.isCancelled { return }'),
+      L(3, 'self.error = error.localizedDescription'),
+      L(2, '}'),
+      L(2, 'loading = false'),
+      L(1, '}'),
+      '}',
+      '',
+    ].join('\n'),
+  );
+  x.summary.push(`Create ${vmFile}: ${n.vm} with items, loading, error${searchable ? ', query' : ''}${pg ? ', hasMore' : ''}, calling APIClient.${ep.name}()`);
+  const tf = titleOf(model);
+  const identifiable = !!model?.fields.some((f) => f.name === 'id' && !f.nullable);
+  const shown = paging.clientSearch ? 'model.visible' : 'model.items';
+  const reset = pg ? 'reset: true' : '';
+  const row = `Text(${tf ? show('item', tf) : 'String(describing: item)'})`;
+  x.files.set(
+    viewFile,
+    [
+      'import SwiftUI',
+      '',
+      `struct ${n.view}: View {`,
+      ...viewInit(x, n.vm, call.inits),
+      '',
+      L(1, 'var body: some View {'),
+      L(2, 'content'),
+      L(3, `.navigationTitle("${n.title}")`),
+      ...(searchable ? [L(3, '.searchable(text: $model.query)')] : []),
+      ...(paging.search
+        ? [L(3, '// Loads on appear, and again after a short pause in typing.'), L(3, '.task(id: model.query) {'), L(4, 'if !model.query.isEmpty { try? await Task.sleep(nanoseconds: 400_000_000) }'), L(4, 'if Task.isCancelled { return }'), L(4, `await model.load(${reset})`), L(3, '}')]
+        : [L(3, `.task { await model.load(${reset}) }`)]),
+      L(3, `.refreshable { await model.load(${reset}) }`),
+      L(1, '}'),
+      '',
+      L(1, '@ViewBuilder'),
+      L(1, 'private var content: some View {'),
+      L(2, 'if model.items.isEmpty && model.loading {'),
+      L(3, 'ProgressView()'),
+      L(2, '} else if model.items.isEmpty, let error = model.error {'),
+      L(3, 'VStack(spacing: 12) {'),
+      L(4, 'Text(error)'),
+      L(5, '.multilineTextAlignment(.center)'),
+      L(4, `Button("Retry") { Task { await model.load(${reset}) } }`),
+      L(3, '}'),
+      L(3, '.padding()'),
+      L(2, `} else if ${shown}.isEmpty${pg ? ' && !model.hasMore' : ''} {`),
+      L(3, `Text(${searchable ? 'model.query.isEmpty ? "Nothing here yet." : "No matches."' : '"Nothing here yet."'})`),
+      L(4, '.foregroundStyle(.secondary)'),
+      L(2, '} else {'),
+      L(3, 'List {'),
+      ...(identifiable ? [L(4, `ForEach(${shown}) { item in`), L(5, row), L(4, '}')] : [L(4, `ForEach(Array(${shown}.enumerated()), id: \\.offset) { _, item in`), L(5, row), L(4, '}')]),
+      ...(pg
+        ? [
+            L(4, 'if model.error != nil {'),
+            L(5, 'Button("Retry") { Task { await model.load() } }'),
+            L(4, '} else if model.hasMore {'),
+            L(5, '// The end of the list is on screen: ask for the next page.'),
+            L(5, 'ProgressView()'),
+            L(6, '.frame(maxWidth: .infinity)'),
+            L(6, '.id(model.items.count)'),
+            L(6, '.onAppear { Task { await model.load() } }'),
+            L(4, '}'),
+          ]
+        : []),
+      L(3, '}'),
+      L(2, '}'),
+      L(1, '}'),
+      '}',
+      '',
+      '#Preview {',
+      L(1, 'NavigationStack {'),
+      L(2, `${n.view}(${call.inits.map((p) => `${swiftName(p.label)}: ${sample(p.type)}`).join(', ')})`),
+      L(1, '}'),
+      '}',
+      '',
+    ].join('\n'),
+  );
+  x.summary.push(`Create ${viewFile}: ${n.view} lists them and ${pagingSummary(paging)}`);
+  x.warnings.push(...pagingWarnings(paging));
+  return finish(x, 'screen add', n.view, call.inits, opts);
 }

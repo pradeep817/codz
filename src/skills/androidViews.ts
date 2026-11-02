@@ -22,6 +22,8 @@ import { ToolError, type ChangeSet, type ModelInfo, type ProjectMap } from '../c
 import { kebab, snake } from '../input/naming.ts';
 import { access, androidPrefill, apiRef, classOfFile, ktInitial, context, dataViewModel, ensureUiState, fileOf, finish, formViewModel, injection, names, routeOf, type Ctx } from './androidUi.ts';
 import { responseShape, titleField } from './screen.ts';
+import { androidPaging, pagedViewModel } from './androidUi.ts';
+import { pagingSummary, pagingWarnings } from './paging.ts';
 
 interface Opts {
   name: string;
@@ -29,6 +31,8 @@ interface Opts {
   api?: string;
   form?: boolean;
   load?: string;
+  paginate?: boolean;
+  search?: boolean;
 }
 
 /** Libraries the generated Activities use, with versions known to work together. */
@@ -146,7 +150,6 @@ export function planViewsScreen(root: string, map: ProjectMap, opts: Opts): Chan
   const layout = `${v.layoutDir}/${n.layout}.xml`;
   for (const f of [file, vmFile, layout]) if (x.read(f) !== null) throw new ToolError('route_exists', `${f} already exists.`);
   const pkg = packageOf(x.srcDir, v.screensDir);
-  const uiState = ensureUiState(x, v.screensDir);
   const T = a.returnType;
   const shape = responseShape(T, map);
   const model: ModelInfo | undefined = shape.model;
@@ -156,6 +159,8 @@ export function planViewsScreen(root: string, map: ProjectMap, opts: Opts): Chan
     const name = p.name.replace(/`/g, '');
     return /^(Int|Long)$/.test(p.type) ? `${name}.to${p.type}()` : name;
   });
+  if (opts.paginate || opts.search) return viewsPaged(v, opts, a, { n, params, required, args, file, vmFile, layout, pkg, shape, model, modelImports, inj, T });
+  const uiState = ensureUiState(x, v.screensDir);
   x.files.set(vmFile, dataViewModel(x, a, n.vm, pkg, params, args, inj, uiState, T, modelImports));
   x.summary.push(`Create ${vmFile}: ${n.vm} loads ${a.iface}.${a.ep.name}()${params.length ? ` with ${params.join(', ')} from the Intent extras` : ''}`);
 
@@ -540,3 +545,187 @@ export function linkViewsList(text: string, pkg: string, t: { detail?: { activit
   return addKotlinImports(out, ['android.content.Intent'], pkg);
 }
 
+/** Views: a paged or searchable list (RecyclerView, search box, more as you scroll) with the shared paged ViewModel. */
+function viewsPaged(
+  v: ReturnType<typeof views>,
+  opts: Opts,
+  a: ReturnType<typeof apiRef>,
+  o: { n: ReturnType<typeof viewNames>; params: string[]; required: { name: string }[]; args: string[]; file: string; vmFile: string; layout: string; pkg: string; shape: ReturnType<typeof responseShape>; model: ModelInfo | undefined; modelImports: string[]; inj: ReturnType<typeof injection>; T: string },
+): ChangeSet {
+  const { x } = v;
+  const { n, pkg, model } = o;
+  const paging = androidPaging(a, o.shape, opts, o.T);
+  const item = /^List<(.+)>\??$/.exec(o.T)?.[1] ?? 'Any';
+  const routeNamed = o.required.map((p, i) => `${p.name} = ${o.args[i]}`);
+  x.files.set(o.vmFile, pagedViewModel(x, a, n.vm, pkg, o.params, routeNamed, o.inj, item, paging, o.modelImports));
+  const searchable = Boolean(paging.search || paging.clientSearch);
+  const pg = paging.paginate;
+  const stateName = `${n.vm.replace(/ViewModel$/, '')}ListState`;
+  x.summary.push(`Create ${o.vmFile}: ${n.vm} with items, loading, error${searchable ? ', query' : ''}${pg ? ', hasMore' : ''}, calling ${a.iface}.${a.ep.name}()`);
+  const tf = titleField(model);
+  const stringFields = paging.searchFields.map((f) => (model?.fields.find((m) => m.name === f)?.nullable ? `${access('item', f)}.orEmpty()` : access('item', f)));
+  const center = (id: string, extra: string[] = []) => [`            android:id="@+id/${id}"`, '            android:layout_width="wrap_content"', '            android:layout_height="wrap_content"', '            android:layout_gravity="center"', ...extra];
+  x.files.set(
+    o.layout,
+    [
+      XML_HEAD,
+      `<LinearLayout ${NS}`,
+      '    android:layout_width="match_parent"',
+      '    android:layout_height="match_parent"',
+      '    android:orientation="vertical">',
+      '',
+      '    <TextView',
+      '        android:layout_width="wrap_content"',
+      '        android:layout_height="wrap_content"',
+      '        android:padding="16dp"',
+      `        android:text="${n.title}"`,
+      '        android:textSize="22sp" />',
+      ...(searchable ? ['', '    <EditText', '        android:id="@+id/search"', '        android:layout_width="match_parent"', '        android:layout_height="wrap_content"', '        android:layout_marginHorizontal="12dp"', '        android:hint="Search"', '        android:importantForAutofill="no"', '        android:inputType="text"', '        android:singleLine="true" />'] : []),
+      '',
+      '    <FrameLayout',
+      '        android:layout_width="match_parent"',
+      '        android:layout_height="0dp"',
+      '        android:layout_weight="1">',
+      '',
+      '        <androidx.recyclerview.widget.RecyclerView',
+      '            android:id="@+id/list"',
+      '            android:layout_width="match_parent"',
+      '            android:layout_height="match_parent" />',
+      '',
+      '        <ProgressBar',
+      ...center('progress', ['            android:visibility="gone" />']),
+      '',
+      '        <TextView',
+      ...center('empty', ['            android:padding="16dp"', '            android:visibility="gone" />']),
+      '',
+      '        <LinearLayout',
+      ...center('error', ['            android:gravity="center"', '            android:orientation="vertical"', '            android:padding="16dp"', '            android:visibility="gone">']),
+      '',
+      '            <TextView',
+      '                android:id="@+id/error_text"',
+      '                android:layout_width="wrap_content"',
+      '                android:layout_height="wrap_content" />',
+      '',
+      '            <Button',
+      '                android:id="@+id/retry"',
+      '                android:layout_width="wrap_content"',
+      '                android:layout_height="wrap_content"',
+      '                android:text="Retry" />',
+      '        </LinearLayout>',
+      '    </FrameLayout>',
+      ...(pg
+        ? ['', '    <ProgressBar', '        android:id="@+id/more"', '        android:layout_width="wrap_content"', '        android:layout_height="wrap_content"', '        android:layout_gravity="center_horizontal"', '        android:visibility="gone" />', '', '    <Button', '        android:id="@+id/more_retry"', '        android:layout_width="wrap_content"', '        android:layout_height="wrap_content"', '        android:layout_gravity="center_horizontal"', '        android:text="Retry"', '        android:visibility="gone" />']
+        : []),
+      '</LinearLayout>',
+      '',
+    ].join('\n'),
+  );
+  const activity = [
+    `package ${pkg}`,
+    '',
+    ...o.inj.activity.annotations,
+    `class ${n.activity} : ComponentActivity() {`,
+    `    private val viewModel: ${n.vm} ${o.inj.activity.delegate}`,
+    '    private val adapter = ItemAdapter()',
+    '',
+    '    override fun onCreate(savedInstanceState: Bundle?) {',
+    '        super.onCreate(savedInstanceState)',
+    `        setContentView(R.layout.${n.layout})`,
+    '        val list = findViewById<RecyclerView>(R.id.list)',
+    '        val layoutManager = LinearLayoutManager(this)',
+    '        list.layoutManager = layoutManager',
+    '        list.addItemDecoration(DividerItemDecoration(this, DividerItemDecoration.VERTICAL))',
+    '        list.adapter = adapter',
+    ...(pg
+      ? [
+          '        // Near the end of the list: ask for the next page.',
+          '        list.addOnScrollListener(object : RecyclerView.OnScrollListener() {',
+          '            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {',
+          '                if (layoutManager.findLastVisibleItemPosition() >= adapter.itemCount - 3) viewModel.load()',
+          '            }',
+          '        })',
+          '        findViewById<Button>(R.id.more_retry).setOnClickListener { viewModel.load() }',
+        ]
+      : []),
+    ...(searchable ? ['        findViewById<EditText>(R.id.search).doAfterTextChanged { viewModel.search(it?.toString().orEmpty()) }'] : []),
+    `        findViewById<Button>(R.id.retry).setOnClickListener { viewModel.load(${pg ? 'reset = true' : ''}) }`,
+    '        lifecycleScope.launch {',
+    '            repeatOnLifecycle(Lifecycle.State.STARTED) {',
+    '                viewModel.state.collect { render(it) }',
+    '            }',
+    '        }',
+    '    }',
+    '',
+    `    private fun render(s: ${stateName}) {`,
+    `        val shown = ${paging.clientSearch ? `if (s.query.isBlank()) s.items else s.items.filter { item -> listOf(${stringFields.join(', ')}).any { it.contains(s.query.trim(), ignoreCase = true) } }` : 's.items'}`,
+    '        adapter.submit(shown)',
+    '        findViewById<View>(R.id.progress).isVisible = s.loading && s.items.isEmpty()',
+    '        findViewById<View>(R.id.error).isVisible = s.error != null && s.items.isEmpty()',
+    '        findViewById<TextView>(R.id.error_text).text = s.error',
+    '        findViewById<TextView>(R.id.empty).apply {',
+    '            isVisible = shown.isEmpty() && !s.loading && s.error == null',
+    `            text = ${searchable ? 'if (s.query.isBlank()) "Nothing here yet." else "No matches."' : '"Nothing here yet."'}`,
+    '        }',
+    ...(pg
+      ? [
+          '        findViewById<View>(R.id.more).isVisible = s.loading && s.items.isNotEmpty()',
+          '        findViewById<View>(R.id.more_retry).isVisible = s.error != null && s.items.isNotEmpty()',
+          '        // The first pages may not fill the screen: keep loading until they do.',
+          '        val list = findViewById<RecyclerView>(R.id.list)',
+          '        list.post { if (s.hasMore && !s.loading && s.error == null && !list.canScrollVertically(1)) viewModel.load() }',
+        ]
+      : []),
+    '    }',
+    '',
+    '    private class ItemAdapter : RecyclerView.Adapter<ItemAdapter.Holder>() {',
+    `        private var items: List<${item}> = emptyList()`,
+    '',
+    '        class Holder(val text: TextView) : RecyclerView.ViewHolder(text)',
+    '',
+    '        @SuppressLint("NotifyDataSetChanged")',
+    `        fun submit(data: List<${item}>) {`,
+    '            items = data',
+    '            notifyDataSetChanged()',
+    '        }',
+    '',
+    '        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): Holder =',
+    '            Holder(LayoutInflater.from(parent.context).inflate(android.R.layout.simple_list_item_1, parent, false) as TextView)',
+    '',
+    '        override fun getItemCount(): Int = items.size',
+    '',
+    '        override fun onBindViewHolder(holder: Holder, position: Int) {',
+    `            holder.text.text = ${tf ? `${access('items[position]', tf)}.toString()` : 'items[position].toString()'}`,
+    '        }',
+    '    }',
+    '}',
+    '',
+  ].join('\n');
+  const imports = [
+    'android.annotation.SuppressLint',
+    'android.os.Bundle',
+    'android.view.LayoutInflater',
+    'android.view.View',
+    'android.view.ViewGroup',
+    'android.widget.Button',
+    'android.widget.TextView',
+    'androidx.activity.ComponentActivity',
+    'androidx.core.view.isVisible',
+    'androidx.lifecycle.Lifecycle',
+    'androidx.lifecycle.lifecycleScope',
+    'androidx.lifecycle.repeatOnLifecycle',
+    'androidx.recyclerview.widget.DividerItemDecoration',
+    'androidx.recyclerview.widget.LinearLayoutManager',
+    'androidx.recyclerview.widget.RecyclerView',
+    'kotlinx.coroutines.launch',
+    v.rClass,
+    ...o.modelImports,
+    ...o.inj.activity.imports,
+    ...(searchable ? ['android.widget.EditText', 'androidx.core.widget.doAfterTextChanged'] : []),
+  ];
+  x.files.set(o.file, addKotlinImports(activity, imports, pkg));
+  x.summary.push(`Create ${o.file} and ${o.layout}: ${n.activity} lists them and ${pagingSummary(paging)}`);
+  x.warnings.push(...pagingWarnings(paging));
+  ensureLibs(x, v.module, ['androidx.core:core-ktx', 'androidx.activity:activity-ktx', 'androidx.lifecycle:lifecycle-runtime-ktx', 'androidx.lifecycle:lifecycle-viewmodel-ktx', 'androidx.recyclerview:recyclerview']);
+  registerActivity(x, v.manifest, `${pkg}.${n.activity}`);
+  return finish(x, 'screen add', hint(n.activity, o.params));
+}

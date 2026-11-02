@@ -29,6 +29,10 @@ for arch in retrofit-hilt retrofit-koin retrofit; do
   run screen add user --api getUser --path /users/:id
   run field add User nickname:string? score:int? tags:string[]?
   run screen add new-order --api createOrder --form
+  run api add --url 'https://api.example.com/v1/catalog?page=1&limit=20&q=lamp' --sample "$IN/products.json" --name listCatalog
+  run api add --url 'https://api.example.com/v1/feed?offset=0' --sample "$IN/products.json" --name listFeed
+  run screen add catalog --api listCatalog --paginate --search
+  run screen add feed --api listFeed --paginate --search
   run route add settings --path /settings/:section
   run test add --all
   run theme set primary '#0F766E' radius 12

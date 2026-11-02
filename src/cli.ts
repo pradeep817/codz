@@ -924,7 +924,8 @@ async function run(args: Args, out: Out): Promise<number> {
       if (sub !== 'add') throw new ToolError('bad_args', `Unknown command "screen ${sub ?? ''}".`, 'Usage: codz screen add <name> --api <endpoint> [--path /orders/:id]');
       const name = positional[2];
       if (!name) throw new ToolError('bad_args', 'Which screen? Usage: codz screen add <name> --api <endpoint> [--path /orders/:id]');
-      const cs = await planScreenAdd(root, adapter, { name, api: args.multi.api?.[0], path: typeof flags.path === 'string' ? flags.path : undefined, initial: flags.initial === true, form: flags.form === true });
+      const cs = await planScreenAdd(root, adapter, { name, api: args.multi.api?.[0], path: typeof flags.path === 'string' ? flags.path : undefined, initial: flags.initial === true, form: flags.form === true, paginate: flags.paginate === true, search: flags.search === true });
+      if ((flags.paginate === true || flags.search === true) && flags.form === true) throw new ToolError('bad_args', '--paginate and --search are for list screens, not --form.');
       return handleChange(root, out, flags, cs, adapter);
     }
     case 'route': {

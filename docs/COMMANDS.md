@@ -253,7 +253,7 @@ Accepts the change options.
 
 ## Screens and app
 
-### `codz screen add <name> --api <endpoint> [--path /x/:id] [--form]`
+### `codz screen add <name> --api <endpoint> [--path /x/:id] [--paginate] [--search] [--form]`
 
 A working screen (route, page, the call, loading, error, data), or a form with --form.
 
@@ -265,6 +265,8 @@ Android: a Compose screen plus a ViewModel (Hilt, Koin or the service locator) w
 | `--path </users/{id}>` | Path parameters (api add), route path (screen/route add), or a path filter (import/sync) |
 | `--initial` | Make it the first screen |
 | `--form` | A form that sends the endpoint's request body (POST, PUT, PATCH) |
+| `--paginate` | List screens: load page after page as you scroll (the endpoint needs a page or offset parameter) |
+| `--search` | List screens: a search box (on the server with a q/search parameter, otherwise over the loaded items) |
 
 Accepts the change options.
 

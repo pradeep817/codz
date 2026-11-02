@@ -20,6 +20,8 @@ import { camel, kebab, pascal, words } from '../input/naming.ts';
 import { findDeclaration } from './apiEdit.ts';
 import { responseShape, titleField } from './screen.ts';
 import { reactPrefill } from './prefill.ts';
+import { detectPaging, pagingSummary, pagingWarnings, tsPagedLogic, tsPagingArgs, tsPagingParams } from './paging.ts';
+import { queryMajor } from './reactUi.ts';
 
 interface Opts {
   name: string;
@@ -27,6 +29,8 @@ interface Opts {
   api?: string;
   form?: boolean;
   load?: string;
+  paginate?: boolean;
+  search?: boolean;
 }
 
 const IDENT = /^[A-Za-z_$][\w$]*$/;
@@ -195,6 +199,75 @@ export function planRnScreen(root: string, map: ProjectMap, opts: Opts): ChangeS
   const fromApi = importPath(p.file, barrel ?? ep.file, c).replace(/\.tsx?$/, '');
   const T = shape.raw || 'unknown';
   const access = (v: string, f: string) => (IDENT.test(f) ? `${v}.${f}` : `${v}['${f}']`);
+  if (opts.paginate || opts.search) {
+    if (!shape.list) throw new ToolError('screen_not_list', `${ep.name}() returns one ${T}, not a list; --paginate and --search are for list screens.`);
+    const ps = splitTsParams(decl!.params);
+    const paging = detectPaging(tsPagingParams(ps), { paginate: opts.paginate, search: opts.search, modelStringFields: (shape.model?.fields ?? []).filter((f) => f.type === 'string').map((f) => f.name), titleField: tf });
+    const routeArgs = new Map(ps.filter((x) => params.includes(x.name)).map((x) => [x.name, /^number$/.test(x.type) ? `Number(${x.name})` : x.name]));
+    const item = shape.model?.name ?? T.replace(/\[\]$/, '');
+    const logic = tsPagedLogic(paging, { T: item, call: (v) => `${ep.name}(${tsPagingArgs(ps, paging, routeArgs, v)})`, key: kebab(ep.name), deps: params, reactQuery: c.dataFetching === 'react-query' && queryMajor(root) >= 5, refresh: true, hasMore: false, access });
+    const searchable = paging.search || paging.clientSearch;
+    const rn = ['ActivityIndicator', 'Button', 'FlatList', 'StyleSheet', 'Text', ...(searchable ? ['TextInput'] : []), 'View'];
+    const paged = [
+      ...(logic.imports.react.length ? [`import { ${logic.imports.react.sort().join(', ')} } from 'react';`] : []),
+      `import { ${rn.join(', ')} } from 'react-native';`,
+      ...(logic.imports.query.length ? [`import { ${logic.imports.query.join(', ')} } from '@tanstack/react-query';`] : []),
+      ...pc.imports,
+      `import { ${ep.name} } from '${fromApi}';`,
+      ...(shape.model ? [`import type { ${shape.model.name} } from '${importPath(p.file, shape.model.file, c).replace(/\.tsx?$/, '')}';`] : []),
+      '',
+      ...logic.top,
+      `export default function ${n.component}(${pc.signature}) {`,
+      ...pc.lines,
+      ...logic.body,
+      '',
+      '  return (',
+      '    <FlatList',
+      '      data={shown}',
+      `      keyExtractor={(item, index) => ${idf ? `String(${access('item', idf)})` : 'String(index)'}}`,
+      '      refreshing={refreshing}',
+      '      onRefresh={refresh}',
+      ...(paging.paginate ? ['      onEndReached={loadMore}', '      onEndReachedThreshold={0.5}'] : []),
+      ...(searchable ? ['      keyboardShouldPersistTaps="handled"', '      ListHeaderComponent={<TextInput style={styles.search} placeholder="Search" value={query} onChangeText={setQuery} autoCorrect={false} clearButtonMode="while-editing" />}'] : []),
+      '      ListEmptyComponent={',
+      '        loading ? (',
+      '          <ActivityIndicator style={styles.footer} />',
+      '        ) : error ? (',
+      '          <View style={styles.center}>',
+      '            <Text style={styles.error}>{error instanceof Error ? error.message : String(error)}</Text>',
+      '            <Button title="Retry" onPress={retry} />',
+      '          </View>',
+      '        ) : (',
+      `          <Text style={styles.empty}>${searchable ? `{query.trim() ? 'No matches.' : 'Nothing here yet.'}` : 'Nothing here yet.'}</Text>`,
+      '        )',
+      '      }',
+      ...(paging.paginate
+        ? ['      ListFooterComponent={', '        items.length > 0 && loading ? <ActivityIndicator style={styles.footer} /> : items.length > 0 && error ? <Button title="Retry" onPress={retry} /> : null', '      }']
+        : []),
+      `      renderItem={({ item }) => <Text style={styles.row}>{${tf ? `String(${access('item', tf)})` : 'JSON.stringify(item)'}}</Text>}`,
+      '    />',
+      '  );',
+      '}',
+      '',
+      'const styles = StyleSheet.create({',
+      "  center: { alignItems: 'center', justifyContent: 'center', padding: 16 },",
+      "  error: { marginBottom: 12, textAlign: 'center' },",
+      "  empty: { padding: 16, textAlign: 'center' },",
+      "  footer: { padding: 16 },",
+      ...(searchable ? ["  search: { margin: 12, padding: 10, borderWidth: StyleSheet.hairlineWidth, borderColor: '#999', borderRadius: 8 },"] : []),
+      "  row: { padding: 16, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#ccc' },",
+      '});',
+      '',
+    ].join('\n');
+    const files = new Map([[p.file, paged]]);
+    const summary = [`Create ${p.file}: ${n.component} lists ${ep.name}() and ${pagingSummary(paging)}`];
+    if (p.navigator) {
+      files.set(p.navigator.file, register(p.navigator, p.file, opts, map));
+      summary.push(`Update ${p.navigator.file}: add ${n.route} to RootStackParamList and the stack`);
+    }
+    summary.push(navHint(map, opts));
+    return finish(root, 'screen add', files, summary, [...warnings, ...pagingWarnings(paging)]);
+  }
   const dataView = shape.list
     ? [
         '    <FlatList',

@@ -76,6 +76,11 @@ check() {
 copy() { rm -rf "$WORK/$2"; cp -R "$ROOT/fixtures/$1" "$WORK/$2"; cd "$WORK/$2"; }
 dt() { echo "\$ codz $*"; "${DT[@]}" "$@" "${FLAGS[@]}"; }
 skip() { echo "$1"; exit 77; }
+# Paged and searchable list screens: page + server search (listProducts), and search over loaded items (listOrders).
+paged() {
+  dt screen add catalog --api listProducts --paginate --search
+  if [ "${1:-}" = orders ]; then dt screen add order-search --api listOrders --search; fi
+}
 
 # ---------- Next.js ----------
 next_fresh() {
@@ -84,6 +89,7 @@ next_fresh() {
   dt feature add products --spec "$SPEC"
   dt feature add orders --spec "$SPEC"
   dt screen add order-tracking --api getOrderTracking --path /orders/:orderId/tracking
+  paged orders
   dt auth add
   npm install --no-audit --no-fund --legacy-peer-deps
   npm install --no-audit --no-fund --legacy-peer-deps -D vitest@2
@@ -110,6 +116,7 @@ react_fresh() {
   dt feature add products --spec "$SPEC"
   dt feature add orders --spec "$SPEC"
   dt screen add order-tracking --api getOrderTracking --path /orders/:orderId/tracking
+  paged orders
   npm install --no-audit --no-fund --legacy-peer-deps
   npm install --no-audit --no-fund --legacy-peer-deps -D vitest@2
   npx tsc --noEmit -p tsconfig.json
@@ -121,6 +128,7 @@ react_axios_query() {
   have npm || skip "npm not found"
   copy react-vite react-query
   dt feature add products --spec "$SPEC" --architecture axios-react-query
+  paged
   npm install --no-audit --no-fund --legacy-peer-deps
   npm install --no-audit --no-fund --legacy-peer-deps -D vitest@2
   npx tsc --noEmit -p tsconfig.json
@@ -156,6 +164,7 @@ rn_navigation() {
   have npm || skip "npm not found"
   copy rn-app rn-app
   dt feature add products --spec "$SPEC"
+  paged
   dt auth add
   npm install --no-audit --no-fund --legacy-peer-deps
   npx tsc --noEmit
@@ -178,6 +187,7 @@ flutter_arch() {
   dt feature add orders --spec "$SPEC"
   dt field add Product discount_price:double? labels:string[]?
   dt screen add order-tracking --api getOrderTracking --path /orders/:orderId/tracking
+  paged orders
   dt auth add
   # flutter create's counter test checks the template home page, which GetX setup replaces (codz warns about it).
   if [ "$arch" = getx ] && grep -q 'Counter increments smoke test' test/widget_test.dart 2>/dev/null; then rm test/widget_test.dart; fi
@@ -201,6 +211,7 @@ android_project() {
   cd "$WORK/$name"
   if [ "$ui" = views ]; then dt config set ui views; fi
   dt feature add products --spec "$SPEC"
+  paged
   if [ "$arch" = retrofit-hilt ]; then dt auth add; fi
   [ -x ./gradlew ] || { echo "no gradlew in the created project"; exit 1; }
   ./gradlew --no-daemon :app:assembleDebug :app:testDebugUnitTest
@@ -218,6 +229,7 @@ ios_swiftui() {
   dt feature add products --spec "$SPEC" --initial
   dt feature add orders --spec "$SPEC"
   dt screen add order-tracking --api getOrderTracking --path /orders/:orderId/tracking
+  paged orders
   dt field add Product discount_price:double? released_at:date?
   # #Preview needs Xcode's macro plugins, which plain swiftc does not load: check a copy without previews.
   local src="$WORK/ios-typecheck"; rm -rf "$src"; mkdir -p "$src"
@@ -233,6 +245,7 @@ ios_create() {
   "${DT[@]}" create shop-app --type ios --architecture urlsession --org com.acme --base-url https://api.example.com/v1 --no-git --yes --no-color
   cd "$WORK/shop-app"
   dt feature add products --spec "$SPEC"
+  paged
   # The project file codz wrote must open and build in Xcode: build it for the simulator, unsigned.
   xcodebuild -project ShopApp.xcodeproj -target ShopApp -sdk iphonesimulator -configuration Debug CODE_SIGNING_ALLOWED=NO build -quiet
 }

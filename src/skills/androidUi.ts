@@ -24,6 +24,7 @@ import { camel, kebab, pascal, words } from '../input/naming.ts';
 import { responseShape, titleField } from './screen.ts';
 import { prefillFor } from './prefill.ts';
 import { planViewsRoute, planViewsScreen } from './androidViews.ts';
+import { detectPaging, namedPagingArgs, PAGE_SIZE, pagingSummary, pagingWarnings, type Paging } from './paging.ts';
 
 interface Opts {
   name: string;
@@ -31,6 +32,8 @@ interface Opts {
   api?: string;
   form?: boolean;
   load?: string;
+  paginate?: boolean;
+  search?: boolean;
 }
 
 interface KtParam {
@@ -280,7 +283,6 @@ export function planAndroidScreen(root: string, map: ProjectMap, opts: Opts): Ch
   const vmFile = fileOf(screensDir, n.vm);
   for (const f of [screenFile, vmFile]) if (x.read(f) !== null) throw new ToolError('route_exists', `${f} already exists.`);
   const pkg = packageOf(x.srcDir, screensDir);
-  const uiState = ensureUiState(x, screensDir);
   const T = a.returnType;
   const shape = responseShape(T, map);
   const model: ModelInfo | undefined = shape.model;
@@ -292,6 +294,104 @@ export function planAndroidScreen(root: string, map: ProjectMap, opts: Opts): Ch
     return /^(Int|Long)$/.test(p.type) ? `${v}.to${p.type}()` : v;
   });
 
+  if (opts.paginate || opts.search) {
+    const paging = androidPaging(a, shape, opts, T);
+    const item = /^List<(.+)>\??$/.exec(T)?.[1] ?? 'Any';
+    const routeNamed = required.map((p, i) => `${p.name} = ${args[i]}`);
+    x.files.set(vmFile, pagedViewModel(x, a, n.vm, pkg, params, routeNamed, inj, item, paging, modelImports));
+    x.summary.push(`Create ${vmFile}: ${n.vm} with items, loading, error${paging.search || paging.clientSearch ? ', query' : ''}${paging.paginate ? ', hasMore' : ''}, calling ${a.iface}.${a.ep.name}()`);
+    const tf = titleField(model);
+    const searchable = Boolean(paging.search || paging.clientSearch);
+    const pg = paging.paginate;
+    const reset = pg ? 'reset = true' : '';
+    const stringFields = paging.searchFields.map((f) => (model?.fields.find((m) => m.name === f)?.nullable ? `${access('item', f)}.orEmpty()` : access('item', f)));
+    const screen = [
+      `package ${pkg}`,
+      '',
+      '@Composable',
+      `fun ${n.screen}(viewModel: ${n.vm} = ${inj.screenDefault}) {`,
+      '    val s by viewModel.state.collectAsState()',
+      ...(pg
+        ? [
+            '    val listState = rememberLazyListState()',
+            '    // Near the end of the list: ask for the next page.',
+            '    val nearEnd by remember {',
+            '        derivedStateOf {',
+            '            val last = listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0',
+            '            last >= listState.layoutInfo.totalItemsCount - 3',
+            '        }',
+            '    }',
+            '    LaunchedEffect(nearEnd, s.items.size) {',
+            '        if (nearEnd) viewModel.load()',
+            '    }',
+          ]
+        : []),
+      `    val shown = ${paging.clientSearch ? `if (s.query.isBlank()) s.items else s.items.filter { item -> listOf(${stringFields.join(', ')}).any { it.contains(s.query.trim(), ignoreCase = true) } }` : 's.items'}`,
+      '    val error = s.error',
+      '    Scaffold { padding ->',
+      '        Column(Modifier.fillMaxSize().padding(padding)) {',
+      ...(searchable ? ['            OutlinedTextField(', '                value = s.query,', '                onValueChange = viewModel::search,', '                placeholder = { Text("Search") },', '                singleLine = true,', '                modifier = Modifier.fillMaxWidth().padding(12.dp),', '            )'] : []),
+      '            Box(Modifier.fillMaxSize()) {',
+      '                when {',
+      '                    s.items.isEmpty() && s.loading -> CircularProgressIndicator(Modifier.align(Alignment.Center))',
+      '                    s.items.isEmpty() && error != null -> Column(Modifier.align(Alignment.Center).padding(16.dp), horizontalAlignment = Alignment.CenterHorizontally) {',
+      '                        Text(error, color = MaterialTheme.colorScheme.error)',
+      `                        Button(onClick = { viewModel.load(${reset}) }) { Text("Retry") }`,
+      '                    }',
+      `                    shown.isEmpty() && !s.loading -> Text(${searchable ? 'if (s.query.isBlank()) "Nothing here yet." else "No matches."' : '"Nothing here yet."'}, Modifier.align(Alignment.Center))`,
+      `                    else -> LazyColumn(Modifier.fillMaxSize()${pg ? ', state = listState' : ''}) {`,
+      '                        items(shown) { item ->',
+      `                            Text(${tf ? `${access('item', tf)}.toString()` : 'item.toString()'}, Modifier.fillMaxWidth().padding(16.dp))`,
+      '                            HorizontalDivider()',
+      '                        }',
+      ...(pg
+        ? [
+            '                        if (s.loading) {',
+            '                            item { Box(Modifier.fillMaxWidth().padding(16.dp), contentAlignment = Alignment.Center) { CircularProgressIndicator() } }',
+            '                        } else if (error != null) {',
+            '                            item { TextButton(onClick = { viewModel.load() }, modifier = Modifier.fillMaxWidth()) { Text("Retry") } }',
+            '                        }',
+          ]
+        : []),
+      '                    }',
+      '                }',
+      '            }',
+      '        }',
+      '    }',
+      '}',
+      '',
+    ].join('\n');
+    const composeImports = [
+      'androidx.compose.foundation.layout.Box',
+      'androidx.compose.foundation.layout.Column',
+      'androidx.compose.foundation.layout.fillMaxSize',
+      'androidx.compose.foundation.layout.fillMaxWidth',
+      'androidx.compose.foundation.layout.padding',
+      'androidx.compose.foundation.lazy.LazyColumn',
+      'androidx.compose.foundation.lazy.items',
+      'androidx.compose.material3.Button',
+      'androidx.compose.material3.CircularProgressIndicator',
+      'androidx.compose.material3.HorizontalDivider',
+      'androidx.compose.material3.MaterialTheme',
+      'androidx.compose.material3.Scaffold',
+      'androidx.compose.material3.Text',
+      'androidx.compose.runtime.Composable',
+      'androidx.compose.runtime.collectAsState',
+      'androidx.compose.runtime.getValue',
+      'androidx.compose.ui.Alignment',
+      'androidx.compose.ui.Modifier',
+      'androidx.compose.ui.unit.dp',
+      ...(searchable ? ['androidx.compose.material3.OutlinedTextField'] : []),
+      ...(pg ? ['androidx.compose.foundation.lazy.rememberLazyListState', 'androidx.compose.material3.TextButton', 'androidx.compose.runtime.LaunchedEffect', 'androidx.compose.runtime.derivedStateOf', 'androidx.compose.runtime.remember'] : []),
+    ];
+    x.files.set(screenFile, addKotlinImports(screen, [...composeImports, ...inj.screenImports], pkg));
+    x.summary.push(`Create ${screenFile}: ${n.screen} lists them and ${pagingSummary(paging)}`);
+    x.warnings.push(...pagingWarnings(paging));
+    registerRoute(x, route, `${n.screen}()`, `${pkg}.${n.screen}`, params, false);
+    return finish(x, 'screen add', navHint(route, params));
+  }
+
+  const uiState = ensureUiState(x, screensDir);
   // ViewModel.
   x.files.set(vmFile, dataViewModel(x, a, n.vm, pkg, params, args, inj, uiState, T, modelImports));
   x.summary.push(`Create ${vmFile}: ${n.vm} loads ${a.iface}.${a.ep.name}()${params.length ? ` with ${params.join(', ')} from the route` : ''}`);
@@ -489,6 +589,76 @@ function planAndroidForm(x: Ctx, opts: Opts, a: ApiRef): ChangeSet {
   x.summary.push(`Create ${screenFile}: ${n.screen} with ${fields.length} field${fields.length === 1 ? '' : 's'} for ${bodyModel.name}`);
   registerRoute(x, route, `${n.screen}()`, `${pkg}.${n.screen}`, params, false);
   return finish(x, 'screen add', navHint(route, params));
+}
+
+/** Paging for a Kotlin list endpoint. */
+export function androidPaging(a: ApiRef, shape: ReturnType<typeof responseShape>, opts: Opts, T: string): Paging {
+  if (!shape.list) throw new ToolError('screen_not_list', `${a.ep.name}() returns ${T}, not a list; --paginate and --search are for list screens.`);
+  return detectPaging(a.params.filter((p) => p.annotation !== 'Body').map((p) => ({ name: p.name.replace(/`/g, ''), type: p.type })), { paginate: opts.paginate, search: opts.search, modelStringFields: (shape.model?.fields ?? []).filter((f) => f.type === 'String').map((f) => f.name), titleField: titleField(shape.model) });
+}
+
+/** The ViewModel of a paged or searchable list (Compose and Views share it): one state, and load() / search(). A new search or refresh cancels the request still running. */
+export function pagedViewModel(x: Ctx, a: ApiRef, vmName: string, pkg: string, params: string[], routeNamed: string[], inj: Injection, item: string, p: Paging, modelImports: string[]): string {
+  const stateName = `${vmName.replace(/ViewModel$/, '')}ListState`;
+  const searchable = Boolean(p.search || p.clientSearch);
+  const pg = p.paginate;
+  const first = p.page?.mode === 'offset' ? '0' : '1';
+  const call = [...routeNamed, ...namedPagingArgs(p, { page: pg ? 'next' : undefined, search: p.search ? '_state.value.query.trim().ifBlank { null }' : undefined }, ' = ', 'PAGE_SIZE')].join(', ');
+  const vm = [
+    `package ${pkg}`,
+    '',
+    ...(pg && p.size ? [`private const val PAGE_SIZE = ${PAGE_SIZE}`, ''] : []),
+    `data class ${stateName}(`,
+    `    val items: List<${item}> = emptyList(),`,
+    '    val loading: Boolean = false,',
+    '    val error: String? = null,',
+    ...(pg ? ['    val hasMore: Boolean = true,'] : []),
+    ...(searchable ? ['    val query: String = "",'] : []),
+    ')',
+    '',
+    ...inj.header,
+    ...params.map((x) => `    private val ${x}: String = checkNotNull(savedStateHandle["${x}"])`),
+    ...(params.length ? [''] : []),
+    `    private val _state = MutableStateFlow(${stateName}())`,
+    `    val state: StateFlow<${stateName}> = _state.asStateFlow()`,
+    ...(pg && p.page!.mode === 'page' ? ['    private var page = 0'] : []),
+    '    private var job: Job? = null',
+    ...(p.search ? ['    private var searchJob: Job? = null'] : []),
+    '',
+    '    init {',
+    `        load(${pg ? 'reset = true' : ''})`,
+    '    }',
+    '',
+    `    /** Loads ${pg ? 'the first page again (reset) or the next one' : 'the list'}. */`,
+    `    fun load(${pg ? 'reset: Boolean = false' : ''}) {`,
+    ...(pg ? ['        val now = _state.value', '        if (!reset && (now.loading || !now.hasMore)) return'] : []),
+    '        job?.cancel()',
+    '        job = viewModelScope.launch {',
+    '            _state.update { it.copy(loading = true, error = null) }',
+    '            try {',
+    ...(pg ? [`                val next = if (reset) ${first} else ${p.page!.mode === 'offset' ? '_state.value.items.size' : 'page + 1'}`] : []),
+    `                val rows = api.${a.ep.name}(${call})`,
+    ...(pg && p.page!.mode === 'page' ? ['                page = next'] : []),
+    pg
+      ? `                _state.update { it.copy(items = if (reset) rows else it.items + rows, hasMore = ${p.size ? 'rows.size == PAGE_SIZE' : 'rows.isNotEmpty()'}, loading = false) }`
+      : '                _state.update { it.copy(items = rows, loading = false) }',
+    '            } catch (e: CancellationException) {',
+    '                throw e',
+    '            } catch (e: Exception) {',
+    '                _state.update { it.copy(loading = false, error = e.message ?: "Something went wrong") }',
+    '            }',
+    '        }',
+    '    }',
+    ...(p.search
+      ? ['', '    /** Searches after a short pause in typing. */', '    fun search(text: String) {', '        _state.update { it.copy(query = text) }', '        searchJob?.cancel()', '        searchJob = viewModelScope.launch {', '            delay(400)', `            load(${pg ? 'reset = true' : ''})`, '        }', '    }']
+      : p.clientSearch
+        ? ['', '    fun search(text: String) {', '        _state.update { it.copy(query = text) }', '    }']
+        : []),
+    ...inj.companion,
+    '}',
+    '',
+  ].join('\n');
+  return addKotlinImports(vm, ['androidx.lifecycle.ViewModel', 'androidx.lifecycle.viewModelScope', 'kotlinx.coroutines.CancellationException', 'kotlinx.coroutines.Job', 'kotlinx.coroutines.flow.MutableStateFlow', 'kotlinx.coroutines.flow.StateFlow', 'kotlinx.coroutines.flow.asStateFlow', 'kotlinx.coroutines.flow.update', 'kotlinx.coroutines.launch', ...(p.search ? ['kotlinx.coroutines.delay'] : []), a.ifaceClass, ...modelImports, ...inj.imports], pkg);
 }
 
 /** The ViewModel of a data screen (Compose and Views share it): loads the endpoint into StateFlow<UiState<T>>. */

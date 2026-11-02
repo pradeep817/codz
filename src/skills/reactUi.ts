@@ -20,6 +20,7 @@ import { camel, kebab, pascal, words } from '../input/naming.ts';
 import { findDeclaration } from './apiEdit.ts';
 import { responseShape, titleField } from './screen.ts';
 import { reactPrefill } from './prefill.ts';
+import { detectPaging, pagingSummary, pagingWarnings, tsPagedLogic, tsPagingArgs, tsPagingParams } from './paging.ts';
 
 interface Opts {
   name: string;
@@ -28,6 +29,8 @@ interface Opts {
   form?: boolean;
   initial?: boolean;
   load?: string;
+  paginate?: boolean;
+  search?: boolean;
 }
 
 const IDENT = /^[A-Za-z_$][\w$]*$/;
@@ -134,6 +137,12 @@ export function planReactRoute(root: string, map: ProjectMap, opts: Opts): Chang
   return finish(root, 'route add', p, page, map, opts, [`Create ${p.file}: ${n.component}`], []);
 }
 
+/** The installed TanStack Query major version (5 when it cannot be read). */
+export function queryMajor(root: string): number {
+  const pkg = readText(join(root, 'package.json')) ?? '';
+  return Number(/"@tanstack\/react-query"\s*:\s*"[^\d]*(\d+)/.exec(pkg)?.[1] ?? 5);
+}
+
 function findEp(map: ProjectMap, name: string): EndpointInfo {
   const ep = map.endpoints.find((e) => e.name === name) ?? map.endpoints.find((e) => e.name.toLowerCase() === name.toLowerCase());
   if (!ep) throw new ToolError('no_endpoint', `No endpoint called ${name} was found.`, map.endpoints.length ? `Endpoints: ${map.endpoints.map((e) => e.name).join(', ')}` : 'Add one first with: codz api add');
@@ -184,6 +193,54 @@ export function planReactScreen(root: string, map: ProjectMap, opts: Opts): Chan
   const c = map.conventions;
   const T = shape.raw || 'unknown';
   const access = (v: string, f: string) => (IDENT.test(f) ? `${v}.${f}` : `${v}['${f}']`);
+  if (opts.paginate || opts.search) {
+    if (!shape.list) throw new ToolError('screen_not_list', `${ep.name}() returns one ${T}, not a list; --paginate and --search are for list screens.`);
+    const ps = splitTsParams(decl!.params);
+    const paging = detectPaging(tsPagingParams(ps), { paginate: opts.paginate, search: opts.search, modelStringFields: (shape.model?.fields ?? []).filter((f) => f.type === 'string').map((f) => f.name), titleField: tf });
+    const routeArgs = new Map(ps.filter((x) => params.includes(x.name)).map((x) => [x.name, /^number$/.test(x.type) ? `Number(${x.name})` : x.name]));
+    const item = shape.model?.name ?? T.replace(/\[\]$/, '');
+    const logic = tsPagedLogic(paging, { T: item, call: (v) => `${ep.name}(${tsPagingArgs(ps, paging, routeArgs, v)})`, key: kebab(ep.name), deps: params, reactQuery: c.dataFetching === 'react-query' && queryMajor(root) >= 5, refresh: false, hasMore: true, access });
+    const searchable = paging.search || paging.clientSearch;
+    const pagedPage = [
+      ...(logic.imports.react.length ? [`import { ${logic.imports.react.sort().join(', ')} } from 'react';`] : []),
+      ...(logic.imports.query.length ? [`import { ${logic.imports.query.join(', ')} } from '@tanstack/react-query';`] : []),
+      ...pc.imports,
+      `import { ${ep.name} } from '${apiImport(root, map, p.file, ep)}';`,
+      ...(shape.model ? [`import type { ${shape.model.name} } from '${importPath(p.file, shape.model.file, c).replace(/\.tsx?$/, '')}';`] : []),
+      '',
+      ...logic.top,
+      `export default function ${n.component}() {`,
+      ...pc.lines,
+      ...logic.body,
+      '',
+      '  return (',
+      '    <main>',
+      `      <h1>${n.title}</h1>`,
+      ...(searchable ? ['      <input type="search" placeholder="Search" aria-label="Search" value={query} onChange={(e) => setQuery(e.target.value)} />'] : []),
+      '      {error ? (',
+      '        <div role="alert">',
+      '          <p>{error instanceof Error ? error.message : String(error)}</p>',
+      '          <button type="button" onClick={() => retry()}>Retry</button>',
+      '        </div>',
+      '      ) : null}',
+      '      {shown.length === 0 ? (',
+      `        loading || error ? null : <p>${searchable ? `{query.trim() ? 'No matches.' : 'Nothing here yet.'}` : 'Nothing here yet.'}</p>`,
+      '      ) : (',
+      '        <ul>',
+      `          {shown.map((${idf ? 'item' : 'item, index'}) => (`,
+      `            <li key={${idf ? `String(${access('item', idf)})` : 'index'}}>{${tf ? `String(${access('item', tf)})` : 'JSON.stringify(item)'}}</li>`,
+      '          ))}',
+      '        </ul>',
+      '      )}',
+      '      {loading ? <p>Loading…</p> : null}',
+      ...(paging.paginate ? ['      {hasMore && !loading && !error ? (', '        <button type="button" onClick={loadMore}>Load more</button>', '      ) : null}'] : []),
+      '    </main>',
+      '  );',
+      '}',
+      '',
+    ].join('\n');
+    return finish(root, 'screen add', p, pagedPage, map, opts, [`Create ${p.file}: ${n.component} lists ${ep.name}() and ${pagingSummary(paging, 'button')}`], pagingWarnings(paging));
+  }
   const view = shape.list
     ? [
         '      {data.length === 0 ? (',

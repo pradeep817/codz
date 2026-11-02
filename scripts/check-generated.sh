@@ -26,6 +26,16 @@ dtq() {
   fi
 }
 
+# Paged and searchable lists: page + limit + server search, offset paging, and search over loaded items.
+paged_screens() {
+  (cd "$1" && dtq api add --url 'https://api.example.com/catalog?page=1&limit=20&q=lamp' --sample "$IN/products.json" --name listCatalog "${FLAGS[@]}")
+  (cd "$1" && dtq api add --url 'https://api.example.com/feed?offset=0' --sample "$IN/products.json" --name listFeed "${FLAGS[@]}")
+  (cd "$1" && dtq screen add catalog --api listCatalog --paginate --search "${FLAGS[@]}")
+  (cd "$1" && dtq screen add feed --api listFeed --paginate "${FLAGS[@]}")
+  (cd "$1" && dtq api add --url 'https://api.example.com/shelf' --sample "$IN/products.json" --name listShelf "${FLAGS[@]}")
+  (cd "$1" && dtq screen add shelf --api listShelf --search "${FLAGS[@]}")
+}
+
 echo "Working in $WORK"
 
 if command -v flutter >/dev/null 2>&1; then
@@ -79,6 +89,7 @@ if command -v flutter >/dev/null 2>&1; then
     (cd "$d" && dtq route add settings "${FLAGS[@]}")
     (cd "$d" && dtq route add order-details --path /orders/:id "${FLAGS[@]}")
     (cd "$d" && dtq screen add people --api fetchUsers "${FLAGS[@]}")
+    paged_screens "$d"
     (cd "$d" && dtq api import "$IN/shop.har" --base-url https://api.shop.dev --skip-conflicts "${FLAGS[@]}")
     (cd "$d" && dtq doctor --fix "${FLAGS[@]}")
     echo "→ $(basename "$d"): pub get, analyze"
@@ -95,6 +106,7 @@ if command -v flutter >/dev/null 2>&1; then
   (cd "$d" && dtq api rename getTasks fetchTasks "${FLAGS[@]}")
   (cd "$d" && dtq screen add task-details --api getTask --path /tasks/:id "${FLAGS[@]}")
   (cd "$d" && dtq screen add members --api getProjectMembers --path /projects/:projectId/members "${FLAGS[@]}")
+  paged_screens "$d"
   (cd "$d" && dtq mock add --all "${FLAGS[@]}")
   (cd "$d" && dtq test add --all "${FLAGS[@]}")
   echo "→ $(basename "$d"): pub get, analyze"
@@ -169,6 +181,7 @@ declare namespace JSX {
   interface Element {}
 }
 declare namespace React { type ReactNode = unknown }
+declare module 'next/link' { const Link: (props: { href: string; children?: unknown; [prop: string]: unknown }) => JSX.Element; export default Link; }
 declare module 'react' {
   export function useState<T>(initial: T): [T, (next: T | ((prev: T) => T)) => void];
   export type FormEvent<T = unknown> = { preventDefault(): void; currentTarget: T };
@@ -201,6 +214,7 @@ d="$WORK/next-pages"; cp -R "$ROOT/fixtures/nextjs-helper" "$d"
 (cd "$d" && dtq api sync "$IN/shop-openapi.yaml" --add "${FLAGS[@]}")
 (cd "$d" && dtq screen add new-user --api createUser --form "${FLAGS[@]}")
 (cd "$d" && dtq screen add edit-user --api updateUser --path /users/:id/edit --form "${FLAGS[@]}")
+paged_screens "$d"
 (cd "$d" && dtq test add --all "${FLAGS[@]}")
 printf 'declare const process: { env: Record<string, string | undefined> };\n' > "$d/env.d.ts"
 write_shims "$d"
@@ -271,6 +285,7 @@ done
 
 # React Native: codz create (Expo and CLI, every architecture), then endpoints,
 # screens, a form, a route, mocks, tests and the theme, type-checked with stand-in
+
 # types for react-native, React Navigation, TanStack Query, axios and Jest.
 write_rn_shims() {
   cat > "$1/rn-shim.d.ts" <<'SHIM'
@@ -280,6 +295,7 @@ declare module 'react' {
   export function useState<T>(initial: T): [T, (next: T | ((prev: T) => T)) => void];
   export function useEffect(fn: () => void | (() => void), deps?: unknown[]): void;
   export function useCallback<T extends (...a: any[]) => any>(fn: T, deps: unknown[]): T;
+  export function useRef<T>(initial: T): { current: T };
 }
 declare module 'react-native' {
   type C = (props: any) => JSX.Element;
@@ -301,7 +317,8 @@ declare module 'expo' { export function registerRootComponent(c: unknown): void;
 declare module '@tanstack/react-query' {
   export class QueryClient {}
   export const QueryClientProvider: (props: any) => JSX.Element;
-  export function useQuery<T>(o: { queryKey: unknown[]; queryFn: () => Promise<T> }): { data: T | undefined; isLoading: boolean; isRefetching: boolean; error: unknown; refetch: () => Promise<unknown> };
+  export function useQuery<T>(o: { queryKey: unknown[]; queryFn: () => Promise<T> }): { data: T | undefined; isLoading: boolean; isFetching: boolean; isRefetching: boolean; error: unknown; refetch: () => Promise<unknown> };
+  export function useInfiniteQuery<T, P>(o: { queryKey: unknown[]; queryFn: (ctx: { pageParam: P }) => Promise<T>; initialPageParam: P; getNextPageParam: (last: T, all: T[]) => P | undefined }): { data: { pages: T[] } | undefined; error: unknown; isLoading: boolean; isFetching: boolean; isFetchingNextPage: boolean; hasNextPage: boolean; fetchNextPage: () => Promise<unknown>; refetch: () => Promise<unknown> };
   export function useMutation<T, V = void>(o: { mutationFn: (v: V) => Promise<T>; onSuccess?: () => unknown }): { mutate(v: V): void };
   export function useQueryClient(): { invalidateQueries(o: { queryKey: unknown[] }): Promise<void> };
 }
@@ -343,6 +360,7 @@ for flavor in expo bare; do
     (cd "$d" && dtq screen add products --api getProducts "${FLAGS[@]}")
     (cd "$d" && dtq screen add user --api getUser --path /users/:id "${FLAGS[@]}")
     (cd "$d" && dtq screen add new-order --api createOrder --form "${FLAGS[@]}")
+    paged_screens "$d"
     (cd "$d" && dtq route add settings "${FLAGS[@]}")
     (cd "$d" && dtq mock add --all "${FLAGS[@]}")
     (cd "$d" && dtq test add --all "${FLAGS[@]}")
