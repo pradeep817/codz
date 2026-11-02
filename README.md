@@ -265,6 +265,21 @@ codz api diff old.yaml new.yaml --fail-on warning                    # exit 1 on
 
 Breaking: an operation removed, a response field removed or retyped, a new path parameter, a new required request field. Warning: a response field that can now be null, a removed query parameter, a retyped request field. Added operations, response fields and optional request fields are listed as additions. Inside a project each change names the endpoint function and the files and lines that use it (its callers, the screens, the model); outside a project it compares the two files only. Nothing is written except the `--report` file.
 
+### Typed asset names: codz assets
+
+```bash
+codz assets      # run again after adding or removing files
+```
+
+| Project | What it writes | Use |
+| --- | --- | --- |
+| Flutter | `lib/gen/assets.dart` with a class per folder under `assets/` (`AppImages`, `AppIcons`, `AppFonts`), and every asset folder and font family in `pubspec.yaml` | `Image.asset(AppImages.logo)` |
+| React Native | `src/assets/index.ts` with a `require()` for each file | `<Image source={images.logo} />` |
+| Next.js, Vite | `lib/assets.ts` / `src/assets.ts`: paths for `public/`, imports for Vite's `src/assets` | `<img src={publicFiles.logo} />` |
+| Android, iOS | Nothing: `R.drawable.logo` and `Image(.logo)` are already typed. codz checks resource names that would break the build | |
+
+A typo in an asset path becomes a compile error instead of a blank image. Flutter resolution folders (`2.0x/`) are left to Flutter, font weights and italics come from the file names (`Inter-BoldItalic.ttf`), and assets that no code uses are listed so you can delete them.
+
 ### API environments: env add
 
 ```bash

@@ -26,6 +26,9 @@ dtq() {
   fi
 }
 
+# Tiny stand-in asset files (a PNG header is enough for the tools that list them).
+fake_assets() { for f in "$@"; do mkdir -p "$(dirname "$f")"; printf '\x89PNG\r\n\x1a\n' > "$f"; done; }
+
 # Paged and searchable lists: page + limit + server search, offset paging, and search over loaded items.
 paged_screens() {
   (cd "$1" && dtq api add --url 'https://api.example.com/catalog?page=1&limit=20&q=lamp' --sample "$IN/products.json" --name listCatalog "${FLAGS[@]}")
@@ -123,6 +126,7 @@ if command -v flutter >/dev/null 2>&1; then
   (cd "$d" && dtq api sync "$IN/shop-openapi.yaml" --add "${FLAGS[@]}")
   (cd "$d" && dtq screen add new-user --api createUser --form "${FLAGS[@]}")
   (cd "$d" && dtq locale extract "${FLAGS[@]}")
+  (cd "$d" && fake_assets assets/images/logo.png assets/icons/cart.png assets/fonts/Inter-Regular.ttf && dtq assets "${FLAGS[@]}")
   echo "→ $(basename "$d"): pub get, gen-l10n, analyze"
   (cd "$d" && tmo flutter pub get >/dev/null && flutter gen-l10n >/dev/null && dart analyze lib) && echo "✓ flutter-riverpod + go_router route, theme, ARB key, locale extract: dart analyze clean" || { echo "✗ flutter-riverpod session"; status=1; }
 else
@@ -296,6 +300,7 @@ write_rn_shims() {
   cat > "$1/rn-shim.d.ts" <<'SHIM'
 declare namespace JSX { interface IntrinsicElements { [name: string]: any } interface Element {} interface ElementChildrenAttribute { children: {} } }
 declare const process: { env: Record<string, string | undefined> };
+declare function require(path: string): any;
 declare module 'react' {
   export function useState<T>(initial: T): [T, (next: T | ((prev: T) => T)) => void];
   export function useEffect(fn: () => void | (() => void), deps?: unknown[]): void;
@@ -366,6 +371,7 @@ for flavor in expo bare; do
     (cd "$d" && dtq screen add user --api getUser --path /users/:id "${FLAGS[@]}")
     (cd "$d" && dtq screen add new-order --api createOrder --form "${FLAGS[@]}")
     paged_screens "$d"
+    (cd "$d" && fake_assets src/assets/images/logo.png src/assets/images/hero-banner.png && dtq assets "${FLAGS[@]}")
     (cd "$d" && dtq route add settings "${FLAGS[@]}")
     (cd "$d" && dtq mock add --all "${FLAGS[@]}")
     (cd "$d" && dtq test add --all "${FLAGS[@]}")

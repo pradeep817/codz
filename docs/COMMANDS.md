@@ -1,6 +1,6 @@
 # codz commands
 
-Generated from `src/core/commands.ts` (codz 0.1.7). Do not edit by hand; run `npm run docs`.
+Generated from `src/core/commands.ts` (codz 0.1.8). Do not edit by hand; run `npm run docs`.
 
 ## Start
 
@@ -252,6 +252,16 @@ Next.js: Vitest or Jest. React Native: Jest. Flutter: flutter_test with a fake D
 Accepts the change options.
 
 ## Screens and app
+
+### `codz assets`
+
+Typed names for images, icons and fonts, kept in step with the files; lists unused ones.
+
+Flutter: lib/gen/assets.dart (AppImages.logo, AppFonts.inter) and every asset folder and font family in pubspec.yaml. React Native: src/assets/index.ts with require() for each file. Next.js and Vite: paths for public/ (and imports for src/assets in Vite). Android and iOS already have typed resources; codz checks names and lists unused drawables.
+
+Run it again after adding or removing files.
+
+Accepts the change options.
 
 ### `codz env add <name> --base-url <url>`
 

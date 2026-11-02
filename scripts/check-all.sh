@@ -119,6 +119,8 @@ react_fresh() {
   dt screen add order-tracking --api getOrderTracking --path /orders/:orderId/tracking
   paged orders
   dt env add staging --base-url https://staging.example.com
+  mkdir -p src/assets public/images && printf '<svg xmlns="http://www.w3.org/2000/svg"/>' > src/assets/mark.svg && printf '<svg xmlns="http://www.w3.org/2000/svg"/>' > public/images/logo.svg
+  dt assets
   npm install --no-audit --no-fund --legacy-peer-deps
   npm install --no-audit --no-fund --legacy-peer-deps -D vitest@2
   npx tsc --noEmit -p tsconfig.json

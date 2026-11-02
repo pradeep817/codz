@@ -28,6 +28,7 @@ import { planFieldAdd, planFieldRemove } from './skills/field.ts';
 import { normalizeModelDir, parseJsonText, planModel } from './skills/model.ts';
 import { listEnvs, planEnvAdd, planEnvUse } from './skills/env.ts';
 import { planLocaleExtract } from './skills/localeExtract.ts';
+import { planAssets } from './skills/assets.ts';
 import { planMockAdd } from './skills/mock.ts';
 import { planLocaleAdd, planLocaleKey } from './skills/locale.ts';
 import { planThemeSet } from './skills/theme.ts';
@@ -767,6 +768,8 @@ async function run(args: Args, out: Out): Promise<number> {
       out.result({ map, supportedSetup: adapter.supportedSetup });
       return 0;
     }
+    case 'assets':
+      return handleChange(root, out, flags, await planAssets(root, adapter), adapter);
     case 'env': {
       if (sub === 'list') {
         const envs = await listEnvs(root, adapter);
