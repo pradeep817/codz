@@ -34,6 +34,7 @@ for arch in retrofit-hilt retrofit-koin retrofit; do
   run screen add catalog --api listCatalog --paginate --search
   run screen add feed --api listFeed --paginate --search
   run env add staging --base-url https://staging.example.com/v1
+  run locale extract
   run route add settings --path /settings/:section
   run test add --all
   run theme set primary '#0F766E' radius 12

@@ -333,6 +333,26 @@ codz locale key cart.empty "Your cart is empty" --value hi="आपकी का�
 
 Works with JSON message files (next-intl, i18next; `cart.empty` becomes a nested key), Flutter ARB files (keys become identifiers like `cartEmpty`, `{name}` placeholders get metadata) and GetX `Translations`. A GetX project without translations gets `lib/app/translations/app_translations.dart`, wired into `GetMaterialApp` with `translations:`, `locale:` and `fallbackLocale:`. Languages without a `--value` get the default text and are listed by `codz doctor` as untranslated. Only the changed keys are touched; the rest of each file keeps its formatting.
 
+
+#### Moving screen text into the locale files: locale extract
+
+```bash
+codz locale extract                                   # every screen
+codz locale extract lib/features/cart/cart_page.dart  # one file
+```
+
+Finds the text users see and replaces it with the project's lookup, in one previewed change:
+
+| Project | Before | After |
+| --- | --- | --- |
+| Flutter (ARB) | `Text('Nothing here yet')` | `Text(AppLocalizations.of(context)!.productsNothingHereYet)` |
+| Flutter (GetX) | `Text('Nothing here yet')` | `Text('products.nothingHereYet'.tr)` |
+| next-intl | `<p>Nothing here yet</p>` | `<p>{t('products.nothingHereYet')}</p>` with `useTranslations()` or `await getTranslations()` |
+| react-i18next | `placeholder="Search"` | `placeholder={t('products.search')}` with `useTranslation()` |
+| Compose | `Text("Nothing here yet")` | `Text(stringResource(R.string.products_nothing_here_yet))` and `strings.xml` |
+
+It looks at `Text(...)` and hint, label and tooltip text in Flutter, JSX text and `placeholder`, `title`, `alt`, `aria-label` in React, and `Text("...")` in Compose. Values in the text become placeholders (`'Hello $name'` → `greetingHello(name)`, `trParams`, or `%1$s`). Keys are named after the screen; text used on several screens goes under `common`, and text that already has a key reuses it. Text in conditions or built in code is left alone. In Flutter it removes `const` where the text is no longer constant, and the first time it wires `AppLocalizations` into `MaterialApp` (with `l10n.yaml` and `flutter_localizations`). SwiftUI needs none of this: Xcode collects `Text("...")` into a String Catalog by itself.
+
 ### Theme
 
 ```bash

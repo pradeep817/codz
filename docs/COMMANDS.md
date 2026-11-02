@@ -381,6 +381,16 @@ Add a language: copies every key from the default one.
 
 Accepts the change options.
 
+### `codz locale extract [files...]`
+
+Move the text in screens into the locale files and read it back.
+
+Finds Text(...) and hint, label and tooltip text (Flutter), JSX text and placeholder, title, alt and aria-label (React, Next.js, React Native), and Text("...") in Compose. Writes AppLocalizations.of(context)!.key (ARB, wiring it into MaterialApp the first time), 'key'.tr (GetX), t('key') with next-intl or react-i18next, or stringResource(R.string.key) with strings.xml.
+
+Keys are named after the screen (products.nothingHereYet); text in several screens goes under common, and text that already has a key reuses it. Without files, every screen.
+
+Accepts the change options.
+
 ### `codz locale key <key> "<text>" [--value hi="..."]`
 
 Add a text key to every language file.

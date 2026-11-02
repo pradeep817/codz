@@ -27,6 +27,7 @@ import { planApiRemove, planApiRename, planApiUpdate } from './skills/apiEdit.ts
 import { planFieldAdd, planFieldRemove } from './skills/field.ts';
 import { normalizeModelDir, parseJsonText, planModel } from './skills/model.ts';
 import { listEnvs, planEnvAdd, planEnvUse } from './skills/env.ts';
+import { planLocaleExtract } from './skills/localeExtract.ts';
 import { planMockAdd } from './skills/mock.ts';
 import { planLocaleAdd, planLocaleKey } from './skills/locale.ts';
 import { planThemeSet } from './skills/theme.ts';
@@ -823,6 +824,7 @@ async function run(args: Args, out: Out): Promise<number> {
         const cs = await planLocaleAdd(root, adapter, lang, { from: typeof flags.from === 'string' ? flags.from : undefined });
         return handleChange(root, out, flags, cs, adapter);
       }
+      if (sub === 'extract') return handleChange(root, out, flags, await planLocaleExtract(root, adapter, positional.slice(2)), adapter);
       if (sub === 'key') {
         const key = positional[2];
         const text = positional.slice(3).join(' ');

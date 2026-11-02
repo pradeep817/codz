@@ -237,12 +237,21 @@ export async function planLocaleAdd(root: string, adapter: Adapter, lang: string
 
 // ---------------- locale key ----------------
 
-export async function planLocaleKey(root: string, adapter: Adapter, key: string, text: string, opts: { values?: Map<string, string>; force?: boolean } = {}): Promise<ChangeSet> {
+export async function planLocaleKey(root: string, adapter: Adapter, key: string, text: string, opts: { values?: Map<string, string>; force?: boolean; overlay?: Map<string, string> } = {}): Promise<ChangeSet> {
   const { map } = await loadMap(root, adapter, loadConfig(root).conventions);
+  const r = await localeKeyFiles(root, adapter, map, key, text, opts);
+  return buildChangeSet(root, 'locale key', { files: r.files, summary: r.summary, warnings: r.warnings, generated: [] });
+}
+
+/** The locale file edits for one key; `overlay` holds files already changed in this plan (locale extract adds many keys). */
+export async function localeKeyFiles(root: string, adapter: Adapter, map: ProjectMap, key: string, text: string, opts: { values?: Map<string, string>; force?: boolean; overlay?: Map<string, string> } = {}): Promise<{ files: Map<string, string>; summary: string[]; warnings: string[]; key: string }> {
+  const read = (f: string) => opts.overlay?.get(f) ?? readText(join(root, f));
   const files = new Map<string, string>();
   const summary: string[] = [];
   const warnings: string[] = [];
   let set = readLocales(root, map);
+  const plannedGetx = [...(opts.overlay?.keys() ?? [])].find((f) => f.endsWith('app_translations.dart'));
+  if (!set && plannedGetx) set = { kind: 'getx', defaultLang: 'en', files: new Map([['en', plannedGetx]]), keys: new Map([['en', new Map()]]), translationsFile: plannedGetx };
   if (!set) {
     if (adapter.id === 'flutter' && (map.conventions.stateManagement === 'getx' || map.conventions.di === 'getx')) {
       createGetxTranslations(root, map, ['en'], files, summary, warnings);
@@ -275,7 +284,7 @@ export async function planLocaleKey(root: string, adapter: Adapter, key: string,
   if (set.kind === 'json' || set.kind === 'arb') {
     const placeholders = [...text.matchAll(/\{(\w+)\}/g)].map((m) => m[1]);
     for (const [lang, file] of set.files) {
-      const raw = readText(join(root, file))!;
+      const raw = read(file)!;
       let next: string;
       if (set.kind === 'arb') {
         next = jsonSet(raw, [finalKey], valueFor(lang));
@@ -288,11 +297,11 @@ export async function planLocaleKey(root: string, adapter: Adapter, key: string,
     }
   } else {
     // GetX: one map per language, maybe in different files.
-    const pending = new Map<string, string>(files);
+    const pending = new Map<string, string>([...(opts.overlay ?? []), ...files]);
     const byFile = new Map<string, { lang: string; open: number; close: number }[]>();
     for (const [lang, file] of set.files) {
       const t = pending.get(file) ?? readText(join(root, file))!;
-      const blocks = file === set.translationsFile && pending.has(file) ? getxBlocksFromText(t, file) : getxBlocks(root, set.translationsFile!).filter((b) => b.file === file);
+      const blocks = pending.has(file) ? getxBlocksFromText(t, file) : getxBlocks(root, set.translationsFile!).filter((b) => b.file === file);
       const b = blocks.find((x) => x.lang === lang);
       if (b) byFile.set(file, [...(byFile.get(file) ?? []), { lang, open: b.open, close: b.close }]);
     }
@@ -319,7 +328,7 @@ export async function planLocaleKey(root: string, adapter: Adapter, key: string,
     summary.push(`Use it in a widget: Text('${finalKey}'.tr)`);
   }
   if (untranslated.length) warnings.push(`${finalKey} uses the ${set.defaultLang} text for ${untranslated.join(', ')}; translate it there, or pass --value ${untranslated[0]}="...".`);
-  return buildChangeSet(root, 'locale key', { files, summary, warnings, generated: [] });
+  return { files, summary, warnings, key: finalKey };
 }
 
 function getxBlocksFromText(t: string, file: string): { lang: string; open: number; close: number }[] {

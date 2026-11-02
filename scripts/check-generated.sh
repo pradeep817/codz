@@ -91,6 +91,7 @@ if command -v flutter >/dev/null 2>&1; then
     (cd "$d" && dtq route add order-details --path /orders/:id "${FLAGS[@]}")
     (cd "$d" && dtq screen add people --api fetchUsers "${FLAGS[@]}")
     paged_screens "$d"
+    if [ "$arch" = getx ]; then (cd "$d" && dtq locale extract "${FLAGS[@]}"); fi
     (cd "$d" && dtq api import "$IN/shop.har" --base-url https://api.shop.dev --skip-conflicts "${FLAGS[@]}")
     (cd "$d" && dtq doctor --fix "${FLAGS[@]}")
     echo "→ $(basename "$d"): pub get, analyze"
@@ -121,8 +122,9 @@ if command -v flutter >/dev/null 2>&1; then
   (cd "$d" && dtq screen add user-details --api getUser --path /users/:id "${FLAGS[@]}")
   (cd "$d" && dtq api sync "$IN/shop-openapi.yaml" --add "${FLAGS[@]}")
   (cd "$d" && dtq screen add new-user --api createUser --form "${FLAGS[@]}")
-  echo "→ $(basename "$d"): pub get, analyze"
-  (cd "$d" && tmo flutter pub get >/dev/null && dart analyze lib) && echo "✓ flutter-riverpod + go_router route, theme, ARB key: dart analyze clean" || { echo "✗ flutter-riverpod session"; status=1; }
+  (cd "$d" && dtq locale extract "${FLAGS[@]}")
+  echo "→ $(basename "$d"): pub get, gen-l10n, analyze"
+  (cd "$d" && tmo flutter pub get >/dev/null && flutter gen-l10n >/dev/null && dart analyze lib) && echo "✓ flutter-riverpod + go_router route, theme, ARB key, locale extract: dart analyze clean" || { echo "✗ flutter-riverpod session"; status=1; }
 else
   echo "- Flutter SDK not found; skipping the Dart checks"
 fi
@@ -198,6 +200,7 @@ declare module 'vitest' {
 }
 SHIM
   printf "declare module 'next/navigation' {\n  export function useParams<T>(): T;\n  export function useRouter(): { push(href: string): void };\n}\n" > "$1/next-shim.d.ts"
+  printf "declare module 'next-intl' {\n  export function useTranslations(namespace?: string): (key: string, values?: Record<string, unknown>) => string;\n}\ndeclare module 'next-intl/server' {\n  export function getTranslations(namespace?: string): Promise<(key: string, values?: Record<string, unknown>) => string>;\n}\n" >> "$1/next-shim.d.ts"
   printf "declare module 'next/link' {\n  const Link: (props: { href: string; children?: unknown; [prop: string]: unknown }) => any;\n  export default Link;\n}\n" >> "$1/next-shim.d.ts"
 }
 TYPES="$WORK/tsx-types"; mkdir -p "$TYPES"
@@ -216,6 +219,7 @@ d="$WORK/next-pages"; cp -R "$ROOT/fixtures/nextjs-helper" "$d"
 (cd "$d" && dtq screen add new-user --api createUser --form "${FLAGS[@]}")
 (cd "$d" && dtq screen add edit-user --api updateUser --path /users/:id/edit --form "${FLAGS[@]}")
 paged_screens "$d"
+(cd "$d" && dtq locale extract "${FLAGS[@]}")
 (cd "$d" && dtq test add --all "${FLAGS[@]}")
 printf 'declare const process: { env: Record<string, string | undefined> };\n' > "$d/env.d.ts"
 write_shims "$d"
