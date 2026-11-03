@@ -10,6 +10,8 @@
 
 import { join, posix } from 'node:path';
 import { readMethod } from '../adapters/getx.ts';
+import { addKotlinImports } from '../adapters/kotlinGen.ts';
+import { converter, ensureAndroidTestLibs } from './androidTests.ts';
 import { readText } from '../core/fsutil.ts';
 import type { EndpointInfo, ModelInfo, ProjectMap } from '../core/types.ts';
 import { camel } from '../input/naming.ts';
@@ -31,6 +33,9 @@ export interface ScreenTest {
   text: string;
   summary: string;
   warnings: string[];
+  /** Other files the test needs changed (build files for test libraries). */
+  extra?: Map<string, string>;
+  extraSummary?: string[];
 }
 
 /** What the first item shows: the title field's value as text, if there is one. */
@@ -155,3 +160,133 @@ export function flutterScreenTest(root: string, map: ProjectMap, input: ScreenTe
 }
 
 export const screenTestPath = (screenFile: string) => `test/${posix.normalize(screenFile).replace(/^lib\//, '').replace(/\.dart$/, '_test.dart')}`;
+
+// ---------- Android: the ViewModel ----------
+
+/**
+ * A JVM test for the ViewModel of an Android screen (Compose or Views): the real
+ * Retrofit interface on a MockWebServer, the ViewModel made with it (and a
+ * SavedStateHandle with the route parameters), and its states after a good and
+ * a failed answer.
+ */
+export function androidScreenTest(root: string, map: ProjectMap, input: ScreenTestInput): ScreenTest | { skip: string } {
+  const c = map.conventions;
+  const read = (f: string) => input.files.get(f) ?? readText(join(root, f));
+  const vmEntry = [...input.files].find(([f, t]) => f.endsWith('ViewModel.kt') && readText(join(root, f)) === null && /:\s*ViewModel\(\)/.test(t));
+  if (!vmEntry) return { skip: 'no ViewModel in the change' };
+  const [vmFile, vmText] = vmEntry;
+  const vm = /class\s+(\w+)/.exec(vmText.replace(/^data class .*$/gm, ''))?.[1];
+  const pkg = /^package\s+([\w.]+)/m.exec(vmText)?.[1];
+  if (!vm || !pkg) return { skip: 'could not read the ViewModel' };
+  const apiText = read(input.ep.file) ?? '';
+  const iface = /\binterface\s+(\w+)/.exec(apiText)?.[1];
+  const apiPkg = /^package\s+([\w.]+)/m.exec(apiText)?.[1];
+  if (!iface || !apiPkg) return { skip: `could not read the Retrofit interface in ${input.ep.file}` };
+  const ret = (input.ep.response ?? '').trim();
+  const sample = exampleFor(ret, map, '');
+  if (sample === null || sample === undefined) return { skip: `no example data for ${ret || 'the response'}` };
+  const isList = Array.isArray(sample);
+  const paged = /data class \w+ListState\(/.test(vmText);
+  const handle = /savedStateHandle:\s*SavedStateHandle/.test(vmText);
+  const make = `${vm}(api${handle ? `, SavedStateHandle(mapOf(${input.params.map((p) => `"${p}" to "1"`).join(', ')}))` : ''})`;
+  const conv = converter(c.serialization || 'kotlinx');
+  const body = JSON.stringify(JSON.stringify(sample)).replace(/\$/g, '\\$');
+  const settled = paged ? '{ !it.loading && (it.items.isNotEmpty() || it.error != null) }' : '{ it !is UiState.Loading }';
+  const tests = [
+    '    @Test',
+    `    fun \`shows the data\`() = runBlocking {`,
+    `        server.enqueue(MockResponse().setHeader("Content-Type", "application/json").setBody(${body}))`,
+    `        val vm = ${make}`,
+    '',
+    `        val state = withTimeout(5_000) { vm.state.first ${settled} }`,
+    '',
+    ...(paged
+      ? ['        assertNull(state.error)', `        assertEquals(${isList ? sample.length : 1}, state.items.size)`]
+      : ['        assertTrue(state is UiState.Success)', ...(isList ? [`        assertEquals(${sample.length}, (state as UiState.Success).data.size)`] : [])]),
+    '    }',
+    '',
+    '    @Test',
+    `    fun \`shows the error when the server fails\`() = runBlocking {`,
+    '        server.enqueue(MockResponse().setResponseCode(500))',
+    `        val vm = ${make}`,
+    '',
+    `        val state = withTimeout(5_000) { vm.state.first ${settled} }`,
+    '',
+    ...(paged ? ['        assertNotNull(state.error)'] : ['        assertTrue(state is UiState.Error)']),
+    '    }',
+  ];
+  const srcDir = c.srcDir || 'app/src/main/java';
+  const testDir = srcDir.replace(/\/main\//, '/test/');
+  const file = `${testDir}/${pkg.replace(/\./g, '/')}/${vm}Test.kt`;
+  const uiState = paged ? [] : [classOfUiState(input.files, vmText, pkg)].filter((x): x is string => !!x);
+  const imports = [
+    `${apiPkg}.${iface}`,
+    ...conv.imports,
+    ...uiState,
+    ...(handle ? ['androidx.lifecycle.SavedStateHandle'] : []),
+    'kotlinx.coroutines.Dispatchers',
+    'kotlinx.coroutines.ExperimentalCoroutinesApi',
+    'kotlinx.coroutines.flow.first',
+    'kotlinx.coroutines.runBlocking',
+    'kotlinx.coroutines.test.UnconfinedTestDispatcher',
+    'kotlinx.coroutines.test.resetMain',
+    'kotlinx.coroutines.test.setMain',
+    'kotlinx.coroutines.withTimeout',
+    'okhttp3.mockwebserver.MockResponse',
+    'okhttp3.mockwebserver.MockWebServer',
+    'org.junit.After',
+    'org.junit.Assert.assertEquals',
+    'org.junit.Assert.assertNotNull',
+    'org.junit.Assert.assertNull',
+    'org.junit.Assert.assertTrue',
+    'org.junit.Before',
+    'org.junit.Test',
+    'retrofit2.Retrofit',
+  ];
+  let text = [
+    `package ${pkg}`,
+    '',
+    '@OptIn(ExperimentalCoroutinesApi::class)',
+    `class ${vm}Test {`,
+    '    private val server = MockWebServer()',
+    `    private lateinit var api: ${iface}`,
+    '',
+    '    @Before',
+    '    fun setUp() {',
+    '        Dispatchers.setMain(UnconfinedTestDispatcher())',
+    '        server.start()',
+    '        api = Retrofit.Builder()',
+    '            .baseUrl(server.url("/"))',
+    `            .addConverterFactory(${conv.expr})`,
+    '            .build()',
+    `            .create(${iface}::class.java)`,
+    '    }',
+    '',
+    '    @After',
+    '    fun tearDown() {',
+    '        server.shutdown()',
+    '        Dispatchers.resetMain()',
+    '    }',
+    '',
+    ...tests,
+    '}',
+    '',
+  ].join('\n');
+  text = addKotlinImports(text, imports, pkg);
+  const body2 = text.replace(/^import .*$/gm, '');
+  for (const [fn, imp] of [['assertEquals(', 'org.junit.Assert.assertEquals'], ['assertNotNull(', 'org.junit.Assert.assertNotNull'], ['assertNull(', 'org.junit.Assert.assertNull'], ['assertTrue(', 'org.junit.Assert.assertTrue']] as const) if (!body2.includes(fn)) text = text.replace(new RegExp(`^import ${imp.replace(/\./g, '\\.')}\\n`, 'm'), '');
+  const extra = new Map<string, string>([[file, text]]);
+  const extraSummary: string[] = [];
+  ensureAndroidTestLibs(map, (p) => extra.get(p) ?? read(p), extra, extraSummary, []);
+  extra.delete(file);
+  return { file, text, summary: `Create ${file}: ${vm} with data and after a server error`, warnings: [], extra, extraSummary };
+}
+
+/** The UiState class the ViewModel uses (its import, when it is in another package). */
+function classOfUiState(files: Map<string, string>, vmText: string, pkg: string): string | null {
+  const imp = /^import\s+([\w.]+\.UiState)$/m.exec(vmText)?.[1];
+  if (imp) return imp;
+  void files;
+  void pkg;
+  return null;
+}

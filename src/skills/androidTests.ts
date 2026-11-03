@@ -45,7 +45,7 @@ function kotlinValue(type: string, value: unknown, map: ProjectMap, indent: stri
   return String(value);
 }
 
-function converter(ser: string): { expr: string; imports: string[] } {
+export function converter(ser: string): { expr: string; imports: string[] } {
   if (ser === 'moshi') return { expr: 'MoshiConverterFactory.create(Moshi.Builder().build())', imports: ['com.squareup.moshi.Moshi', 'retrofit2.converter.moshi.MoshiConverterFactory'] };
   if (ser === 'gson') return { expr: 'GsonConverterFactory.create()', imports: ['retrofit2.converter.gson.GsonConverterFactory'] };
   return { expr: 'Json { ignoreUnknownKeys = true }.asConverterFactory("application/json".toMediaType())', imports: ['kotlinx.serialization.json.Json', 'okhttp3.MediaType.Companion.toMediaType', 'retrofit2.converter.kotlinx.serialization.asConverterFactory'] };
@@ -186,12 +186,21 @@ export function androidTests(root: string, map: ProjectMap, eps: EndpointInfo[])
     summary.unshift(`${existing ? 'Update' : 'Create'} ${testFile}`);
   }
 
-  // testImplementation dependencies.
+  ensureAndroidTestLibs(map, read, files, summary, warnings);
+  const module = c.module || 'app';
+  if (files.size) summary.push(`Run them with: ./gradlew :${module}:testDebugUnitTest`);
+  return buildChangeSet(root, 'test add', { files, summary, warnings, generated: [] });
+}
+
+/** testImplementation MockWebServer, coroutines-test and JUnit in the app module (and the version catalog). */
+export function ensureAndroidTestLibs(map: ProjectMap, read: (p: string) => string | null, files: Map<string, string>, summary: string[], warnings: string[]): void {
+  const c = map.conventions;
+  if (!files.size) return;
   const module = c.module || 'app';
   const build = [`${module}/build.gradle.kts`].find((f) => read(f) !== null);
   const catalogPath = c.versionCatalog || '';
   const catalog = catalogPath ? read(catalogPath) : null;
-  if (files.size && build) {
+  if (build) {
     let b = read(build)!;
     if (catalog !== null) {
       let t = tomlAdd(catalog, 'versions', TEST_LIBS.map((l) => [l.version, `"${l.value}"`]));
@@ -206,7 +215,5 @@ export function androidTests(root: string, map: ProjectMap, eps: EndpointInfo[])
       files.set(build, b);
       summary.push(`Update ${build}: testImplementation MockWebServer, coroutines-test, JUnit`);
     }
-  } else if (files.size) warnings.push(`Add testImplementation("com.squareup.okhttp3:mockwebserver:4.12.0"), kotlinx-coroutines-test and JUnit to your app module.`);
-  if (files.size) summary.push(`Run them with: ./gradlew :${module}:testDebugUnitTest`);
-  return buildChangeSet(root, 'test add', { files, summary, warnings, generated: [] });
+  } else warnings.push(`Add testImplementation("com.squareup.okhttp3:mockwebserver:4.12.0"), kotlinx-coroutines-test and JUnit to your app module.`);
 }
