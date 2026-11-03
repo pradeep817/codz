@@ -172,7 +172,9 @@ describe('CLI: phase 2 commands', () => {
     try {
       const r = run(['screen', 'add', 'user-profile', '--api', 'getUser', '--path', '/users/:id', '--dry-run', '--json'], { cwd: dir });
       assert.equal(r.code, 0, r.err);
-      assert.deepEqual(json(r.out).changeSet.files.map((f: { path: string }) => f.path).sort(), ['app/users/[id]/error.tsx', 'app/users/[id]/loading.tsx', 'app/users/[id]/page.tsx']);
+      assert.deepEqual(json(r.out).changeSet.files.map((f: { path: string }) => f.path).sort(), ['app/users/[id]/error.tsx', 'app/users/[id]/loading.tsx', 'app/users/[id]/page.test.tsx', 'app/users/[id]/page.tsx', 'package.json', 'vitest.config.mts']);
+      const plain = run(['screen', 'add', 'user-profile', '--api', 'getUser', '--path', '/users/:id', '--no-tests', '--dry-run', '--json'], { cwd: dir });
+      assert.deepEqual(json(plain.out).changeSet.files.map((f: { path: string }) => f.path).sort(), ['app/users/[id]/error.tsx', 'app/users/[id]/loading.tsx', 'app/users/[id]/page.tsx'], '--no-tests leaves the test out');
     } finally {
       cleanup(dir);
     }

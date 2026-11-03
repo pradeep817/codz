@@ -201,8 +201,13 @@ declare module 'vitest' {
   export function describe(name: string, fn: () => void): void;
   export function it(name: string, fn: () => Promise<void> | void): void;
   export function afterEach(fn: () => void): void;
-  export function expect(v: unknown): { toBe(x: unknown): void; toEqual(x: unknown): void; toContain(x: string): void; toBeUndefined(): void; rejects: { toThrow(): Promise<void> } };
-  export const vi: { spyOn(obj: object, method: string): Spy; restoreAllMocks(): void };
+  export function expect(v: unknown): { toBe(x: unknown): void; toEqual(x: unknown): void; toContain(x: string): void; toBeUndefined(): void; toBeTruthy(): void; toBeGreaterThan(n: number): void; rejects: { toThrow(message?: string): Promise<void> } };
+  export const vi: { spyOn(obj: object, method: string): Spy; restoreAllMocks(): void; fn(): any; mock(path: string, factory?: (importOriginal: <T>() => Promise<T>) => unknown): void };
+}
+declare module '@testing-library/react' {
+  export function render(ui: unknown): unknown;
+  export function cleanup(): void;
+  export const screen: { findByText(text: string): Promise<unknown>; findAllByText(text: string): Promise<unknown[]> };
 }
 SHIM
   printf "declare module 'next/navigation' {\n  export function useParams<T>(): T;\n  export function useRouter(): { push(href: string): void };\n}\n" > "$1/next-shim.d.ts"
@@ -327,7 +332,7 @@ declare module '@react-navigation/native-stack' {
 declare module 'expo-router' { export function useLocalSearchParams<T>(): T; export const Stack: (props: any) => JSX.Element; export const router: { push(href: string): void; back(): void }; export function useFocusEffect(fn: () => void | (() => void)): void; }
 declare module 'expo' { export function registerRootComponent(c: unknown): void; }
 declare module '@tanstack/react-query' {
-  export class QueryClient {}
+  export class QueryClient { constructor(options?: unknown); }
   export const QueryClientProvider: (props: any) => JSX.Element;
   export function useQuery<T>(o: { queryKey: unknown[]; queryFn: () => Promise<T> }): { data: T | undefined; isLoading: boolean; isFetching: boolean; isRefetching: boolean; error: unknown; refetch: () => Promise<unknown> };
   export function useInfiniteQuery<T, P>(o: { queryKey: unknown[]; queryFn: (ctx: { pageParam: P }) => Promise<T>; initialPageParam: P; getNextPageParam: (last: T, all: T[]) => P | undefined }): { data: { pages: T[] } | undefined; error: unknown; isLoading: boolean; isFetching: boolean; isFetchingNextPage: boolean; hasNextPage: boolean; fetchNextPage: () => Promise<unknown>; refetch: () => Promise<unknown> };
@@ -347,11 +352,15 @@ declare module 'axios' {
   const axios: AxiosInstance & { create(config?: object): AxiosInstance };
   export default axios;
 }
-declare const jest: { spyOn(obj: object, method: string): { mockResolvedValue(v: unknown): any; mock: { calls: any[][] } }; restoreAllMocks(): void };
+declare const jest: { spyOn(obj: object, method: string): { mockResolvedValue(v: unknown): any; mock: { calls: any[][] } }; restoreAllMocks(): void; fn(): any; mock(path: string, factory?: () => unknown): void; requireActual(path: string): object };
+declare module '@testing-library/react-native' {
+  export function render(ui: unknown): unknown;
+  export const screen: { findByText(text: string): Promise<unknown>; findAllByText(text: string): Promise<unknown[]> };
+}
 declare function describe(name: string, fn: () => void): void;
 declare function it(name: string, fn: () => Promise<void> | void): void;
 declare function afterEach(fn: () => void): void;
-declare function expect(v: unknown): { toBe(x: unknown): void; toEqual(x: unknown): void; toContain(x: string): void; toBeUndefined(): void; rejects: { toThrow(): Promise<void> } };
+declare function expect(v: unknown): { toBe(x: unknown): void; toEqual(x: unknown): void; toContain(x: string): void; toBeUndefined(): void; toBeTruthy(): void; toBeGreaterThan(n: number): void; rejects: { toThrow(message?: string): Promise<void> } };
 declare module '@jest/globals' {
   export const jest: { spyOn(obj: object, method: string): { mockResolvedValue(v: unknown): any; mock: { calls: any[][] } }; restoreAllMocks(): void };
   export function describe(name: string, fn: () => void): void;
@@ -404,6 +413,7 @@ if [ -d "$d/node_modules/next" ]; then
   (cd "$d" && dtq init --yes --no-color)
   (cd "$d" && dtq api add --url 'https://api.example.com/products' --sample "$IN/products.json" "${FLAGS[@]}")
   (cd "$d" && dtq screen add products --api getProducts "${FLAGS[@]}")
+  (cd "$d" && npm install --no-audit --no-fund >/dev/null 2>&1 || true)
   (cd "$d" && npx --no-install tsc --noEmit && NEXT_TELEMETRY_DISABLED=1 tmo npx --no-install next build >/dev/null) && echo "✓ codz new nextjs-app-router-fetch + api add + screen: tsc and next build pass" || { echo "✗ starter nextjs-app-router-fetch"; status=1; }
 else
   echo "- codz new nextjs-app-router-fetch: npm install did not run (offline?), so the build check was skipped"

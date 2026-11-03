@@ -131,7 +131,8 @@ describe('React Native: screens and routes', () => {
       const t = after(cs, 'app/crews/[id].tsx')!;
       assert.match(t, /const \{ id \} = useLocalSearchParams<\{ id: string \}>\(\);/);
       assert.match(t, /await getCrew\(id\)/);
-      assert.equal(cs.changes.length, 1, 'no navigator to update');
+      assert.deepEqual(cs.changes.map((c) => c.path).sort(), ['__tests__/app/crews/[id].test.tsx', 'app/crews/[id].tsx', 'package.json'], 'no navigator to update; the test sits outside app/');
+      assert.match(after(cs, '__tests__/app/crews/[id].test.tsx')!, /jest\.mock\('expo-router', \(\) => \(\{ \.\.\.jest\.requireActual\('expo-router'\), useLocalSearchParams: \(\) => \(\{ id: '1' \}\)/);
     } finally {
       cleanup(dir);
     }
