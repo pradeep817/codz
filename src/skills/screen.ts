@@ -1129,7 +1129,7 @@ async function nextScreen(root: string, adapter: Adapter, map: ProjectMap, opts:
 
 export async function planScreenAdd(root: string, adapter: Adapter, opts: ScreenOptions): Promise<ChangeSet> {
   const cs = await planScreenOnly(root, adapter, opts);
-  if (opts.tests === false || opts.form || !opts.api) return cs;
+  if (opts.tests === false || !opts.api) return cs;
   return withScreenTest(root, adapter, opts, cs);
 }
 
@@ -1141,9 +1141,11 @@ async function withScreenTest(root: string, adapter: Adapter, opts: ScreenOption
   const files = new Map<string, string>(cs.changes.filter((ch) => ch.after !== null).map((ch) => [ch.path, ch.after as string]));
   const input = { files, ep, params: routeParams(opts.path), paged: Boolean(opts.paginate) };
   const { flutterScreenTest, androidScreenTest, iosScreenTest, jsScreenTest } = await import('./screenTests.ts');
-  const t = adapter.id === 'flutter' ? flutterScreenTest(root, map, input) : adapter.id === 'android' ? androidScreenTest(root, map, input) : adapter.id === 'ios' ? iosScreenTest(root, map, input) : adapter.id === 'nextjs' || adapter.id === 'react' || adapter.id === 'react-native' ? jsScreenTest(root, map, { ...input, route: opts.path }) : null;
+  const t = opts.form
+    ? (await import('./formTests.ts')).formTest(root, map, { files, ep, params: input.params, route: opts.path })
+    : adapter.id === 'flutter' ? flutterScreenTest(root, map, input) : adapter.id === 'android' ? androidScreenTest(root, map, input) : adapter.id === 'ios' ? iosScreenTest(root, map, input) : adapter.id === 'nextjs' || adapter.id === 'react' || adapter.id === 'react-native' ? jsScreenTest(root, map, { ...input, route: opts.path }) : null;
   if (!t) return cs;
-  if ('skip' in t) return { ...cs, warnings: [...cs.warnings, `No test for this screen: ${t.skip}.`] };
+  if ('skip' in t) return { ...cs, warnings: [...cs.warnings, `No test for this ${opts.form ? 'form' : 'screen'}: ${t.skip}.`] };
   if (exists(join(root, t.file)) || files.has(t.file)) return cs;
   files.set(t.file, t.text);
   const extraSummary: string[] = [];

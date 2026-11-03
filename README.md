@@ -466,6 +466,8 @@ Tests that fake the network, so they run offline: Next.js tests (Vitest, or Jest
 | React, React Native | Testing Library: the API module mocked, the screen rendered in its router or TanStack Query provider |
 | Next.js | The server page awaited and rendered with Testing Library; a failing API makes it throw, for `error.tsx` |
 
+Form screens (`screen add --form`, and feature add's create and edit screens) get a test too: it fills every text input with a valid value, presses Save and checks what the API was sent, checks the message when saving fails, and checks that an empty required input stops the form where the form checks its inputs (Flutter's validators, React Native's alerts). Edit forms are answered with the current values first, and the test waits for them before typing. On Android and iOS the test calls the form ViewModel's `submit()` with example values.
+
 Testing Library, a DOM for web tests and the runner's types go into devDependencies when missing (run `npm install`); a Next.js project with Vitest gets a `vitest.config.mts` with the React plugin.
 
 ### Tests for any file
@@ -475,7 +477,7 @@ codz test add --file lib/features/cart/cart_page.dart
 codz test add --file src/utils/format.ts
 ```
 
-An API file gets tests for its endpoints. A screen, page, view, ViewModel or GetX controller gets the screen test above: codz finds the endpoint it calls (in the file or the ViewModel, controller, Cubit or hook next to it) and the route parameters it reads. Any other TypeScript or Dart file gets a test per exported function, called with example arguments; codz cannot know what a function should return, so those tests check that it runs and mark where to put the expected value with a TODO.
+An API file gets tests for its endpoints. A screen, page, view, ViewModel or GetX controller gets the screen test above (a form gets the form test): codz finds the endpoint it calls (in the file or the ViewModel, controller, Cubit or hook next to it) and the route parameters it reads. Any other TypeScript or Dart file gets a test per exported function, called with example arguments; codz cannot know what a function should return, so those tests check that it runs and mark where to put the expected value with a TODO.
 
 ### Custom templates
 

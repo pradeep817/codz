@@ -18,6 +18,7 @@ import { loadConfig } from '../core/config.ts';
 import { readText, walk } from '../core/fsutil.ts';
 import { ToolError, type Adapter, type ChangeSet, type EndpointInfo, type ProjectMap } from '../core/types.ts';
 import { exampleFor } from './mock.ts';
+import { formTest } from './formTests.ts';
 import { androidScreenTest, flutterScreenTest, iosScreenTest, jsScreenTest, type ScreenTest } from './screenTests.ts';
 import { dartLiteral, planTestAdd } from './testgen.ts';
 
@@ -79,21 +80,26 @@ export async function planTestFile(root: string, adapter: Adapter, fileArg: stri
     const files = new Map<string, string>([[file, text], ...related.map((f): [string, string] => [f, readText(join(root, f)) ?? ''])]);
     const params = routeParams(texts);
     const input = { files, ep, params, paged: texts.some((t) => /\bhasMore\b|\bloadMore\b/.test(t)), existing: true };
-    const t: ScreenTest | { skip: string } | null =
-      adapter.id === 'flutter'
+    // A form: the endpoint it sends to, and the form test.
+    const form = texts.some((t) => /GlobalKey<FormState>|fun submit\(body: |func submit\(_ body: |<form onSubmit|Alert\.alert\('Saved'\)/.test(t));
+    const sends = form ? map.endpoints.find((e) => e.method !== 'GET' && e.method !== 'HEAD' && texts.some((t) => new RegExp(`\\b${e.name}\\s*\\(`).test(t))) : undefined;
+    const route = params.length ? `/screen/${params.map((p) => `:${p}`).join('/')}` : '/';
+    const t: ScreenTest | { skip: string } | null = sends
+      ? formTest(root, map, { files, ep: sends, params, existing: true, route })
+      : adapter.id === 'flutter'
         ? flutterScreenTest(root, map, input)
         : adapter.id === 'android'
           ? androidScreenTest(root, map, input)
           : adapter.id === 'ios'
             ? iosScreenTest(root, map, input)
             : ['nextjs', 'react', 'react-native'].includes(adapter.id)
-              ? jsScreenTest(root, map, { ...input, route: params.length ? `/screen/${params.map((p) => `:${p}`).join('/')}` : '/' })
+              ? jsScreenTest(root, map, { ...input, route })
               : null;
     if (!t) throw new ToolError('not_supported', `codz cannot write screen tests for the ${adapter.id} adapter.`);
     if ('skip' in t) throw new ToolError('not_supported', `No test for ${file}: ${t.skip}.`);
     if (readText(join(root, t.file)) !== null) throw new ToolError('test_exists', `${t.file} already exists.`, 'Delete it to write it again.');
     const out = new Map<string, string>([[t.file, t.text], ...(t.extra ?? [])]);
-    return buildChangeSet(root, 'test add', { files: out, summary: [`${t.summary} (it calls ${ep.name}())`, ...(t.extraSummary ?? [])], warnings: t.warnings, generated: [] });
+    return buildChangeSet(root, 'test add', { files: out, summary: [`${t.summary} (it calls ${(sends ?? ep).name}())`, ...(t.extraSummary ?? [])], warnings: t.warnings, generated: [] });
   }
   // 3. Anything else: one test per exported function.
   return scaffold(root, map, adapter, file, text);

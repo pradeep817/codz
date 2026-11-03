@@ -203,13 +203,16 @@ declare module 'vitest' {
   export function describe(name: string, fn: () => void): void;
   export function it(name: string, fn: () => Promise<void> | void): void;
   export function afterEach(fn: () => void): void;
-  export function expect(v: unknown): { toBe(x: unknown): void; toEqual(x: unknown): void; toContain(x: string): void; toBeUndefined(): void; toBeTruthy(): void; toBeGreaterThan(n: number): void; rejects: { toThrow(message?: string): Promise<void> } };
-  export const vi: { spyOn(obj: object, method: string): Spy; restoreAllMocks(): void; fn(): any; mock(path: string, factory?: (importOriginal: <T>() => Promise<T>) => unknown): void };
+  export function expect(v: unknown): { toBe(x: unknown): void; toEqual(x: unknown): void; toContain(x: string): void; toBeUndefined(): void; toBeTruthy(): void; toBeGreaterThan(n: number): void; toHaveBeenCalledWith(...args: unknown[]): void; rejects: { toThrow(message?: string): Promise<void> } };
+  export namespace expect { function objectContaining(o: object): unknown; }
+  export const vi: { spyOn(obj: object, method: string): Spy; restoreAllMocks(): void; clearAllMocks(): void; fn(): any; mock(path: string, factory?: (importOriginal: <T>() => Promise<T>) => unknown): void };
 }
 declare module '@testing-library/react' {
   export function render(ui: unknown): unknown;
   export function cleanup(): void;
-  export const screen: { findByText(text: string): Promise<unknown>; findAllByText(text: string): Promise<unknown[]> };
+  export function waitFor(fn: () => void): Promise<void>;
+  export const fireEvent: { change(el: unknown, init: object): void; click(el: unknown): void };
+  export const screen: { findByText(text: string): Promise<unknown>; findAllByText(text: string): Promise<unknown[]>; findByDisplayValue(text: string): Promise<unknown>; getByLabelText(text: string | RegExp): unknown; getByRole(role: string, opts?: object): unknown };
 }
 SHIM
   printf "declare module 'next/navigation' {\n  export function useParams<T>(): T;\n  export function useRouter(): { push(href: string): void };\n}\n" > "$1/next-shim.d.ts"
@@ -354,15 +357,18 @@ declare module 'axios' {
   const axios: AxiosInstance & { create(config?: object): AxiosInstance };
   export default axios;
 }
-declare const jest: { spyOn(obj: object, method: string): { mockResolvedValue(v: unknown): any; mock: { calls: any[][] } }; restoreAllMocks(): void; fn(): any; mock(path: string, factory?: () => unknown): void; requireActual(path: string): object };
+declare const jest: { spyOn(obj: object, method: string): { mockResolvedValue(v: unknown): any; mockImplementation(fn: (...args: any[]) => unknown): any; mock: { calls: any[][] } }; restoreAllMocks(): void; clearAllMocks(): void; fn(): any; mock(path: string, factory?: () => unknown): void; requireActual(path: string): object };
 declare module '@testing-library/react-native' {
   export function render(ui: unknown): unknown;
-  export const screen: { findByText(text: string): Promise<unknown>; findAllByText(text: string): Promise<unknown[]> };
+  export function waitFor(fn: () => void): Promise<void>;
+  export const fireEvent: { changeText(el: unknown, text: string): void; press(el: unknown): void };
+  export const screen: { findByText(text: string): Promise<unknown>; findAllByText(text: string): Promise<unknown[]>; findByDisplayValue(text: string): Promise<unknown>; getByText(text: string): unknown; UNSAFE_getAllByType(type: unknown): unknown[] };
 }
 declare function describe(name: string, fn: () => void): void;
 declare function it(name: string, fn: () => Promise<void> | void): void;
 declare function afterEach(fn: () => void): void;
-declare function expect(v: unknown): { toBe(x: unknown): void; toEqual(x: unknown): void; toContain(x: string): void; toBeUndefined(): void; toBeTruthy(): void; toBeGreaterThan(n: number): void; rejects: { toThrow(message?: string): Promise<void> } };
+declare namespace expect { function objectContaining(o: object): unknown; }
+declare function expect(v: unknown): { toBe(x: unknown): void; toEqual(x: unknown): void; toContain(x: string): void; toBeUndefined(): void; toBeTruthy(): void; toBeGreaterThan(n: number): void; toHaveBeenCalledWith(...args: unknown[]): void; rejects: { toThrow(message?: string): Promise<void> } };
 declare module '@jest/globals' {
   export const jest: { spyOn(obj: object, method: string): { mockResolvedValue(v: unknown): any; mock: { calls: any[][] } }; restoreAllMocks(): void };
   export function describe(name: string, fn: () => void): void;

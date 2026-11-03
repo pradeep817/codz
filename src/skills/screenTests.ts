@@ -459,6 +459,22 @@ export function jsScreenTest(root: string, map: ProjectMap, input: ScreenTestInp
     '});',
     '',
   ];
+  const setup = jsTestSetup(root, map, input.files, jest);
+  if ('skip' in setup) return setup;
+  const { extra, extraSummary, warnings } = setup;
+  void c;
+  return { file: testFile, text: lines.join('\n'), summary: `Create ${testFile}: ${comp[2]} with data${isList ? ', empty' : ''}, and ${serverPage ? 'a failing API' : 'after an error (Retry)'}`, warnings, extra, extraSummary };
+}
+
+/** What a Testing Library test needs in the project: devDependencies, and for Next.js with Vitest a config that renders JSX. */
+export function jsTestSetup(root: string, map: ProjectMap, files: Map<string, string>, jest: boolean): { extra: Map<string, string>; extraSummary: string[]; warnings: string[] } | { skip: string } {
+  const c = map.conventions;
+  const fw = map.framework;
+  const rn = fw === 'react-native';
+  const pkgText = files.get('package.json') ?? readText(join(root, 'package.json')) ?? '{}';
+  const pkg = JSON.parse(pkgText) as { dependencies?: Record<string, string>; devDependencies?: Record<string, string> };
+  const deps = { ...pkg.dependencies, ...pkg.devDependencies };
+  const input = { files };
   // Testing Library (and a DOM for web tests) in devDependencies.
   // Next.js has no Vite config: Vitest needs one with the React plugin (and the @/ paths) to render pages.
   const nextVitest = fw === 'nextjs' && !jest && !['vitest.config.ts', 'vitest.config.mts', 'vitest.config.js', 'vitest.config.mjs', 'vite.config.ts', 'vite.config.mts'].some((f) => readText(join(root, f)) !== null || input.files.has(f));
@@ -482,6 +498,5 @@ export function jsScreenTest(root: string, map: ProjectMap, input: ScreenTestInp
     extraSummary.push('Create vitest.config.mts: the React plugin and tsconfig paths, so Vitest can render pages');
   }
   if (rn && !deps.jest && !deps['jest-expo']) warnings.push(c.flavor === 'expo' ? 'Run the screen tests with Jest: npx expo install jest-expo jest, and set "jest": { "preset": "jest-expo" } in package.json.' : 'Run the screen tests with Jest (preset "react-native").');
-  void c;
-  return { file: testFile, text: lines.join('\n'), summary: `Create ${testFile}: ${comp[2]} with data${isList ? ', empty' : ''}, and ${serverPage ? 'a failing API' : 'after an error (Retry)'}`, warnings, extra, extraSummary };
+  return { extra, extraSummary, warnings };
 }
