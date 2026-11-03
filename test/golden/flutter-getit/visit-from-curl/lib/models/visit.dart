@@ -1,4 +1,3 @@
-import 'package:field_ops/models/checklist_item.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 part 'visit.g.dart';
@@ -24,4 +23,19 @@ class Visit {
   final List<ChecklistItem> checklist;
 
   Map<String, dynamic> toJson() => _$VisitToJson(this);
+}
+
+@JsonSerializable()
+class ChecklistItem {
+  const ChecklistItem({
+    required this.label,
+    required this.done,
+  });
+
+  factory ChecklistItem.fromJson(Map<String, dynamic> json) => _$ChecklistItemFromJson(json);
+
+  final String label;
+  final bool done;
+
+  Map<String, dynamic> toJson() => _$ChecklistItemToJson(this);
 }

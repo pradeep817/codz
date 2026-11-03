@@ -7,6 +7,7 @@
 // would be imported and stops. Endpoints that cannot be planned (a model name
 // clash, say) stop the import unless --skip-conflicts applies the rest.
 
+import { groupPlanned, modelLangOf } from '../core/modelGroup.ts';
 import { join } from 'node:path';
 import { loadMap } from '../core/cache.ts';
 import { buildChangeSet } from '../core/changeset.ts';
@@ -16,6 +17,8 @@ import { ToolError, type Adapter, type ChangeSet, type HttpMethod } from '../cor
 import { readApiFile, type ImportedOperation } from '../input/apiSpec.ts';
 
 export interface ImportOptions {
+  /** One file per model instead of nested models in their parent's file. */
+  split?: boolean;
   file: string;
   /** Only operations with one of these tags (OpenAPI), folders (Postman) or hosts (HAR). */
   tags?: string[];
@@ -168,6 +171,7 @@ export async function planApiImport(root: string, adapter: Adapter, opts: Import
   ];
   for (const s of skipped) warnings.add(`Skipped ${s.name}: ${s.reason}`);
   if (doc.format === 'har') warnings.add('Response bodies from the HAR file were used only to work out types; none of their values were written.');
-  const changeSet = buildChangeSet(root, 'api import', { files: overlay, summary, warnings: [...warnings], generated });
+  const grouped = groupPlanned(root, overlay, generated, map, modelLangOf(adapter.id), opts.split);
+  const changeSet = buildChangeSet(root, 'api import', { files: grouped.files, summary, warnings: [...warnings], generated: grouped.generated });
   return { changeSet, added, existing, skipped };
 }

@@ -37,6 +37,8 @@ import { join } from 'node:path';
 
 export interface FeatureOptions {
   name: string;
+  /** One file per model instead of nested models in their parent's file. */
+  split?: boolean;
   /** OpenAPI, Swagger, Postman or HAR file to take the endpoints from. */
   spec?: string;
   tags?: string[];
@@ -164,7 +166,7 @@ export async function planFeatureAdd(root: string, adapter: Adapter, opts: Featu
     // 1. Endpoints.
     if (specFile) {
       // A half-built feature is worse than none: by default a clash stops everything (nothing is written).
-      const imp = await planApiImport(ws.root, adapter, { file: specFile, only: endpointNames, baseUrl: opts.baseUrl, skipConflicts: opts.skipConflicts === true, yes: true });
+      const imp = await planApiImport(ws.root, adapter, { file: specFile, only: endpointNames, baseUrl: opts.baseUrl, skipConflicts: opts.skipConflicts === true, yes: true, split: opts.split });
       ws.apply(imp.changeSet);
       summary.push(`Endpoints: ${imp.added.length} added${imp.existing.length ? `, ${imp.existing.length} already in the project` : ''}${imp.skipped.length ? `, ${imp.skipped.length} skipped` : ''}`);
       for (const s of imp.skipped) warnings.push(`Skipped ${s.name}: ${s.reason}`);

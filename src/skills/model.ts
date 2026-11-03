@@ -2,11 +2,11 @@
 // endpoint. The adapter writes models exactly as it does for api add (same
 // folder, naming, serialization style); only the model files are kept.
 
-import { join, posix } from 'node:path';
+import { posix } from 'node:path';
 import { loadMap } from '../core/cache.ts';
 import { buildChangeSet } from '../core/changeset.ts';
 import { loadConfig } from '../core/config.ts';
-import { exists } from '../core/fsutil.ts';
+import { groupNewModels, modelLangOf } from '../core/modelGroup.ts';
 import { ToolError, type Adapter, type ChangeSet, type ProjectMap } from '../core/types.ts';
 import { buildEndpoint } from '../input/endpoint.ts';
 import { typeName } from '../input/naming.ts';
@@ -65,74 +65,13 @@ export async function planModel(root: string, adapter: Adapter, name: string, sa
   // One file: the main model with its nested models below it (--split keeps one file each).
   const rootName = suffix && !modelName.endsWith(suffix) ? `${modelName}${suffix}` : modelName;
   const mainFile = edits.models?.find((m) => m.name === rootName)?.file ?? edits.models?.find((m) => m.name === modelName)?.file;
-  if (!opts.split && mainFile && files.has(mainFile)) files = mergeModelFiles(root, files, mainFile, langOf(adapter.id));
+  if (mainFile && files.has(mainFile)) files = groupNewModels(root, files, map, modelLangOf(adapter.id), opts.split);
   const names = spec.models.map((m) => (suffix && !m.name.endsWith(suffix) ? `${m.name}${suffix}` : m.name));
   const summary = [`Add model${names.length === 1 ? '' : 's'} ${names.join(', ')}`, ...[...files.keys()].map((f) => `  ${f}`)];
   const warnings = edits.warnings.filter((w) => !/codzModelOnly|codz_model_only|codz-model-only|build_runner|response type|base URL|api\.invalid|APIClient/i.test(w)).map((w) => w.replace(/^Response: /, '').replace(/^root\b/, modelName));
   if (unwrapped) warnings.unshift('The JSON is wrapped in {"data": ...}, so the model is the inner object. Use --no-unwrap for the whole JSON.');
   if (adapter.id === 'flutter' && [...files.values()].some((t) => /part\s+'[^']+\.(g|freezed)\.dart'/.test(t))) warnings.push('Run dart run build_runner build to generate the .g.dart / .freezed.dart files.');
   return buildChangeSet(root, 'model', { files, summary, warnings, generated: [], rewrites: opts.force ? [...files.keys()] : [] });
-}
-
-type MLang = 'ts' | 'dart' | 'kt' | 'swift';
-const langOf = (id: string): MLang => (id === 'flutter' ? 'dart' : id === 'android' ? 'kt' : id === 'ios' ? 'swift' : 'ts');
-
-/** The file's leading package/import/part lines, and the rest. */
-function splitHeader(text: string, lang: MLang): { header: string[]; body: string } {
-  const lines = text.split('\n');
-  const isHead = (l: string) => (lang === 'ts' ? /^import\s/.test(l) : lang === 'dart' ? /^(import|part|export|library)\s/.test(l) : lang === 'kt' ? /^(package|import)\s/.test(l) : /^import\s/.test(l));
-  let i = 0;
-  const header: string[] = [];
-  while (i < lines.length && (isHead(lines[i]) || lines[i].trim() === '')) {
-    if (lines[i].trim()) header.push(lines[i]);
-    i++;
-  }
-  return { header, body: lines.slice(i).join('\n').replace(/\s+$/, '') };
-}
-
-/**
- * Moves the new nested models into the main model's file: one file per JSON
- * sample. Only files this plan creates are merged; a model that already had a
- * file keeps it. Imports of the merged files go, and a models index stops
- * exporting them.
- */
-function mergeModelFiles(root: string, files: Map<string, string>, mainFile: string, lang: MLang): Map<string, string> {
-  const ext = posix.extname(mainFile);
-  const isModel = (f: string) => posix.extname(f) === ext && !/(^|\/)index\.ts$/.test(f) && f !== mainFile;
-  const merged = [...files.keys()].filter((f) => isModel(f) && !exists(join(root, f)));
-  if (!merged.length) return files;
-  const stem = (f: string) => posix.basename(f).replace(/\.[^.]+$/, '');
-  const stems = new Set(merged.map(stem));
-  const refersToMerged = (l: string) => {
-    const m = /['"]([^'"]+)['"]/.exec(l);
-    return !!m && stems.has(posix.basename(m[1]).replace(/\.(dart|ts|tsx|js)$/, '').replace(/\.(g|freezed)$/, ''));
-  };
-  const main = splitHeader(files.get(mainFile)!, lang);
-  const header = [...main.header];
-  const bodies = [main.body];
-  for (const f of merged) {
-    const part = splitHeader(files.get(f)!, lang);
-    for (const l of part.header) {
-      if (/^(package|part)\s/.test(l) || header.includes(l)) continue;
-      header.push(l);
-    }
-    bodies.push(part.body);
-  }
-  const keptHeader = header.filter((l) => !refersToMerged(l) || /^part\s/.test(l));
-  // Group the header: package, then imports (sorted for Kotlin, as written otherwise), then part lines.
-  const pkg = keptHeader.filter((l) => /^package\s/.test(l));
-  let imports = keptHeader.filter((l) => /^(import|export|library)\s/.test(l));
-  if (lang === 'kt') imports = [...new Set(imports)].sort();
-  const parts = keptHeader.filter((l) => /^part\s/.test(l));
-  const head = [pkg, imports, parts].filter((g) => g.length).map((g) => g.join('\n')).join('\n\n');
-  const out = new Map<string, string>();
-  for (const [f, t] of files) {
-    if (merged.includes(f)) continue;
-    if (f === mainFile) out.set(f, `${head ? `${head}\n\n` : ''}${bodies.join('\n\n')}\n`);
-    else if (/(^|\/)index\.ts$/.test(f)) out.set(f, t.split('\n').filter((l) => !refersToMerged(l)).join('\n'));
-    else out.set(f, t);
-  }
-  return out;
 }
 
 function withoutEndpoint(map: ProjectMap): ProjectMap {

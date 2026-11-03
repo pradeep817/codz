@@ -1,5 +1,6 @@
 // api add: cURL / URL / JSON samples → model, function and registration, as a change set.
 
+import { groupPlanned, modelLangOf } from '../core/modelGroup.ts';
 import { join } from 'node:path';
 import { loadMap } from '../core/cache.ts';
 import { buildChangeSet } from '../core/changeset.ts';
@@ -24,6 +25,8 @@ export interface ApiAddOptions {
   /** Also call the new endpoint from this module's controller (GetX). */
   into?: string;
   noLoad?: boolean;
+  /** One file per model instead of nested models in their parent's file. */
+  split?: boolean;
 }
 
 function readSample(root: string, file: string): unknown {
@@ -109,6 +112,8 @@ export async function planApiAdd(root: string, adapter: Adapter, opts: ApiAddOpt
     const wire = adapter.planWire({ root, map: planned }, { endpoint: spec.name, module: opts.into, noLoad: opts.noLoad }, edits.files);
     edits = { files: wire.files, summary: [...edits.summary, ...wire.summary], warnings: [...edits.warnings, ...wire.warnings], generated: [...edits.generated, ...wire.generated] };
   }
+  const grouped = groupPlanned(root, edits.files, edits.generated, map, modelLangOf(adapter.id), opts.split);
+  edits = { ...edits, files: grouped.files, generated: grouped.generated };
   const changeSet = buildChangeSet(root, 'api add', edits);
   return { changeSet, spec };
 }

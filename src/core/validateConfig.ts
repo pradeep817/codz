@@ -25,6 +25,7 @@ const FRAMEWORKS: FrameworkId[] = ['nextjs', 'flutter', 'react-native', 'react',
 /** Allowed values for keys that take one of a few words. Empty is always allowed (= detect). */
 export const ALLOWED: Record<string, Record<string, string[]>> = {
   nextjs: {
+    modelFiles: ['grouped', 'split'],
     apiFileNaming: ['kebab', 'camel', 'pascal', 'snake'],
     modelFileNaming: ['kebab', 'camel', 'pascal', 'snake'],
     apiFileResource: ['plural', 'singular'],
@@ -37,6 +38,7 @@ export const ALLOWED: Record<string, Record<string, string[]>> = {
     dataFetching: ['react-query', 'none'],
   },
   'react-native': {
+    modelFiles: ['grouped', 'split'],
     apiFileNaming: ['kebab', 'camel', 'pascal', 'snake'],
     modelFileNaming: ['kebab', 'camel', 'pascal', 'snake'],
     apiFileResource: ['plural', 'singular'],
@@ -51,6 +53,7 @@ export const ALLOWED: Record<string, Record<string, string[]>> = {
     router: ['react-navigation', 'expo-router', 'none'],
   },
   react: {
+    modelFiles: ['grouped', 'split'],
     apiFileNaming: ['kebab', 'camel', 'pascal', 'snake'],
     modelFileNaming: ['kebab', 'camel', 'pascal', 'snake'],
     apiFileResource: ['plural', 'singular'],
@@ -66,11 +69,13 @@ export const ALLOWED: Record<string, Record<string, string[]>> = {
     routerStyle: ['jsx', 'data'],
   },
   ios: {
+    modelFiles: ['grouped', 'split'],
     ui: ['swiftui', 'uikit'],
     fileSync: ['synchronized', 'groups'],
     indent: ['2', '4'],
   },
   android: {
+    modelFiles: ['grouped', 'split'],
     http: ['retrofit', 'ktor', 'none'],
     serialization: ['kotlinx', 'moshi', 'gson'],
     di: ['hilt', 'koin', 'manual', 'none'],
@@ -78,6 +83,7 @@ export const ALLOWED: Record<string, Record<string, string[]>> = {
     indent: ['2', '4'],
   },
   flutter: {
+    modelFiles: ['grouped', 'split'],
     http: ['dio', 'http'],
     serialization: ['manual', 'json_serializable', 'freezed'],
     freezedClass: ['abstract', 'plain'],

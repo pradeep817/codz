@@ -210,6 +210,10 @@ curl -s https://api.example.com/orders/1 | codz model Order
 
 Writes the model and a class for each nested object (`Order`, `Customer`, `OrderItem`), in the project's own style, with no endpoint. They all go in one file, the main model's (`order.dart`, `Order.kt`, `order.ts`), so a long response does not scatter a dozen files; `--split` gives each class its own file. A nested model the project already has is reused, not copied. A list gives the model of its items, `{"data": ...}` is unwrapped (`--no-unwrap` keeps it), and pasted text around the JSON (a `response:` label, code fences) is ignored. An existing model is never overwritten unless you pass `--force`; to add one field, use `codz field add`.
 
+### One file per model
+
+`model`, `api add`, `api import`, `api sync` and `feature add` put nested models in the file of the model that uses them: an order response gives `order.dart` (or `Order.kt`, `order.ts`, `Order.swift`) holding `Order`, `Customer` and `OrderItem`, not three files. A nested model that several top-level models use (an `Address` used by both `Order` and `User` in a spec) keeps its own file, and models the project already has stay where they are. For one file per model, pass `--split`, or set it for good with `codz config set modelFiles split`.
+
 ### Choosing the model folder: --model-dir
 
 New models go into the project's models folder (`modelsFolder` in `codz.config.yaml`, which `codz init` detects). For a feature-first project where each feature keeps its own models, choose the folder for one command:

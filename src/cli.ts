@@ -977,6 +977,7 @@ async function run(args: Args, out: Out): Promise<number> {
       if (!name) throw new ToolError('bad_args', 'Which feature? Usage: codz feature add <name> --spec <openapi.yaml>', 'Example: codz feature add orders --spec api.yaml');
       const split = (xs?: (string | boolean | undefined)[]) => xs?.flatMap((x) => (typeof x === 'string' ? x.split(',') : [])).map((x) => x.trim()).filter(Boolean) ?? [];
       const r = await planFeatureAdd(root, adapter, {
+          split: flags.split === true,
         name,
         spec: typeof flags.spec === 'string' ? flags.spec : undefined,
         tags: split(args.multi.tag),
@@ -1084,6 +1085,7 @@ async function run(args: Args, out: Out): Promise<number> {
         }
         const showProgress = !out.json && process.stderr.isTTY === true;
         const r = await planApiImport(root, adapter, {
+          split: flags.split === true,
           ...importOpts,
           onProgress: showProgress
             ? (done, total, name) => {
@@ -1100,6 +1102,7 @@ async function run(args: Args, out: Out): Promise<number> {
         const split = (xs?: (string | boolean | undefined)[]) => xs?.flatMap((x) => (typeof x === 'string' ? x.split(',') : [])).map((x) => x.trim()).filter(Boolean) ?? [];
         if (flags.check === true) setCacheWrites(false);
         const r = await planApiSync(root, adapter, {
+          split: flags.split === true,
           file,
           tags: split(args.multi.tag),
           paths: split([flags.path]),
@@ -1148,6 +1151,7 @@ async function run(args: Args, out: Out): Promise<number> {
         noUnwrap: flags['no-unwrap'] === true,
         into: typeof flags.into === 'string' ? flags.into : undefined,
         noLoad: flags['no-load'] === true,
+        split: flags.split === true,
       };
       if (flags.clipboard === true && !opts.curl && !opts.url) opts.paste = readClipboard();
       if (!opts.curl && !opts.url && !opts.paste) {

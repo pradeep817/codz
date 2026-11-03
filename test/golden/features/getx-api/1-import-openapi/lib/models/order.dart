@@ -1,6 +1,3 @@
-import 'address.dart';
-import 'order_item.dart';
-
 class Order {
   const Order({
     required this.id,
@@ -30,5 +27,45 @@ class Order {
         'total': total,
         'items': items.map((e) => e.toJson()).toList(),
         'shipping_address': shippingAddress?.toJson(),
+      };
+}
+
+class OrderItem {
+  const OrderItem({
+    required this.sku,
+    required this.qty,
+  });
+
+  factory OrderItem.fromJson(Map<String, dynamic> json) => OrderItem(
+        sku: json['sku'] as String,
+        qty: json['qty'] as int,
+      );
+
+  final String sku;
+  final int qty;
+
+  Map<String, dynamic> toJson() => {
+        'sku': sku,
+        'qty': qty,
+      };
+}
+
+class Address {
+  const Address({
+    this.line1,
+    this.city,
+  });
+
+  factory Address.fromJson(Map<String, dynamic> json) => Address(
+        line1: json['line1'] as String?,
+        city: json['city'] as String?,
+      );
+
+  final String? line1;
+  final String? city;
+
+  Map<String, dynamic> toJson() => {
+        'line1': line1,
+        'city': city,
       };
 }

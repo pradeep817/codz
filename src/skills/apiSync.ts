@@ -10,6 +10,7 @@
 // parameter) are reported with the lines that use them. --check plans
 // everything and reports drift without writing (exit 1 when out of sync).
 
+import { groupPlanned, modelLangOf } from '../core/modelGroup.ts';
 import { join } from 'node:path';
 import { loadMap } from '../core/cache.ts';
 import { buildChangeSet } from '../core/changeset.ts';
@@ -21,6 +22,8 @@ import { findDeclaration, planApiRemove, planEndpointUpdate } from './apiEdit.ts
 import { pathMatches } from './apiImport.ts';
 
 export interface SyncOptions {
+  /** One file per model instead of nested models in their parent's file. */
+  split?: boolean;
   file: string;
   tags?: string[];
   paths?: string[];
@@ -215,6 +218,7 @@ export async function planApiSync(root: string, adapter: Adapter, opts: SyncOpti
   if (report.breaking.length) warnings.add(`Breaking changes for callers:\n${report.breaking.map((b) => `    ${b}`).join('\n')}`);
   if (!summary.length) summary.push(`Everything matches ${opts.file}: ${report.unchanged.length} endpoint${report.unchanged.length === 1 ? '' : 's'} checked.`);
   else summary.unshift(`Sync with ${doc.title || opts.file}: ${report.updated.length} updated, ${report.added.length} added, ${report.removed.length} removed, ${report.unchanged.length} unchanged`);
-  const changeSet = buildChangeSet(root, 'api sync', { files: overlay, summary, warnings: [...warnings], generated });
+  const grouped = groupPlanned(root, overlay, generated, map, modelLangOf(adapter.id), opts.split);
+  const changeSet = buildChangeSet(root, 'api sync', { files: grouped.files, summary, warnings: [...warnings], generated: grouped.generated });
   return { changeSet, ...report };
 }

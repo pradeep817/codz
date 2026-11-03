@@ -75,6 +75,7 @@ Input: --curl, --url, --clipboard, or a cURL command or URL pasted on stdin, opt
 | `--into <module>` | Call the endpoint from that module's controller (GetX) |
 | `--no-load` | Do not call the load method from onInit |
 | `--model-dir <folder>` | Write new models into this folder for this command only (e.g. lib/features/orders/models); set modelsFolder in codz.config.yaml to change it for good |
+| `--split` | One file per model, instead of nested models in the file of the model that uses them |
 
 Accepts the change options.
 
@@ -94,6 +95,7 @@ Add every endpoint from an OpenAPI 3, Swagger 2, Postman or HAR file.
 | `--include-errors` | HAR: keep failed (non-2xx) responses |
 | `--skip-conflicts` | Import what works and report endpoints that cannot be added |
 | `--model-dir <folder>` | Write new models into this folder for this command only (e.g. lib/features/orders/models); set modelsFolder in codz.config.yaml to change it for good |
+| `--split` | One file per model, instead of nested models in the file of the model that uses them |
 
 Accepts the change options.
 
@@ -110,6 +112,7 @@ Bring endpoints in line with an API spec: update changed ones, report breaking c
 | `--path </users/{id}>` | Path parameters (api add), route path (screen/route add), or a path filter (import/sync) |
 | `--base-url <url>` | The API's base URL (setup), or only HAR requests under it (import/sync) |
 | `--model-dir <folder>` | Write new models into this folder for this command only (e.g. lib/features/orders/models); set modelsFolder in codz.config.yaml to change it for good |
+| `--split` | One file per model, instead of nested models in the file of the model that uses them |
 
 Accepts the change options.
 
@@ -188,7 +191,7 @@ Writes into the models folder, or --model-dir <folder> for this model only. An e
 | `--model-dir <folder>` | Write new models into this folder for this command only (e.g. lib/features/orders/models); set modelsFolder in codz.config.yaml to change it for good |
 | `--no-unwrap` | Keep a {"data": ...} envelope instead of returning data |
 | `--force` | Do it even when codz would normally refuse (see the command) |
-| `--split` | model: one file per nested class instead of one file for all |
+| `--split` | One file per model, instead of nested models in the file of the model that uses them |
 
 Accepts the change options.
 
@@ -343,6 +346,7 @@ Everything is planned in a private copy of the project and shown as one diff: on
 | `--skip-conflicts` | Import what works and report endpoints that cannot be added |
 | `--no-install` | Do not install dependencies |
 | `--model-dir <folder>` | Write new models into this folder for this command only (e.g. lib/features/orders/models); set modelsFolder in codz.config.yaml to change it for good |
+| `--split` | One file per model, instead of nested models in the file of the model that uses them |
 
 Accepts the change options.
 
