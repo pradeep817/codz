@@ -5,7 +5,7 @@
 # Usage: scripts/ci-annotate.sh <log file> [title]
 log="$1"; title="${2:-Failures}"
 [ -f "$log" ] || exit 0
-lines=$({ grep -B 15 -E '✗' "$log" | grep -vE '^(--)?$'; grep -E 'not ok|error:|error TS|FAIL|Exception|^e: |Expected:|Actual:|Some tests failed' "$log"; } | awk '!seen[$0]++' | head -n 150)
+lines=$({ grep -m 3 -A 14 -E 'EXCEPTION CAUGHT BY' "$log" | grep -vE '^(--)?$'; grep -B 15 -E '✗' "$log" | grep -vE '^(--)?$'; grep -E 'not ok|error:|error TS|FAIL|Exception|^e: |Expected:|Actual:|Some tests failed' "$log"; } | awk '!seen[$0]++' | head -n 150)
 lines="$lines
 --- last lines ---
 $(tail -n 15 "$log")"

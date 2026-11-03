@@ -357,7 +357,7 @@ export function iosScreenTest(root: string, map: ProjectMap, input: ScreenTestIn
 
 // ---------- React, React Native, Next.js: the screen with its API mocked ----------
 
-const TL_VERSIONS = { '@testing-library/react': '^16.1.0', '@testing-library/dom': '^10.4.0', jsdom: '^25.0.1', 'jest-environment-jsdom': '^29.7.0', '@testing-library/react-native': '^12.9.0', '@vitejs/plugin-react': '^4.3.4', 'vite-tsconfig-paths': '^5.1.4' };
+const TL_VERSIONS = { '@testing-library/react': '^16.1.0', '@testing-library/dom': '^10.4.0', jsdom: '^25.0.1', 'jest-environment-jsdom': '^29.7.0', '@testing-library/react-native': '^12.9.0', '@vitejs/plugin-react': '^4.3.4', 'vite-tsconfig-paths': '^5.1.4', vitest: '^2.1.8', '@types/jest': '^29.5.14' };
 
 /**
  * A Testing Library test for a React, React Native or Next.js data screen: the
@@ -458,7 +458,9 @@ export function jsScreenTest(root: string, map: ProjectMap, input: ScreenTestInp
   // Next.js has no Vite config: Vitest needs one with the React plugin (and the @/ paths) to render pages.
   const nextVitest = fw === 'nextjs' && !jest && !['vitest.config.ts', 'vitest.config.mts', 'vitest.config.js', 'vitest.config.mjs', 'vite.config.ts', 'vite.config.mts'].some((f) => readText(join(root, f)) !== null || input.files.has(f));
   if (fw === 'nextjs' && jest && !['jest.config.js', 'jest.config.ts', 'jest.config.mjs'].some((f) => readText(join(root, f)) !== null)) return { skip: 'the project tests with Jest but has no jest.config (next/jest), which rendering pages needs' };
-  const want = rn ? ['@testing-library/react-native'] : ['@testing-library/react', '@testing-library/dom', jest ? 'jest-environment-jsdom' : 'jsdom', ...(nextVitest ? ['@vitejs/plugin-react', 'vite-tsconfig-paths'] : [])];
+  // The runner's types too: without them the project's own type check fails on the test file.
+  const runner = jest ? ['@types/jest'] : ['vitest'];
+  const want = [...(rn ? ['@testing-library/react-native'] : ['@testing-library/react', '@testing-library/dom', jest ? 'jest-environment-jsdom' : 'jsdom', ...(nextVitest ? ['@vitejs/plugin-react', 'vite-tsconfig-paths'] : [])]), ...runner];
   const missing = want.filter((d) => !deps[d]);
   const extra = new Map<string, string>();
   const extraSummary: string[] = [];
