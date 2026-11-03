@@ -213,19 +213,19 @@ function dartInputs(text: string): DartInput[] {
 
 const dartTyped = (i: DartInput) => (i.kind === 'int' ? '3' : i.kind === 'double' ? '4.5' : i.kind === 'date' ? '2026-01-02' : i.kind === 'strings' ? 'a, b' : textValue(i.label));
 
-const FORM_ADAPTER = [
-  '/// Answers GET (the current values) with [load], and records every other request, answered with [status] and [body].',
+const formAdapter = (load: boolean) => [
+  load ? '/// Answers GET (the current values) with [load], and records every other request, answered with [status] and [body].' : '/// Records every request, answered with [status] and [body].',
   'class _FormApi implements HttpClientAdapter {',
-  '  _FormApi(this.status, this.body, {this.load});',
+  load ? '  _FormApi(this.status, this.body, {this.load});' : '  _FormApi(this.status, this.body);',
   '',
   '  final int status;',
   '  final Object? body;',
-  '  final Object? load;',
+  ...(load ? ['  final Object? load;'] : []),
   '  final sent = <RequestOptions>[];',
   '',
   '  @override',
   '  Future<ResponseBody> fetch(RequestOptions options, Stream<Uint8List>? requestStream, Future<void>? cancelFuture) async {',
-  "    if (options.method == 'GET') return _json(load, 200);",
+  ...(load ? ["    if (options.method == 'GET') return _json(load, 200);"] : []),
   '    sent.add(options);',
   '    return _json(body, status);',
   '  }',
@@ -356,7 +356,7 @@ export function flutterFormTest(root: string, map: ProjectMap, input: FormTestIn
   const text = [
     ...imports,
     '',
-    FORM_ADAPTER,
+    formAdapter(Boolean(loadName)),
     '',
     'void main() {',
     `  final response = ${dartLiteral(wrapFor(input.ep.name, resp), '  ')};`,
