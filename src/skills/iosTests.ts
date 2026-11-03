@@ -153,7 +153,7 @@ export function addIosTestTarget(pbx: string, app: string, bundleId: string): st
 }
 
 /** Makes sure there is a test target; returns where the tests go. */
-function testTarget(root: string, map: ProjectMap, files: Map<string, string>, summary: string[]): TargetInfo {
+export function testTarget(root: string, map: ProjectMap, files: Map<string, string>, summary: string[]): TargetInfo {
   const proj = xcodeProject(root);
   if (!proj) throw new ToolError('not_supported', 'No .xcodeproj was found in this folder.');
   const pbxPath = `${proj}/project.pbxproj`;
@@ -167,6 +167,17 @@ function testTarget(root: string, map: ProjectMap, files: Map<string, string>, s
   summary.push(`Update ${pbxPath}: a ${app}Tests unit-test target (hosted by the app, folder ${app}Tests)`);
   void map;
   return { folder: `${app}Tests`, module: app };
+}
+
+/** The test target (added when missing) and the shared URLProtocol stub. */
+export function ensureIosTestSetup(root: string, map: ProjectMap, files: Map<string, string>, summary: string[], I: string): TargetInfo {
+  const target = testTarget(root, map, files, summary);
+  const stubFile = `${target.folder}/StubURLProtocol.swift`;
+  if (readText(join(root, stubFile)) === null && !files.has(stubFile)) {
+    files.set(stubFile, STUB(I));
+    summary.push(`Create ${stubFile}: answers requests in tests without a server`);
+  }
+  return target;
 }
 
 // ---------- the tests ----------
@@ -195,7 +206,7 @@ function argValue(type: string, label: string, map: ProjectMap): { code: string;
   return { code: swiftValue(type, exampleFor(t, map, label), map), inPath: '' };
 }
 
-const STUB = (I: string) =>
+export const STUB = (I: string) =>
   [
     'import Foundation',
     '',
@@ -234,12 +245,7 @@ export function iosTests(root: string, map: ProjectMap, eps: EndpointInfo[]): Ch
   const warnings: string[] = [];
   if (!map.conventions.networkFile) throw new ToolError('not_supported', 'This project has no APIClient yet.', 'Run codz setup or codz feature add first.');
   const I = ' '.repeat(Number(map.conventions.indent) || 4);
-  const target = testTarget(root, map, files, summary);
-  const stubFile = `${target.folder}/StubURLProtocol.swift`;
-  if (readText(join(root, stubFile)) === null) {
-    files.set(stubFile, STUB(I));
-    summary.push(`Create ${stubFile}: answers requests in tests without a server`);
-  }
+  const target = ensureIosTestSetup(root, map, files, summary, I);
   const byFile = new Map<string, EndpointInfo[]>();
   for (const ep of eps) byFile.set(ep.file, [...(byFile.get(ep.file) ?? []), ep]);
   for (const [file, list] of byFile) {

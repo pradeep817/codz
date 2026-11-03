@@ -1140,8 +1140,8 @@ async function withScreenTest(root: string, adapter: Adapter, opts: ScreenOption
   if (!ep) return cs;
   const files = new Map<string, string>(cs.changes.filter((ch) => ch.after !== null).map((ch) => [ch.path, ch.after as string]));
   const input = { files, ep, params: routeParams(opts.path), paged: Boolean(opts.paginate) };
-  const { flutterScreenTest, androidScreenTest } = await import('./screenTests.ts');
-  const t = adapter.id === 'flutter' ? flutterScreenTest(root, map, input) : adapter.id === 'android' ? androidScreenTest(root, map, input) : null;
+  const { flutterScreenTest, androidScreenTest, iosScreenTest } = await import('./screenTests.ts');
+  const t = adapter.id === 'flutter' ? flutterScreenTest(root, map, input) : adapter.id === 'android' ? androidScreenTest(root, map, input) : adapter.id === 'ios' ? iosScreenTest(root, map, input) : null;
   if (!t) return cs;
   if ('skip' in t) return { ...cs, warnings: [...cs.warnings, `No test for this screen: ${t.skip}.`] };
   if (exists(join(root, t.file)) || files.has(t.file)) return cs;

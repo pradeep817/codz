@@ -12,6 +12,7 @@ import { join, posix } from 'node:path';
 import { readMethod } from '../adapters/getx.ts';
 import { addKotlinImports } from '../adapters/kotlinGen.ts';
 import { converter, ensureAndroidTestLibs } from './androidTests.ts';
+import * as iosHelpers from './iosTests.ts';
 import { readText } from '../core/fsutil.ts';
 import type { EndpointInfo, ModelInfo, ProjectMap } from '../core/types.ts';
 import { camel } from '../input/naming.ts';
@@ -289,4 +290,67 @@ function classOfUiState(files: Map<string, string>, vmText: string, pkg: string)
   void files;
   void pkg;
   return null;
+}
+
+// ---------- iOS: the view model ----------
+
+/** An XCTest for the view model of a SwiftUI screen: load() with the API answered by StubURLProtocol, then its state. */
+export function iosScreenTest(root: string, map: ProjectMap, input: ScreenTestInput): ScreenTest | { skip: string } {
+  const vmEntry = [...input.files].find(([f, t]) => f.endsWith('ViewModel.swift') && readText(join(root, f)) === null && /final class \w+: ObservableObject/.test(t));
+  if (!vmEntry) return { skip: 'no view model in the change' };
+  const [, vmText] = vmEntry;
+  const vm = /final class (\w+): ObservableObject/.exec(vmText)![1];
+  const init = /init\(([^)]*)\)/.exec(vmText)?.[1] ?? '';
+  const args = init
+    .split(',')
+    .map((p) => /^\s*(\w+)\s*:\s*([\w?]+)/.exec(p))
+    .filter((m): m is RegExpExecArray => !!m && m[1] !== 'api')
+    .map((m) => `${m[1]}: ${/^Int\??$/.test(m[2]) ? '1' : /^Double\??$/.test(m[2]) ? '1.0' : '"1"'}`);
+  const sample = exampleFor(input.ep.response ?? '', map, '');
+  if (sample === null || sample === undefined) return { skip: `no example data for ${input.ep.response}` };
+  const paged = /@Published private\(set\) var items:/.test(vmText);
+  const load = paged ? (/func load\(reset: Bool/.test(vmText) ? 'load(reset: true)' : 'load()') : 'load()';
+  const I = ' '.repeat(Number(map.conventions.indent) || 4);
+  const files = new Map(input.files);
+  const summary: string[] = [];
+  const { ensureIosTestSetup } = iosHelpers;
+  let target: { folder: string; module: string };
+  try {
+    target = ensureIosTestSetup(root, map, files, summary, I);
+  } catch (e) {
+    return { skip: (e as Error).message.replace(/\.$/, '') };
+  }
+  const make = `${vm}(${[...args, 'api: APIClient(baseURL: URL(string: "https://api.test")!, session: StubURLProtocol.session())'].join(', ')})`;
+  const isList = Array.isArray(sample);
+  const L = (d: number, s: string) => `${I.repeat(d)}${s}`;
+  const text = [
+    'import XCTest',
+    `@testable import ${target.module}`,
+    '',
+    `/// ${vm} with the API answered by StubURLProtocol (codz screen add).`,
+    '@MainActor',
+    `final class ${vm}Tests: XCTestCase {`,
+    L(1, 'func testShowsTheData() async {'),
+    L(2, 'StubURLProtocol.status = 200'),
+    L(2, `StubURLProtocol.body = Data(#"${JSON.stringify(sample)}"#.utf8)`),
+    L(2, `let model = ${make}`),
+    L(2, `await model.${load}`),
+    ...(paged
+      ? [L(2, 'XCTAssertNil(model.error)'), L(2, `XCTAssertEqual(model.items.count, ${isList ? sample.length : 1})`)]
+      : [L(2, 'guard case .loaded(let data) = model.state else {'), L(3, 'return XCTFail("Expected data, got \\(model.state)")'), L(2, '}'), L(2, isList ? `XCTAssertEqual(data.count, ${sample.length})` : '_ = data')]),
+    L(1, '}'),
+    '',
+    L(1, 'func testShowsTheErrorWhenTheServerFails() async {'),
+    L(2, 'StubURLProtocol.status = 500'),
+    L(2, 'StubURLProtocol.body = Data(#"{"error":"boom"}"#.utf8)'),
+    L(2, `let model = ${make}`),
+    L(2, `await model.${load}`),
+    ...(paged ? [L(2, 'XCTAssertNotNil(model.error)')] : [L(2, 'guard case .failed = model.state else {'), L(3, 'return XCTFail("Expected an error, got \\(model.state)")'), L(2, '}')]),
+    L(1, '}'),
+    '}',
+    '',
+  ].join('\n');
+  const file = `${target.folder}/${vm}Tests.swift`;
+  const extra = new Map([...files].filter(([f]) => !input.files.has(f) || input.files.get(f) !== files.get(f)));
+  return { file, text, summary: `Create ${file}: ${vm} with data and after a server error`, warnings: [], extra, extraSummary: summary };
 }
