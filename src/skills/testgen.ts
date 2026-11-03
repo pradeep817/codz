@@ -45,7 +45,8 @@ export async function planTestAdd(root: string, adapter: Adapter, opts: TestOpti
   if (adapter.id === 'nextjs' || adapter.id === 'react-native' || adapter.id === 'react') return nextTests(root, map, eps);
   if (adapter.id === 'flutter') return flutterTests(root, map, eps);
   if (adapter.id === 'android') return (await import('./androidTests.ts')).androidTests(root, map, eps);
-  throw new ToolError('not_supported', `test add writes tests for Next.js, React, React Native, Flutter and Android; ${adapter.id === 'ios' ? 'iOS (XCTest) is not supported yet' : `this project uses the ${adapter.id} adapter`}.`, adapter.id === 'ios' ? 'Test the APIClient methods with XCTest and a URLProtocol stub for now; codz will write these later.' : undefined);
+  if (adapter.id === 'ios') return (await import('./iosTests.ts')).iosTests(root, map, eps);
+  throw new ToolError('not_supported', `test add writes tests for Next.js, React, React Native, Flutter, Android and iOS; this project uses the ${adapter.id} adapter.`);
 }
 
 /** Argument values for a call: path parameters get 1 or 'abc', the body gets example data. */

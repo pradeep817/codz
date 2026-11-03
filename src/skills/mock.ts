@@ -71,7 +71,7 @@ export function scrubSample(value: unknown, map: ProjectMap, replaced: Set<strin
 /** Builds deterministic example data from a type name as the project writes it. */
 export function exampleFor(type: string, map: ProjectMap, fieldName = '', depth = 0, index = 1): unknown {
   const t = type.replace(/\?$/, '').replace(/\s*\|\s*null$/, '').trim();
-  const list = /^List<(.+)>$/.exec(t) ?? /^(.+)\[\]$/.exec(t) ?? /^Array<(.+)>$/.exec(t);
+  const list = /^List<(.+)>$/.exec(t) ?? /^(.+)\[\]$/.exec(t) ?? /^Array<(.+)>$/.exec(t) ?? /^\[([^:\]]+)\]$/.exec(t);
   if (list) return depth > 3 ? [] : [exampleFor(list[1], map, fieldName, depth + 1, 1), exampleFor(list[1], map, fieldName, depth + 1, 2)];
   const model = map.models.find((m) => m.name === t);
   if (model) return depth > 3 ? {} : exampleObject(model, map, depth + 1, index);
@@ -82,7 +82,7 @@ export function exampleFor(type: string, map: ProjectMap, fieldName = '', depth 
     return 10;
   }
   if (/^(double|Double|Float)$/.test(t)) return /(price|amount|total|cost|fee|balance)/.test(n) ? 19.99 : 4.5;
-  if (/^(bool|boolean|Boolean)$/.test(t)) return true;
+  if (/^(bool|boolean|Boolean|Bool)$/.test(t)) return true;
   if (t === 'DateTime' || (t === 'string' && /(_at|date|time)$/.test(n))) return '2026-01-01T09:00:00Z';
   if (/^(String|string)$/.test(t)) {
     if (/email/.test(n)) return `user${index}@example.com`;

@@ -258,6 +258,8 @@ ios_create() {
   dt env add staging --base-url https://staging.example.com
   # The project file codz wrote must open and build in Xcode: build it for the simulator, unsigned.
   xcodebuild -project ShopApp.xcodeproj -target ShopApp -sdk iphonesimulator -configuration Debug CODE_SIGNING_ALLOWED=NO build -quiet
+  # feature add wrote API tests and a ShopAppTests target: they must compile too.
+  xcodebuild -project ShopApp.xcodeproj -target ShopAppTests -sdk iphonesimulator -configuration Debug CODE_SIGNING_ALLOWED=NO build -quiet
 }
 
 echo "codz beta build check — work folder: $WORK"

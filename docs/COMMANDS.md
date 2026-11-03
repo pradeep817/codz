@@ -247,7 +247,7 @@ Accepts the change options.
 
 Unit tests for API functions with the network faked.
 
-Next.js: Vitest or Jest. React Native: Jest. Flutter: flutter_test with a fake Dio adapter. Android: JUnit with MockWebServer (adds the test dependencies).
+Next.js and React: Vitest or Jest. React Native: Jest. Flutter: flutter_test with a fake Dio adapter. Android: JUnit with MockWebServer (adds the test dependencies). iOS: XCTest with a URLProtocol stub (adds a unit-test target when there is none).
 
 | Option | |
 | --- | --- |
