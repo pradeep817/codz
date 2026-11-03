@@ -402,7 +402,9 @@ export function jsScreenTest(root: string, map: ProjectMap, input: ScreenTestInp
   const q = "'";
   const fn = input.ep.name;
   const usesQuery = /@tanstack\/react-query/.test(pageText) || /\buse[A-Z]\w*\(/.test(pageText) && /from ['"][^'"]*hooks/.test(pageText);
-  const usesRouter = /from ['"]react-router(-dom)?['"]/.test(pageText);
+  // A project with React Router gets the router in every test: feature add puts Links in the list page after its test is written.
+  const routerPkg = /from ['"]react-router['"]/.test(pageText) || (!deps['react-router-dom'] && deps['react-router']) ? 'react-router' : 'react-router-dom';
+  const usesRouter = /from ['"]react-router(-dom)?['"]/.test(pageText) || (!rn && Boolean(deps['react-router-dom'] || deps['react-router']));
   const usesNav = /from ['"]@react-navigation\/native['"]/.test(pageText);
   const usesExpoRouter = /from ['"]expo-router['"]/.test(pageText);
   const takesRoute = /\(\{\s*route\b/.test(pageText) || /route\.params/.test(pageText);
@@ -426,7 +428,7 @@ export function jsScreenTest(root: string, map: ProjectMap, input: ScreenTestInp
     ...(jest ? (rn ? [] : ['/** @jest-environment jsdom */', '']) : ['// @vitest-environment jsdom', '']),
     `import { ${rn ? 'render, screen' : 'cleanup, render, screen'} } from ${q}${rn ? '@testing-library/react-native' : '@testing-library/react'}${q};`,
     ...(jest ? [] : [`import { afterEach, describe, expect, it, vi } from ${q}vitest${q};`]),
-    ...(usesRouter ? [`import { MemoryRouter${input.params.length ? ', Route, Routes' : ''} } from ${q}react-router-dom${q};`] : []),
+    ...(usesRouter ? [`import { MemoryRouter${input.params.length ? ', Route, Routes' : ''} } from ${q}${routerPkg}${q};`] : []),
     ...(usesQuery ? [`import { QueryClient, QueryClientProvider } from ${q}@tanstack/react-query${q};`] : []),
     `import * as api from ${q}${apiPath}${q};`,
     `import ${comp[2]} from ${q}${pagePath}${q};`,

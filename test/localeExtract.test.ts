@@ -77,6 +77,20 @@ describe('locale extract', () => {
       assert.ok(views.some((p) => p.endsWith('app_translations.dart')), `translations written: ${views.join(', ')}`);
     }));
 
+  it('GetX: the widget test of a screen whose texts moved gets the app translations', () =>
+    inFixture('flutter-getx-cli', 'flutter', async (dir, a) => {
+      const cs = await planLocaleExtract(dir, a);
+      const view = cs.changes.find((c) => /\/views\/\w+_view\.dart$/.test(c.path));
+      assert.ok(view, 'a view changed');
+      const test = view.path.replace(/^lib\//, 'test/').replace(/\.dart$/, '_test.dart');
+      mkdirSync(join(dir, test, '..'), { recursive: true });
+      writeFileSync(join(dir, test), "import 'package:flutter_test/flutter_test.dart';\nimport 'package:get/get.dart';\n\nvoid main() {\n  testWidgets('x', (tester) async {\n    await tester.pumpWidget(GetMaterialApp(home: const Placeholder()));\n  });\n}\n");
+      apply(dir, await planLocaleExtract(dir, a));
+      const t = read(dir, test);
+      assert.match(t, /GetMaterialApp\(translations: \w+\(\), locale: const Locale\([^)]*\), home:/);
+      assert.match(t, /import 'package:[\w]+\/.*translations.*\.dart';/);
+    }));
+
   it('Compose: stringResource and strings.xml', () =>
     inFixture('android-app', 'android', async (dir, a) => {
       const f = 'app/src/main/java/dev/fieldops/app/ui/jobs/HelloScreen.kt';

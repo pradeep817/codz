@@ -23,6 +23,7 @@ import { exists, readText, walk } from '../core/fsutil.ts';
 import { ToolError, type Adapter, type ChangeSet, type ProjectMap } from '../core/types.ts';
 import { camel, pascal, snake } from '../input/naming.ts';
 import { localeKeyFiles, readLocales } from './locale.ts';
+import { screenTestPath } from './screenTests.ts';
 
 type Style = 'arb' | 'getx' | 'next-intl' | 'i18next' | 'next-i18next' | 'android';
 
@@ -485,6 +486,7 @@ export async function planLocaleExtract(root: string, adapter: Adapter, only: st
     files.set(f, t);
     summary.push(`Update ${f}: ${moved} text${moved === 1 ? '' : 's'} → ${style === 'android' ? 'stringResource' : style === 'arb' ? 'AppLocalizations' : style === 'getx' ? '.tr' : 't()'}`);
   }
+  if (style === 'getx' || style === 'arb') localizeWidgetTests(root, [...byFile.keys()].filter((f) => files.has(f)), files, summary, style, arb?.importUri);
   if (style === 'getx' && newKeys.some((k) => /\{\w+\}/.test(k.text))) summary.push('Text with values uses trParams; GetX fills @name in the translation.');
   return buildChangeSet(root, 'locale extract', { files, summary, warnings, generated: [] });
 }
@@ -508,4 +510,42 @@ function xmlEscape(s: string): string {
 
 function xmlUnescape(s: string): string {
   return s.replace(/\\'/g, "'").replace(/\\"/g, '"').replace(/\\n/g, '\n').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&').replace(/%%/g, '%');
+}
+
+/**
+ * Widget tests codz wrote for the screens whose texts moved now need the texts
+ * themselves: GetX's .tr shows the key without the app's translations, and
+ * AppLocalizations.of(context) is null without its delegates.
+ */
+function localizeWidgetTests(root: string, changed: string[], files: Map<string, string>, summary: string[], style: 'getx' | 'arb', arbImport?: string): void {
+  const read = (f: string) => files.get(f) ?? readText(join(root, f));
+  const pkg = /^name:\s*(\S+)/m.exec(read('pubspec.yaml') ?? '')?.[1];
+  if (!pkg) return;
+  let args: string;
+  let uri: string;
+  if (style === 'getx') {
+    const tr = [...files.keys(), ...walk(root, 'lib', { exts: ['.dart'] })]
+      .filter((f, i, a) => f.endsWith('.dart') && a.indexOf(f) === i)
+      .map((f) => ({ f, cls: /class\s+(\w+)\s+extends\s+Translations\b/.exec(read(f) ?? '')?.[1] }))
+      .find((x) => x.cls);
+    if (!tr) return;
+    const main = read('lib/main.dart') ?? '';
+    const locale = /locale:\s*(?:const\s+)?Locale\(([^)]*)\)/.exec(main)?.[1] ?? "'en', 'US'";
+    args = `translations: ${tr.cls}(), locale: const Locale(${locale}), `;
+    uri = `package:${pkg}/${tr.f.replace(/^lib\//, '')}`;
+  } else {
+    if (!arbImport) return;
+    const cls = /^output-class:\s*(\w+)/m.exec(read('l10n.yaml') ?? '')?.[1] ?? 'AppLocalizations';
+    args = `localizationsDelegates: ${cls}.localizationsDelegates, supportedLocales: ${cls}.supportedLocales, `;
+    uri = arbImport;
+  }
+  const app = style === 'getx' ? 'GetMaterialApp' : 'MaterialApp';
+  for (const f of changed) {
+    if (!f.startsWith('lib/')) continue;
+    const test = screenTestPath(f);
+    const t = read(test);
+    if (!t || !t.includes(`${app}(home:`) || t.includes(args.trim())) continue;
+    files.set(test, addDartImport(t.split(`${app}(home:`).join(`${app}(${args}home:`), uri));
+    summary.push(`Update ${test}: the app's ${style === 'getx' ? 'translations' : 'localizations'}, so the test finds the texts`);
+  }
 }
