@@ -306,6 +306,7 @@ Android: a Compose screen plus a ViewModel (Hilt, Koin or the service locator) w
 | `--form` | A form that sends the endpoint's request body (POST, PUT, PATCH) |
 | `--paginate` | List screens: load page after page as you scroll (the endpoint needs a page or offset parameter) |
 | `--search` | List screens: a search box (on the server with a q/search parameter, otherwise over the loaded items) |
+| `--no-tests` | Do not generate tests |
 
 Accepts the change options.
 

@@ -42,6 +42,8 @@ export interface ScreenOptions {
   paginate?: boolean;
   /** List screens: a search box (server search when the endpoint has a q/search parameter, otherwise over the loaded items). */
   search?: boolean;
+  /** Write a test for the screen (default true). */
+  tests?: boolean;
 }
 
 export interface Arg {
@@ -1126,6 +1128,29 @@ async function nextScreen(root: string, adapter: Adapter, map: ProjectMap, opts:
 }
 
 export async function planScreenAdd(root: string, adapter: Adapter, opts: ScreenOptions): Promise<ChangeSet> {
+  const cs = await planScreenOnly(root, adapter, opts);
+  if (opts.tests === false || opts.form || !opts.api) return cs;
+  return withScreenTest(root, adapter, opts, cs);
+}
+
+/** Adds a test for the new screen to the change, when codz can write one for this project. */
+async function withScreenTest(root: string, adapter: Adapter, opts: ScreenOptions, cs: ChangeSet): Promise<ChangeSet> {
+  const { map } = await loadMap(root, adapter, loadConfig(root).conventions);
+  const ep = map.endpoints.find((e) => e.name === opts.api) ?? map.endpoints.find((e) => e.name.toLowerCase() === opts.api!.toLowerCase());
+  if (!ep) return cs;
+  const files = new Map<string, string>(cs.changes.filter((ch) => ch.after !== null).map((ch) => [ch.path, ch.after as string]));
+  const input = { files, ep, params: routeParams(opts.path), paged: Boolean(opts.paginate) };
+  const { flutterScreenTest } = await import('./screenTests.ts');
+  const t = adapter.id === 'flutter' ? flutterScreenTest(root, map, input) : null;
+  if (!t) return cs;
+  if ('skip' in t) return { ...cs, warnings: [...cs.warnings, `No test for this screen: ${t.skip}.`] };
+  if (exists(join(root, t.file)) || files.has(t.file)) return cs;
+  files.set(t.file, t.text);
+  const deletes = new Set(cs.changes.filter((ch) => ch.after === null).map((ch) => ch.path));
+  return buildChangeSet(root, cs.skill, { files, deletes, summary: [...cs.summary, t.summary], warnings: [...cs.warnings, ...t.warnings], generated: cs.generated, rewrites: cs.rewrites });
+}
+
+async function planScreenOnly(root: string, adapter: Adapter, opts: ScreenOptions): Promise<ChangeSet> {
   const { map } = await loadMap(root, adapter, loadConfig(root).conventions);
   const c = map.conventions;
   if (adapter.id === 'android') return (await import('./androidUi.ts')).planAndroidScreen(root, map, opts);

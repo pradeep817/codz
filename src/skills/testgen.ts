@@ -195,7 +195,7 @@ function nextTests(root: string, map: ProjectMap, eps: EndpointInfo[]): ChangeSe
 
 // ---------------- Flutter ----------------
 
-function dartLiteral(v: unknown, indent = ''): string {
+export function dartLiteral(v: unknown, indent = ''): string {
   if (v === null || v === undefined) return 'null';
   if (typeof v === 'string') return `'${v.replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/\$/g, '\\$')}'`;
   if (typeof v === 'number' || typeof v === 'boolean') return String(v);

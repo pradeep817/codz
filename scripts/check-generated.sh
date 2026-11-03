@@ -100,7 +100,7 @@ if command -v flutter >/dev/null 2>&1; then
     (cd "$d" && dtq api import "$IN/shop.har" --base-url https://api.shop.dev --skip-conflicts "${FLAGS[@]}")
     (cd "$d" && dtq doctor --fix "${FLAGS[@]}")
     echo "→ $(basename "$d"): pub get, analyze"
-    (cd "$d" && tmo flutter pub get >/dev/null && dart analyze lib) && echo "✓ flutter-fresh + $arch, full session: dart analyze clean" || { echo "✗ flutter-fresh + $arch full session"; status=1; }
+    (cd "$d" && tmo flutter pub get >/dev/null && dart analyze lib test && tmo flutter test) && echo "✓ flutter-fresh + $arch, full session: dart analyze clean, tests pass (API and screen tests)" || { echo "✗ flutter-fresh + $arch full session"; status=1; }
   done
 
   # freezed models + Retrofit clients + Cubit screens (get_it), with build_runner.
@@ -130,7 +130,7 @@ if command -v flutter >/dev/null 2>&1; then
   (cd "$d" && dtq locale extract "${FLAGS[@]}")
   (cd "$d" && fake_assets assets/images/logo.png assets/icons/cart.png assets/fonts/Inter-Regular.ttf && dtq assets "${FLAGS[@]}")
   echo "→ $(basename "$d"): pub get, gen-l10n, analyze"
-  (cd "$d" && tmo flutter pub get >/dev/null && flutter gen-l10n >/dev/null && dart analyze lib) && echo "✓ flutter-riverpod + go_router route, theme, ARB key, locale extract: dart analyze clean" || { echo "✗ flutter-riverpod session"; status=1; }
+  (cd "$d" && tmo flutter pub get >/dev/null && flutter gen-l10n >/dev/null && dart analyze lib test) && echo "✓ flutter-riverpod + go_router route, theme, ARB key, locale extract: dart analyze clean" || { echo "✗ flutter-riverpod session"; status=1; }
 else
   echo "- Flutter SDK not found; skipping the Dart checks"
 fi

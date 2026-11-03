@@ -195,7 +195,7 @@ export async function planFeatureAdd(root: string, adapter: Adapter, opts: Featu
     const createdBy = new Map<string, string[]>();
     for (const [i, s] of screens.entries()) {
       try {
-        const cs = await planScreenAdd(ws.root, adapter, { name: s.name, api: s.api, path: s.route, form: s.kind === 'create' || s.kind === 'edit', initial: opts.initial === true && i === 0, ...(s.load ? { load: s.load } : {}) });
+        const cs = await planScreenAdd(ws.root, adapter, { name: s.name, api: s.api, path: s.route, form: s.kind === 'create' || s.kind === 'edit', initial: opts.initial === true && i === 0, tests: opts.tests !== false, ...(s.load ? { load: s.load } : {}) });
         ws.apply(cs);
         createdBy.set(s.name, cs.changes.filter((ch) => ch.before === null && ch.after !== null).map((ch) => ch.path));
         made.push(s);

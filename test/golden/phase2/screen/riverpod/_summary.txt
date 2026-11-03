@@ -2,3 +2,4 @@
 • Update lib/router.dart: GoRoute '/users/:id' → UserDetailsPage
 • Open it with: context.go('/users/${id}')  or  context.goNamed('userDetails', pathParameters: {'id': id})
 • lib/features/user_details/user_details_page.dart loads getUser() and shows loading, error with retry, and the data
+• Create test/features/user_details/user_details_page_test.dart: UserDetailsPage while loading, with data, and after an error (Retry)
