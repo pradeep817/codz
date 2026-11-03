@@ -27,6 +27,8 @@ export interface ScreenTestInput {
   /** Route parameters the screen takes. */
   params: string[];
   paged: boolean;
+  /** test add --file: the screen already exists (otherwise only new files of the change are looked at). */
+  existing?: boolean;
 }
 
 export interface ScreenTest {
@@ -80,7 +82,7 @@ export function flutterScreenTest(root: string, map: ProjectMap, input: ScreenTe
   if (!pkg) return { skip: 'pubspec.yaml has no name, so the test cannot import the app' };
   const read = (f: string) => input.files.get(f) ?? readText(join(root, f));
   // The screen: a new Dart file with a widget class (a GetX module's view).
-  const screen = [...input.files].find(([f, t]) => f.endsWith('.dart') && read(f) !== null && !readText(join(root, f)) && /class\s+\w+\s+extends\s+(StatelessWidget|StatefulWidget|ConsumerStatefulWidget|ConsumerWidget|GetView<\w+>)/.test(t) && !/_controller\.dart$|_binding\.dart$/.test(f));
+  const screen = [...input.files].find(([f, t]) => f.endsWith('.dart') && read(f) !== null && (input.existing || !readText(join(root, f))) && /class\s+\w+\s+extends\s+(StatelessWidget|StatefulWidget|ConsumerStatefulWidget|ConsumerWidget|GetView<\w+>)/.test(t) && !/_controller\.dart$|_binding\.dart$/.test(f));
   if (!screen) return { skip: 'no screen widget in the change' };
   const [screenFile, screenText] = screen;
   const widget = /class\s+(\w+)\s+extends\s+(StatelessWidget|StatefulWidget|ConsumerStatefulWidget|ConsumerWidget|GetView<(\w+)>)/.exec(screenText)!;
@@ -118,7 +120,7 @@ export function flutterScreenTest(root: string, map: ProjectMap, input: ScreenTe
   };
   const setup = (bodiesVar: string, status: number) => {
     const repoExpr = `${repo}(Dio(BaseOptions(baseUrl: 'https://api.test'))..httpClientAdapter = _FakeApi(${status}, ${bodiesVar}))`;
-    if (getx) return [`    Get.put<${repo}>(${repoExpr});`, `    Get.put(${controller}());`, `    await tester.pumpWidget(${host('')});`];
+    if (getx) return [`    Get.delete<${controller}>(force: true);`, `    Get.delete<${repo}>(force: true);`, `    Get.put<${repo}>(${repoExpr});`, `    Get.put(${controller}());`, `    await tester.pumpWidget(${host('')});`];
     if (getIt) return [`    ${gi}.registerSingleton<${repo}>(${repoExpr});`, `    await tester.pumpWidget(${host('')});`];
     return [`    await tester.pumpWidget(${host(repoExpr)});`];
   };
@@ -154,7 +156,8 @@ export function flutterScreenTest(root: string, map: ProjectMap, input: ScreenTe
     ...(getx ? ["import 'package:get/get.dart';"] : []),
     ...[uri(screenFile), uri(input.ep.file), ...(getIt && c.diFile ? [uri(c.diFile)] : []), ...(getx ? [uri(screenFile.replace(/\/views\/(\w+)_view\.dart$/, '/controllers/$1_controller.dart'))] : [])].filter((v, i, a) => a.indexOf(v) === i).sort().map((u) => `import '${u}';`),
   ];
-  const teardown = getx ? ['  tearDown(Get.reset);', ''] : getIt ? [`  setUp(() async => ${gi}.reset());`, ''] : [];
+  // GetX keeps an instance already registered (Get.put does not replace it): start each test from nothing.
+  const teardown = getx ? ['  setUp(() {', '    Get.testMode = true;', '    Get.reset();', '  });', '  tearDown(Get.reset);', ''] : getIt ? [`  setUp(() async => ${gi}.reset());`, ''] : [];
   const file = `test/${screenFile.replace(/^lib\//, '').replace(/\.dart$/, '_test.dart')}`;
   const text = [...imports, '', MULTI_ADAPTER, '', 'void main() {', ...teardown, ...tests, '}', ''].join('\n');
   return { file, text, summary: `Create ${file}: ${cls} while loading, with data${list ? ', empty' : ''}, and after an error (Retry)`, warnings: [] };
@@ -173,7 +176,7 @@ export const screenTestPath = (screenFile: string) => `test/${posix.normalize(sc
 export function androidScreenTest(root: string, map: ProjectMap, input: ScreenTestInput): ScreenTest | { skip: string } {
   const c = map.conventions;
   const read = (f: string) => input.files.get(f) ?? readText(join(root, f));
-  const vmEntry = [...input.files].find(([f, t]) => f.endsWith('ViewModel.kt') && readText(join(root, f)) === null && /:\s*ViewModel\(\)/.test(t));
+  const vmEntry = [...input.files].find(([f, t]) => f.endsWith('ViewModel.kt') && (input.existing || readText(join(root, f)) === null) && /:\s*ViewModel\(\)/.test(t));
   if (!vmEntry) return { skip: 'no ViewModel in the change' };
   const [vmFile, vmText] = vmEntry;
   const vm = /class\s+(\w+)/.exec(vmText.replace(/^data class .*$/gm, ''))?.[1];
@@ -296,7 +299,7 @@ function classOfUiState(files: Map<string, string>, vmText: string, pkg: string)
 
 /** An XCTest for the view model of a SwiftUI screen: load() with the API answered by StubURLProtocol, then its state. */
 export function iosScreenTest(root: string, map: ProjectMap, input: ScreenTestInput): ScreenTest | { skip: string } {
-  const vmEntry = [...input.files].find(([f, t]) => f.endsWith('ViewModel.swift') && readText(join(root, f)) === null && /final class \w+: ObservableObject/.test(t));
+  const vmEntry = [...input.files].find(([f, t]) => f.endsWith('ViewModel.swift') && (input.existing || readText(join(root, f)) === null) && /final class \w+: ObservableObject/.test(t));
   if (!vmEntry) return { skip: 'no view model in the change' };
   const [, vmText] = vmEntry;
   const vm = /final class (\w+): ObservableObject/.exec(vmText)![1];
@@ -369,7 +372,7 @@ const TL_VERSIONS = { '@testing-library/react': '^16.1.0', '@testing-library/dom
 export function jsScreenTest(root: string, map: ProjectMap, input: ScreenTestInput & { route?: string }): ScreenTest | { skip: string } {
   const c = map.conventions;
   const fw = map.framework;
-  const page = [...input.files].find(([f, t]) => /\.(tsx|jsx)$/.test(f) && !/\.test\./.test(f) && readText(join(root, f)) === null && /export default (?:async )?function \w+/.test(t) && !/loading\.|error\./.test(posix.basename(f)));
+  const page = [...input.files].find(([f, t]) => /\.(tsx|jsx)$/.test(f) && !/\.test\./.test(f) && (input.existing || readText(join(root, f)) === null) && /export default (?:async )?function \w+/.test(t) && !/loading\.|error\./.test(posix.basename(f)));
   if (!page) return { skip: 'no screen component in the change' };
   const [pageFile, pageText] = page;
   const comp = /export default (async )?function (\w+)/.exec(pageText)!;

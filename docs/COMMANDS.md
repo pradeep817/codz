@@ -243,15 +243,18 @@ Next.js, React Native and Flutter. Not yet on Android.
 
 Accepts the change options.
 
-### `codz test add <endpoint>... | --all`
+### `codz test add <endpoint>... | --all | --file <path>`
 
-Unit tests for API functions with the network faked.
+Tests with the network faked: for endpoints, or for one file (screen, ViewModel, API file, helpers).
 
 Next.js and React: Vitest or Jest. React Native: Jest. Flutter: flutter_test with a fake Dio adapter. Android: JUnit with MockWebServer (adds the test dependencies). iOS: XCTest with a URLProtocol stub (adds a unit-test target when there is none).
+
+--file <path>: an API file gets tests for its endpoints; a screen, page, view, ViewModel or GetX controller gets the screen test (the endpoint it calls answered by a fake); other TypeScript and Dart files get a test per exported function, called with example arguments, with the expected values left as TODO.
 
 | Option | |
 | --- | --- |
 | `--all` | Every endpoint (mock add, test add), or every plan (plans clean) |
+| `--file <path>` | test add: write tests for this file |
 
 Accepts the change options.
 

@@ -100,6 +100,8 @@ if command -v flutter >/dev/null 2>&1; then
     (cd "$d" && dtq api import "$IN/shop.har" --base-url https://api.shop.dev --skip-conflicts "${FLAGS[@]}")
     (cd "$d" && dtq doctor --fix "${FLAGS[@]}")
     echo "→ $(basename "$d"): pub get, analyze"
+    # GetX setup replaces the counter page that flutter create's widget_test.dart checks (codz warns about it).
+    if [ "$arch" = getx ] && grep -q "Counter increments smoke test" "$d/test/widget_test.dart" 2>/dev/null; then rm "$d/test/widget_test.dart"; fi
     (cd "$d" && tmo flutter pub get >/dev/null && dart analyze lib test && tmo flutter test) && echo "✓ flutter-fresh + $arch, full session: dart analyze clean, tests pass (API and screen tests)" || { echo "✗ flutter-fresh + $arch full session"; status=1; }
   done
 

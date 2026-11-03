@@ -31,6 +31,10 @@ class _FakeApi implements HttpClientAdapter {
 }
 
 void main() {
+  setUp(() {
+    Get.testMode = true;
+    Get.reset();
+  });
   tearDown(Get.reset);
 
   testWidgets('CatalogView shows a spinner, then the data', (tester) async {
@@ -58,6 +62,8 @@ void main() {
         'discount': 4.5,
       },
     ];
+    Get.delete<CatalogController>(force: true);
+    Get.delete<ProductRepository>(force: true);
     Get.put<ProductRepository>(ProductRepository(Dio(BaseOptions(baseUrl: 'https://api.test'))..httpClientAdapter = _FakeApi(200, [data])));
     Get.put(CatalogController());
     await tester.pumpWidget(GetMaterialApp(home: const CatalogView()));
@@ -67,6 +73,8 @@ void main() {
   });
 
   testWidgets('CatalogView says when there is nothing to show', (tester) async {
+    Get.delete<CatalogController>(force: true);
+    Get.delete<ProductRepository>(force: true);
     Get.put<ProductRepository>(ProductRepository(Dio(BaseOptions(baseUrl: 'https://api.test'))..httpClientAdapter = _FakeApi(200, [[]])));
     Get.put(CatalogController());
     await tester.pumpWidget(GetMaterialApp(home: const CatalogView()));
@@ -75,6 +83,8 @@ void main() {
   });
 
   testWidgets('CatalogView shows the error with Retry', (tester) async {
+    Get.delete<CatalogController>(force: true);
+    Get.delete<ProductRepository>(force: true);
     Get.put<ProductRepository>(ProductRepository(Dio(BaseOptions(baseUrl: 'https://api.test'))..httpClientAdapter = _FakeApi(500, [{'error': 'nope'}])));
     Get.put(CatalogController());
     await tester.pumpWidget(GetMaterialApp(home: const CatalogView()));

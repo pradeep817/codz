@@ -29,6 +29,7 @@ import { normalizeModelDir, parseJsonText, planModel } from './skills/model.ts';
 import { listEnvs, planEnvAdd, planEnvUse } from './skills/env.ts';
 import { planLocaleExtract } from './skills/localeExtract.ts';
 import { planAssets } from './skills/assets.ts';
+import { planTestFile } from './skills/testFile.ts';
 import { planMockAdd } from './skills/mock.ts';
 import { planLocaleAdd, planLocaleKey } from './skills/locale.ts';
 import { planThemeSet } from './skills/theme.ts';
@@ -938,7 +939,7 @@ async function run(args: Args, out: Out): Promise<number> {
     }
     case 'test': {
       if (sub !== 'add') throw new ToolError('bad_args', `Unknown command "test ${sub ?? ''}".`, 'Usage: codz test add <endpoint>... | --all');
-      const cs = await planTestAdd(root, adapter, { endpoints: positional.slice(2), all: flags.all === true });
+      const cs = typeof flags.file === 'string' ? await planTestFile(root, adapter, flags.file) : await planTestAdd(root, adapter, { endpoints: positional.slice(2), all: flags.all === true });
       return handleChange(root, out, flags, cs, adapter);
     }
     case 'screen': {

@@ -452,7 +452,30 @@ codz test add getUser        # one endpoint
 codz test add --all          # every endpoint without a test
 ```
 
-Tests that fake the network, so they run offline: Next.js tests (Vitest, or Jest when the project uses it) replace `fetch`, or the axios instance's method, with a spy that answers example data, then check the method, the URL and the result, and that a failed response throws. Flutter tests give Dio a fake `HttpClientAdapter`, check the method, the path and the typed result, and that a 500 throws a `DioException`. React Native tests are Jest. Android tests are JUnit tests on the JVM against OkHttp's `MockWebServer` (`app/src/test/java/.../UserApiTest.kt`): each one enqueues example JSON, calls the method, checks the method, the path and the parsed result, and one test per interface checks that a 500 throws `HttpException`; MockWebServer, kotlinx-coroutines-test and JUnit are added as `testImplementation` when missing. Run them with `./gradlew :app:testDebugUnitTest`. One test file per API file (`users.test.ts` next to it, or `test/.../user_repository_test.dart`); endpoints that already have a test are skipped.
+Tests that fake the network, so they run offline: Next.js tests (Vitest, or Jest when the project uses it) replace `fetch`, or the axios instance's method, with a spy that answers example data, then check the method, the URL and the result, and that a failed response throws. Flutter tests give Dio a fake `HttpClientAdapter`, check the method, the path and the typed result, and that a 500 throws a `DioException`. React Native tests are Jest. Android tests are JUnit tests on the JVM against OkHttp's `MockWebServer` (`app/src/test/java/.../UserApiTest.kt`): each one enqueues example JSON, calls the method, checks the method, the path and the parsed result, and one test per interface checks that a 500 throws `HttpException`; MockWebServer, kotlinx-coroutines-test and JUnit are added as `testImplementation` when missing. Run them with `./gradlew :app:testDebugUnitTest`. iOS tests are XCTest cases (`ShopAppTests/ProductsAPITests.swift`) answered by a `URLProtocol` stub; a project without a unit-test target gets one (`<App>Tests`, hosted by the app) when it uses Xcode 16's synchronized folders. One test file per API file (`users.test.ts` next to it, or `test/.../user_repository_test.dart`); endpoints that already have a test are skipped.
+
+### Tests for screens
+
+`screen add` (and so `feature add`) writes a test with every data screen; `--no-tests` leaves it out. The screen's API is answered by a fake, and the test checks what the user sees: the data, the empty message for a list, and the error with Retry.
+
+| Project | The test |
+| --- | --- |
+| Flutter | A widget test: the repository on a Dio with a fake adapter, put where the screen gets it (a Riverpod override, get_it, Bloc's `RepositoryProvider`, GetX's `Get.put`) |
+| Android | A JVM test of the ViewModel: the real Retrofit interface on a `MockWebServer`, route parameters in a `SavedStateHandle`, the state after a good and a failed answer |
+| iOS | An XCTest of the view model: `load()` with the API answered by the `URLProtocol` stub, then its state |
+| React, React Native | Testing Library: the API module mocked, the screen rendered in its router or TanStack Query provider |
+| Next.js | The server page awaited and rendered with Testing Library; a failing API makes it throw, for `error.tsx` |
+
+Testing Library, a DOM for web tests and the runner's types go into devDependencies when missing (run `npm install`); a Next.js project with Vitest gets a `vitest.config.mts` with the React plugin.
+
+### Tests for any file
+
+```bash
+codz test add --file lib/features/cart/cart_page.dart
+codz test add --file src/utils/format.ts
+```
+
+An API file gets tests for its endpoints. A screen, page, view, ViewModel or GetX controller gets the screen test above: codz finds the endpoint it calls (in the file or the ViewModel, controller, Cubit or hook next to it) and the route parameters it reads. Any other TypeScript or Dart file gets a test per exported function, called with example arguments; codz cannot know what a function should return, so those tests check that it runs and mark where to put the expected value with a TODO.
 
 ### Custom templates
 

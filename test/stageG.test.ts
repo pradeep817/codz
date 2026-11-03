@@ -431,7 +431,10 @@ describe('fixes from the first beta build check', () => {
     try {
       const r = await planFeatureAdd(dir, rn, { name: 'products', spec: join(REPO, 'examples', 'openapi.yaml') });
       const t = r.changeSet.changes.find((c) => c.path.endsWith('products.test.ts'))!.after!;
-      assert.match(t, /import \{ afterEach, describe, expect, it, jest \} from '@jest\/globals';/);
+      // Typed either way: imported from @jest/globals, or as globals once @types/jest is in devDependencies (the screen tests add it).
+      const pkg = r.changeSet.changes.find((c) => c.path === 'package.json')?.after ?? '';
+      assert.ok(/import \{ afterEach, describe, expect, it, jest \} from '@jest\/globals';/.test(t) || /"@types\/jest"/.test(pkg), 'jest globals are typed');
+      assert.match(t, /jest\.spyOn\(globalThis, 'fetch'\)/);
     } finally {
       cleanup(dir);
     }

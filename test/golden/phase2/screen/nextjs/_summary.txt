@@ -3,5 +3,5 @@
 • app/users/[id]/page.tsx awaits getUser() on the server and renders the result
 • Create app/users/[id]/loading.tsx and app/users/[id]/error.tsx (loading state, and an error with retry)
 • Create app/users/[id]/page.test.tsx: UserProfilePage with data, and a failing API
-• Update package.json: @testing-library/react, @testing-library/dom, jsdom, @vitejs/plugin-react, vite-tsconfig-paths in devDependencies (run npm install)
+• Update package.json: @testing-library/react, @testing-library/dom, jsdom, @vitejs/plugin-react, vite-tsconfig-paths, vitest in devDependencies (run npm install)
 • Create vitest.config.mts: the React plugin and tsconfig paths, so Vitest can render pages
